@@ -1,10 +1,10 @@
 import { MarketingSiteIframe } from "@/components/site/marketing-iframe";
 import { SitePageShell } from "@/components/site/site-page-shell";
 
-export default function Home() {
+export default function SolutionsPage() {
   return (
-    <SitePageShell showContactAndFooter={false}>
-      <MarketingSiteIframe scrollable underSiteChrome />
+    <SitePageShell>
+      <MarketingSiteIframe title="Solutions — Agentomatic Labs" scrollable underSiteChrome />
     </SitePageShell>
   );
 }
