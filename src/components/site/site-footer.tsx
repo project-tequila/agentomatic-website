@@ -1,21 +1,18 @@
 import Link from "next/link";
 
-/**
- * Matches `agentomatic_labs_website.html` footer: Syne-style brand, DM Sans links (root layout fonts).
- */
 export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-white/[0.07] bg-[#080C18] px-[clamp(1rem,4vw,3rem)] py-10">
+    <footer className="border-t border-white/[0.07] px-[clamp(1rem,4vw,3rem)] py-10">
       <div className="mx-auto flex max-w-[75rem] flex-col flex-wrap items-start gap-8 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <Link
           href="/"
-          className="flex items-center gap-2 text-[1.1rem] font-extrabold tracking-[-0.03em] text-white [font-family:var(--font-marketing-syne),system-ui,sans-serif]"
+          className="flex items-center gap-2 text-[1.05rem] font-semibold tracking-[-0.04em] text-white"
         >
           Agentomatic
-          <span className="inline-block size-2 shrink-0 rounded-[3px] bg-[#00D4FF]" aria-hidden />
-          Labs
+          <span className="inline-block size-2 shrink-0 rounded-full bg-[#8cffd2]" aria-hidden />
+          Voice
         </Link>
 
         <nav
@@ -32,7 +29,7 @@ export function SiteFooter() {
             Blog
           </Link>
           <Link className="min-h-10 inline-flex items-center no-underline hover:text-[rgba(232,237,248,0.8)]" href="#contact">
-            Privacy Policy
+            Voice Demo
           </Link>
         </nav>
 

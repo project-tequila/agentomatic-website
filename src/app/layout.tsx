@@ -8,7 +8,6 @@ const ibmPlexMono = IBM_Plex_Mono({
   weight: ["300", "400", "500", "600", "700"],
 });
 
-/** Same pairing as `public/agentomatic_labs_website.html` for shell contact + footer + Vision. */
 const marketingSyne = Syne({
   variable: "--font-marketing-syne",
   subsets: ["latin"],
@@ -22,14 +21,14 @@ const marketingDmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Agentomatic Labs",
-  description: "Agentomatic Labs landing page",
+  title: "Agentomatic Voice",
+  description: "A minimal voice AI agent experience for calls, leads, and visitor conversations.",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#080c18",
+  themeColor: "#050607",
 };
 
 export default function RootLayout({

@@ -7,10 +7,6 @@ import { SiteFooter } from "@/components/site/site-footer";
 type SitePageShellProps = {
   children: ReactNode;
   showSiteChrome?: boolean;
-  /**
-   * Set false on `/` when contact + footer already exist inside the marketing iframe
-   * (`agentomatic_labs_website.html`).
-   */
   showContactAndFooter?: boolean;
 };
 
@@ -21,7 +17,7 @@ export function SitePageShell({
   showContactAndFooter = true,
 }: SitePageShellProps) {
   return (
-    <div className="min-h-dvh bg-[#080C18] text-[#E8EDF8] antialiased [font-family:var(--font-marketing-dm),system-ui,sans-serif]">
+    <div className="voice-page min-h-dvh text-[#F7FBFF] antialiased [font-family:var(--font-sans),system-ui,sans-serif]">
       {showSiteChrome ? <SiteChrome /> : null}
       {children}
       {showContactAndFooter ? (

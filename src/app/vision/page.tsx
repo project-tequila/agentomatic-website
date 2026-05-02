@@ -6,9 +6,9 @@ import { VisionPageContent } from "@/components/site/vision-page-content";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Vision — Agentomatic Labs",
+  title: "Vision - Agentomatic Voice",
   description:
-    "Our mission, story, and leadership—AI that captures every conversation and delivers clarity through dashboards.",
+    "A minimal voice AI vision for answering visitors, qualifying leads, and turning conversations into memory.",
 };
 
 export default function VisionPage() {

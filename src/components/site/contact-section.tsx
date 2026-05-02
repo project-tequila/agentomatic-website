@@ -2,16 +2,14 @@
 
 import { useState } from "react";
 
-/** Matches `.contact-icon` in `agentomatic_labs_website.html`. */
 function ContactIcon({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[rgba(0,212,255,0.1)] text-[0.9rem]">
+    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#8cffd2]/10 text-[0.72rem] text-[#8cffd2]">
       {children}
     </div>
   );
 }
 
-/** Shared block — fonts/palette match `agentomatic_labs_website.html` (Syne + DM Sans from root layout). */
 export function ContactSection() {
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -39,40 +37,38 @@ export function ContactSection() {
   return (
     <section
       id="contact"
-      className="scroll-mt-24 bg-[#080C18] py-[clamp(2.5rem,6vw,5rem)] md:scroll-mt-28"
+      className="scroll-mt-24 py-[clamp(2.5rem,6vw,5rem)] md:scroll-mt-28"
     >
       <div className="mx-auto max-w-[75rem] w-full px-[clamp(1rem,4vw,3rem)]">
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-16">
           <div className="form-info">
-            <p className="mb-2 text-[clamp(0.72rem,1.5vw,0.78rem)] font-medium uppercase tracking-[0.12em] text-[#00D4FF]">
-              Contact us
+            <p className="mb-2 text-[clamp(0.72rem,1.5vw,0.78rem)] font-medium uppercase tracking-[0.18em] text-[#8cffd2]/70">
+              Voice demo
             </p>
-            <h2 className="text-[clamp(1.5rem,calc(3.2vw + 0.125rem),2.6rem)] font-bold leading-[1.15] tracking-[-0.02em] text-white [font-family:var(--font-marketing-syne),system-ui,sans-serif]">
-              Ready to accelerate
-              <br />
-              your business?
+            <h2 className="text-[clamp(1.8rem,calc(4vw + 0.125rem),3.4rem)] font-medium leading-[1] tracking-[-0.06em] text-white">
+              Let your visitors speak first.
             </h2>
             <p className="mt-5 max-w-xl text-[1rem] font-normal leading-[1.75] text-[rgba(232,237,248,0.65)]">
-              Tell us about your firm and we&apos;ll set up a personalized demo with your team. Our specialists
-              will walk you through exactly how Agentomatic Labs fits your workflow.
+              Tell us where calls, leads, or visitor questions get stuck. We&apos;ll shape a voice-agent flow around
+              that moment.
             </p>
             <ul className="mt-8 space-y-4">
               <li className="flex items-center gap-3 text-[0.9rem] text-[rgba(232,237,248,0.7)]">
-                <ContactIcon>📞</ContactIcon>
+                <ContactIcon>tel</ContactIcon>
                 +91 98765 43210
               </li>
               <li className="flex items-center gap-3 text-[0.9rem] text-[rgba(232,237,248,0.7)]">
-                <ContactIcon>✉️</ContactIcon>
+                <ContactIcon>@</ContactIcon>
                 hello@agentomaticlabs.ai
               </li>
               <li className="flex items-center gap-3 text-[0.9rem] text-[rgba(232,237,248,0.7)]">
-                <ContactIcon>📍</ContactIcon>
+                <ContactIcon>in</ContactIcon>
                 Kolkata, West Bengal, India
               </li>
             </ul>
           </div>
 
-          <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-[clamp(1.25rem,4vw,2.5rem)]">
+          <div className="rounded-[1.5rem] border border-white/[0.08] bg-white/[0.025] p-[clamp(1.25rem,4vw,2.5rem)]">
             {!sent ? (
               <form
                 onSubmit={onSubmit}
@@ -119,7 +115,7 @@ export function ContactSection() {
                     name="organization"
                     type="text"
                     autoComplete="organization"
-                    placeholder="Your law firm or clinic"
+                    placeholder="Your company"
                     className="w-full rounded-lg border border-white/[0.12] bg-white/[0.05] px-3 py-2.5 text-[0.9rem] text-[#E8EDF8] outline-none placeholder:text-white/35 focus:border-[rgba(0,212,255,0.5)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(0,212,255,0.25)]"
                     suppressHydrationWarning
                   />
@@ -136,9 +132,9 @@ export function ContactSection() {
                     suppressHydrationWarning
                   >
                     <option value="">Select your sector</option>
-                    <option>Legal — Law Firm</option>
-                    <option>Healthcare — Clinic / Hospital</option>
-                    <option>Finance — Chartered Accountant</option>
+                    <option>Sales / Growth</option>
+                    <option>Healthcare / Clinic</option>
+                    <option>Legal / Professional services</option>
                     <option>Other</option>
                   </select>
                 </div>
@@ -182,7 +178,7 @@ export function ContactSection() {
                     id="contact-query"
                     name="query"
                     rows={4}
-                    placeholder="Describe what you're looking to solve…"
+                    placeholder="What should the voice agent handle?"
                     className="min-h-[100px] w-full resize-y rounded-lg border border-white/[0.12] bg-white/[0.05] px-3 py-2.5 text-[0.9rem] text-[#E8EDF8] outline-none placeholder:text-white/35 focus:border-[rgba(0,212,255,0.5)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(0,212,255,0.25)]"
                     suppressHydrationWarning
                   />
@@ -190,15 +186,15 @@ export function ContactSection() {
                 <button
                   type="submit"
                   disabled={busy}
-                  className="min-h-12 w-full rounded-lg bg-[#00D4FF] px-4 py-3 text-[0.95rem] font-medium text-[#080C18] transition-opacity hover:opacity-90 disabled:opacity-50"
+                  className="voice-button min-h-12 w-full rounded-full px-4 py-3 text-[0.95rem] font-medium text-black disabled:opacity-50"
                   suppressHydrationWarning
                 >
-                  {busy ? "Sending…" : "Send Message →"}
+                  {busy ? "Sending..." : "Request voice demo"}
                 </button>
               </form>
             ) : (
-              <div className="rounded-lg border border-[rgba(0,229,160,0.3)] bg-[rgba(0,229,160,0.1)] px-4 py-6 text-center text-[0.9rem] text-[#00E5A0]">
-                Message sent! We&apos;ll get back to you within 24 hours.
+              <div className="rounded-2xl border border-[#8cffd2]/30 bg-[#8cffd2]/10 px-4 py-6 text-center text-[0.9rem] text-[#8cffd2]">
+                Request received. We&apos;ll follow up with a voice-agent walkthrough.
               </div>
             )}
           </div>
