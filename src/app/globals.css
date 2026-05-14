@@ -112,6 +112,10 @@
   --agent-orange: #ff5a3c;
   --agent-card: rgba(90, 96, 92, .78);
   --agent-card-border: rgba(255,255,255,.18);
+  --voice-ink: #f7fbff;
+  --voice-mint: #8cffd2;
+  --voice-blue: #9cc7ff;
+  --voice-bg: #050607;
   --tech-cyan: #49f3ff;
   --tech-blue: #6ea8ff;
   --tech-violet: #8b7bff;
@@ -129,6 +133,109 @@
   z-index: -10;
   overflow: hidden;
   background: #000;
+}
+
+.voice-page {
+  background:
+    radial-gradient(circle at 50% -15%, rgba(140, 255, 210, 0.13), transparent 34rem),
+    radial-gradient(circle at 85% 8%, rgba(156, 199, 255, 0.09), transparent 28rem),
+    linear-gradient(180deg, #050607 0%, #07090d 48%, #040405 100%);
+}
+
+.voice-ambient {
+  position: absolute;
+  inset: -20%;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, transparent 0 47%, rgba(140, 255, 210, 0.13) 49%, transparent 51% 100%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.045) 0 1px, transparent 1px 8.5vw);
+  mask-image: radial-gradient(circle at 60% 42%, black 0 34%, transparent 68%);
+  opacity: .5;
+  animation: voiceScan 12s linear infinite;
+}
+
+.voice-console {
+  position: relative;
+  border: 1px solid rgba(255,255,255,.09);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.022)),
+    radial-gradient(circle at 50% 0%, rgba(140,255,210,.1), transparent 20rem);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 34px 90px rgba(0,0,0,.45),
+    0 0 80px rgba(140,255,210,.08);
+  backdrop-filter: blur(22px);
+}
+
+.voice-ring {
+  position: absolute;
+  width: min(74vw, 22rem);
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  border: 1px solid rgba(255,255,255,.075);
+  box-shadow:
+    inset 0 0 60px rgba(255,255,255,.025),
+    0 0 0 1.25rem rgba(255,255,255,.018),
+    0 0 0 2.5rem rgba(255,255,255,.01);
+  transition: border-color .32s ease, box-shadow .32s ease;
+}
+
+.voice-ring--active {
+  border-color: rgba(140,255,210,.34);
+  box-shadow:
+    inset 0 0 74px rgba(140,255,210,.08),
+    0 0 0 1.25rem rgba(140,255,210,.045),
+    0 0 0 2.5rem rgba(140,255,210,.022),
+    0 0 80px rgba(140,255,210,.18);
+  animation: voicePulse 2.2s ease-in-out infinite;
+}
+
+.voice-wave {
+  display: flex;
+  height: 5.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.25rem, 1vw, 0.48rem);
+}
+
+.voice-wave span {
+  width: clamp(0.28rem, .9vw, .48rem);
+  min-height: .75rem;
+  border-radius: 9999px;
+  background: linear-gradient(to top, rgba(140,255,210,.35), rgba(255,255,255,.86));
+  opacity: .46;
+  transition: height .3s ease, opacity .3s ease;
+}
+
+.voice-wave__bar--active {
+  animation: voiceBar 980ms ease-in-out infinite alternate;
+  opacity: .95 !important;
+}
+
+.voice-button {
+  background: linear-gradient(135deg, var(--voice-mint), #ffffff);
+  box-shadow: 0 0 34px rgba(140,255,210,.22);
+  transition: transform .22s ease, box-shadow .22s ease;
+}
+
+.voice-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 46px rgba(140,255,210,.32);
+}
+
+@keyframes voiceScan {
+  from { transform: translateX(-3%); }
+  to { transform: translateX(3%); }
+}
+
+@keyframes voicePulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.025); opacity: .82; }
+}
+
+@keyframes voiceBar {
+  from { transform: scaleY(.62); filter: brightness(.85); }
+  to { transform: scaleY(1.08); filter: brightness(1.2); }
 }
 .agent-bg video{
   position:absolute;

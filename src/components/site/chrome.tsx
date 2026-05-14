@@ -5,10 +5,8 @@ import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { MARKETING_IFRAME_ID } from "@/components/site/marketing-iframe";
 import { cn } from "@/lib/utils";
 
-/** Match marketing nav (`agentomatic_labs_website.html`): Solutions, Vision, Blog + Get Started. Home = logo only. */
 const navItems = [
   { href: "/solutions", label: "Solutions" },
   { href: "/vision", label: "Vision" },
@@ -21,31 +19,17 @@ function navActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function scrollMarketingIframeToContact() {
-  const iframe = document.getElementById(MARKETING_IFRAME_ID) as HTMLIFrameElement | null;
-  try {
-    const doc = iframe?.contentDocument ?? iframe?.contentWindow?.document;
-    doc?.getElementById("contact")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  } catch {
-    /* cross-origin */
-  }
-}
-
 const ctaButtonClass =
-  "shrink-0 rounded-lg bg-[#00D4FF] px-[1.2rem] py-2 text-[clamp(0.875rem,2.2vw,0.9rem)] font-medium text-[#080C18] transition-opacity hover:opacity-90";
+  "voice-button shrink-0 rounded-full px-[1.2rem] py-2 text-[clamp(0.82rem,2vw,0.88rem)] font-medium text-black";
 
 const ctaMobileClass =
-  "mt-4 flex min-h-12 items-center justify-center rounded-lg bg-[#00D4FF] px-4 py-3 text-[0.95rem] font-medium text-[#080C18]";
+  "voice-button mt-4 flex min-h-12 items-center justify-center rounded-full px-4 py-3 text-[0.95rem] font-medium text-black";
 
 export function SiteChrome() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const reduceMotion = useReducedMotion();
   const isHome = pathname === "/";
-
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [pathname]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -66,7 +50,7 @@ export function SiteChrome() {
       <div aria-hidden className="shrink-0" style={{ height: NAV_ROW_H }} />
 
       <motion.header
-        className="fixed inset-x-0 top-0 z-20 border-b border-white/[0.08] bg-[rgba(8,12,24,0.95)] shadow-[0_1px_0_0_rgba(0,212,255,0.12)] backdrop-blur-[12px]"
+        className="fixed inset-x-0 top-0 z-20 border-b border-white/[0.07] bg-black/45 backdrop-blur-2xl"
         initial={reduceMotion ? false : { y: -8, opacity: 0.96 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.35, ease: [0.22, 0.7, 0.18, 1] }}
@@ -77,19 +61,22 @@ export function SiteChrome() {
         >
           <Link
             href="/"
-            className="flex min-h-11 shrink-0 items-center gap-0 text-[clamp(0.9rem,3vw,1.3rem)] font-extrabold leading-none tracking-[-0.03em] text-white [font-family:var(--font-marketing-syne),system-ui,sans-serif]"
+            className="flex min-h-11 shrink-0 items-center gap-2 text-[clamp(0.92rem,3vw,1.12rem)] font-semibold leading-none tracking-[-0.04em] text-white"
           >
+            <span className="grid size-6 place-items-center rounded-full border border-[#8cffd2]/25 bg-[#8cffd2]/10">
+              <span className="size-2 rounded-full bg-[#8cffd2] shadow-[0_0_18px_rgba(140,255,210,.9)]" aria-hidden />
+            </span>
             <span className="whitespace-nowrap">Agentomatic</span>
             <span
-              className="mx-[0.12em] inline-block size-[0.28em] min-h-[7px] min-w-[7px] max-h-[10px] max-w-[10px] shrink-0 rounded-[2px] bg-[#00D4FF]"
+              className="inline-block size-[0.22em] min-h-[5px] min-w-[5px] max-h-[8px] max-w-[8px] shrink-0 rounded-full bg-white/40"
               aria-hidden
             />
-            <span className="whitespace-nowrap">Labs</span>
+            <span className="whitespace-nowrap text-white/65">Voice</span>
           </Link>
 
           <button
             type="button"
-            className="inline-flex size-11 shrink-0 items-center justify-center rounded-[10px] border border-white/[0.18] bg-white/[0.06] text-[#E8EDF8] md:hidden"
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-white/[0.14] bg-white/[0.04] text-white md:hidden"
             aria-expanded={menuOpen}
             aria-controls="site-nav-drawer"
             onClick={() => setMenuOpen((o) => !o)}
@@ -129,9 +116,7 @@ export function SiteChrome() {
                       <Link
                         className={cn(
                           "flex min-h-11 items-center text-[clamp(0.875rem,2.2vw,0.9rem)] font-normal transition-colors",
-                          active
-                            ? "text-white"
-                            : "text-[rgba(232,237,248,0.7)] hover:text-white",
+                          active ? "text-white" : "text-white/55 hover:text-white",
                         )}
                         href={item.href}
                       >
@@ -143,12 +128,12 @@ export function SiteChrome() {
               })}
             </ul>
             {isHome ? (
-              <button type="button" className={ctaButtonClass} onClick={() => scrollMarketingIframeToContact()}>
-                Get Started
-              </button>
+              <Link href="#experience" className={ctaButtonClass}>
+                Talk to agent
+              </Link>
             ) : (
               <Link href="#contact" className={ctaButtonClass}>
-                Get Started
+                Talk to agent
               </Link>
             )}
           </nav>
@@ -171,7 +156,7 @@ export function SiteChrome() {
           <nav
             id="site-nav-drawer"
             className={cn(
-              "absolute right-0 top-0 flex h-dvh w-[min(22rem,calc(100vw-1rem))] flex-col border-l border-white/[0.12] bg-[rgba(10,14,26,0.98)] px-4 pb-8 pt-[4.5rem] shadow-xl backdrop-blur-md transition-transform duration-300 ease-[cubic-bezier(0.22,0.7,0.18,1)]",
+              "absolute right-0 top-0 flex h-dvh w-[min(22rem,calc(100vw-1rem))] flex-col border-l border-white/[0.10] bg-black/90 px-4 pb-8 pt-[4.5rem] shadow-xl backdrop-blur-md transition-transform duration-300 ease-[cubic-bezier(0.22,0.7,0.18,1)]",
               menuOpen ? "translate-x-0" : "translate-x-full",
             )}
             aria-label="Mobile main"
@@ -185,7 +170,7 @@ export function SiteChrome() {
                     <Link
                       className={cn(
                         "flex min-h-12 items-center py-4 text-[1rem] transition-colors",
-                        active ? "text-[#00D4FF]" : "text-[rgba(232,237,248,0.85)]",
+                        active ? "text-[#8cffd2]" : "text-white/75",
                       )}
                       href={item.href}
                       onClick={() => setMenuOpen(false)}
@@ -197,23 +182,22 @@ export function SiteChrome() {
               })}
             </ul>
             {isHome ? (
-              <button
-                type="button"
+              <Link
+                href="#experience"
                 className={ctaMobileClass}
                 onClick={() => {
                   setMenuOpen(false);
-                  scrollMarketingIframeToContact();
                 }}
               >
-                Get Started
-              </button>
+                Talk to agent
+              </Link>
             ) : (
               <Link
                 href="#contact"
                 className={ctaMobileClass}
                 onClick={() => setMenuOpen(false)}
               >
-                Get Started
+                Talk to agent
               </Link>
             )}
           </nav>
