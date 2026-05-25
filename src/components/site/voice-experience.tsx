@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Mic, Pause, Sparkles, Volume2 } from "lucide-react";
+import { Loader2, Mic, Pause, Phone, Sparkles, Volume2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -28,10 +28,41 @@ const conversation = {
 
 type VoiceState = keyof typeof conversation;
 
+type OutboundUiState = "idle" | "loading" | "success" | "error";
+
 export function VoiceExperience() {
   const [state, setState] = useState<VoiceState>("idle");
+  const [phone, setPhone] = useState("");
+  const [outboundState, setOutboundState] = useState<OutboundUiState>("idle");
+  const [outboundMessage, setOutboundMessage] = useState("");
   const reduceMotion = useReducedMotion();
   const active = state !== "idle";
+
+  async function onOutboundSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setOutboundState("loading");
+    setOutboundMessage("");
+    try {
+      const res = await fetch("/api/demo/outbound-call", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
+      });
+      const data = (await res.json()) as { error?: string; message?: string; call_id?: string };
+      if (!res.ok) {
+        setOutboundState("error");
+        setOutboundMessage(data.error || "Something went wrong.");
+        return;
+      }
+      setOutboundState("success");
+      setOutboundMessage(
+        data.message || "Calling you now. Answer when your phone rings to connect to the voice agent.",
+      );
+    } catch {
+      setOutboundState("error");
+      setOutboundMessage("Network error. Try again in a moment.");
+    }
+  }
 
   const nextAction = useMemo(() => {
     if (state === "idle") return { icon: Mic, label: "Start voice experience", next: "listening" as const };
@@ -44,8 +75,71 @@ export function VoiceExperience() {
   return (
     <section className="relative isolate flex min-h-[calc(100dvh-3.5rem)] items-center overflow-hidden px-4 py-10 sm:px-6 lg:px-8">
       <div className="voice-ambient" aria-hidden />
-      <div className="mx-auto grid w-full max-w-6xl items-center gap-12 lg:grid-cols-[0.92fr_1.08fr]">
-        <motion.div
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-10">
+        <div
+          id="call-demo"
+          className="scroll-mt-24 rounded-[1.5rem] border border-white/[0.10] bg-white/[0.04] p-5 backdrop-blur-sm sm:p-6 md:scroll-mt-28"
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="max-w-lg">
+              <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-[#8cffd2]/75">Live demo</p>
+              <h2 className="text-xl font-medium tracking-[-0.04em] text-white sm:text-2xl">Talk to the agent on your phone</h2>
+              <p className="mt-2 text-sm leading-6 text-white/[0.55]">
+                Enter your mobile number with country code, starting with + (e.g. +14155552671 or +919876543210). No
+                sign-in required—we will place a short outbound demo call through our voice stack.
+              </p>
+            </div>
+          </div>
+          <form onSubmit={onOutboundSubmit} className="mt-5 flex flex-col gap-3 sm:mt-6 sm:flex-row sm:items-center">
+            <label className="sr-only" htmlFor="outbound-phone">
+              Phone number
+            </label>
+            <div className="relative flex-1">
+              <Phone
+                className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-white/[0.35]"
+                strokeWidth={1.5}
+                aria-hidden
+              />
+              <input
+                id="outbound-phone"
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                placeholder="+1 415 555 2671"
+                value={phone}
+                onChange={(ev) => setPhone(ev.target.value)}
+                className="h-12 w-full rounded-full border border-white/[0.12] bg-black/30 py-2 pl-11 pr-4 text-sm text-white outline-none ring-[#8cffd2]/40 placeholder:text-white/[0.35] focus:border-[#8cffd2]/35 focus:ring-2"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={outboundState === "loading" || !phone.trim()}
+              className="voice-button inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full px-6 text-sm font-medium text-black disabled:pointer-events-none disabled:opacity-50"
+            >
+              {outboundState === "loading" ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" aria-hidden />
+                  Calling…
+                </>
+              ) : (
+                "Talk to the agent"
+              )}
+            </button>
+          </form>
+          {outboundState === "success" ? (
+            <p className="mt-4 text-sm leading-6 text-[#8cffd2]/90" role="status">
+              {outboundMessage}
+            </p>
+          ) : null}
+          {outboundState === "error" ? (
+            <p className="mt-4 text-sm leading-6 text-rose-300/95" role="alert">
+              {outboundMessage}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="grid w-full items-center gap-12 lg:grid-cols-[0.92fr_1.08fr]">
+          <motion.div
           initial={reduceMotion ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 0.7, 0.18, 1] }}
@@ -78,9 +172,9 @@ export function VoiceExperience() {
               Book a live build
             </a>
           </div>
-        </motion.div>
+          </motion.div>
 
-        <motion.div
+          <motion.div
           id="experience"
           initial={reduceMotion ? false : { opacity: 0, scale: 0.97, filter: "blur(10px)" }}
           animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
@@ -142,7 +236,8 @@ export function VoiceExperience() {
             <span>Sub-second response feel</span>
             <span>Human handoff ready</span>
           </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     </section>
   );

@@ -1,5 +1,11 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Live voice demo (outbound calls)
+
+Public visitors can request a demo call from the home page (no login). Configure server env vars and redeploy the **appointment-booker** AI service first.
+
+See [docs/demo-outbound-call.md](docs/demo-outbound-call.md).
+
 ## Getting Started
 
 First, run the development server:
