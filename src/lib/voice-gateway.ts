@@ -15,8 +15,21 @@ export type DemoOutboundGatewayResult = {
   message?: string;
   from_number?: string;
   to_number?: string;
-  detail?: string;
 };
+
+type GatewayErrorBody = {
+  detail?: string | unknown[];
+  message?: string;
+};
+
+function formatGatewayError(data: GatewayErrorBody, status: number): string {
+  if (typeof data.detail === "string") return data.detail;
+  if (Array.isArray(data.detail)) {
+    return data.detail.map((item) => JSON.stringify(item)).join("; ");
+  }
+  if (data.message) return data.message;
+  return `Gateway returned ${status}`;
+}
 
 /**
  * Place a demo outbound call via the API gateway → AI voice service.
@@ -46,15 +59,9 @@ export async function placeDemoOutboundCall(params: {
     cache: "no-store",
   });
 
-  const data = (await response.json().catch(() => ({}))) as DemoOutboundGatewayResult;
+  const data = (await response.json().catch(() => ({}))) as DemoOutboundGatewayResult & GatewayErrorBody;
   if (!response.ok) {
-    const detail =
-      typeof data.detail === "string"
-        ? data.detail
-        : Array.isArray(data.detail)
-          ? data.detail.map((item) => JSON.stringify(item)).join("; ")
-          : data.message;
-    throw new Error(detail || `Gateway returned ${response.status}`);
+    throw new Error(formatGatewayError(data, response.status));
   }
   return data;
 }
