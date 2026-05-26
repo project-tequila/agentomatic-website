@@ -128,7 +128,7 @@ export function SiteChrome() {
               })}
             </ul>
             {isHome ? (
-              <Link href="#experience" className={ctaButtonClass}>
+              <Link href="#call-demo" className={ctaButtonClass}>
                 Talk to agent
               </Link>
             ) : (
@@ -183,7 +183,7 @@ export function SiteChrome() {
             </ul>
             {isHome ? (
               <Link
-                href="#experience"
+                href="#call-demo"
                 className={ctaMobileClass}
                 onClick={() => {
                   setMenuOpen(false);
