@@ -61,6 +61,11 @@ export async function placeDemoOutboundCall(params: {
 
   const data = (await response.json().catch(() => ({}))) as DemoOutboundGatewayResult & GatewayErrorBody;
   if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error(
+        "Demo call endpoint not found on the API gateway. Deploy the latest AI service (appointment-booker) with POST /api/v1/ai/demo/outbound-call and set DEMO_VOICE_TENANT_ID on Railway.",
+      );
+    }
     throw new Error(formatGatewayError(data, response.status));
   }
   return data;

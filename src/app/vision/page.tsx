@@ -2,14 +2,16 @@ import type { Metadata } from "next";
 
 import { SitePageShell } from "@/components/site/site-page-shell";
 import { VisionPageContent } from "@/components/site/vision-page-content";
+import { pageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Vision - Agentomatic Voice",
+export const metadata: Metadata = pageMetadata({
+  title: "vision — agentomatic",
   description:
-    "A minimal voice AI vision for answering visitors, qualifying leads, and turning conversations into memory.",
-};
+    "a voice ai vision for answering visitors, qualifying leads, and turning conversations into memory.",
+  path: "/vision",
+});
 
 export default function VisionPage() {
   return (

@@ -1,40 +1,37 @@
 import Link from "next/link";
 
+import { HomeLogoLink } from "@/components/site/home-logo-link";
+
 export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-white/[0.07] px-[clamp(1rem,4vw,3rem)] py-10">
+    <footer className="site-footer border-t border-white/[0.08] px-[clamp(1rem,4vw,3rem)] py-10">
       <div className="mx-auto flex max-w-[75rem] flex-col flex-wrap items-start gap-8 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-[1.05rem] font-semibold tracking-[-0.04em] text-white"
-        >
-          Agentomatic
-          <span className="inline-block size-2 shrink-0 rounded-full bg-[#8cffd2]" aria-hidden />
-          Voice
-        </Link>
+        <HomeLogoLink className="flex items-center gap-2 text-[0.95rem] font-medium lowercase tracking-[-0.03em] text-white">
+          <span className="grid size-5 place-items-center rounded-full border border-white/20 bg-white/5">
+            <span className="size-1.5 rounded-full bg-white/80" aria-hidden />
+          </span>
+          agentomatic
+        </HomeLogoLink>
 
-        <nav
-          className="flex flex-wrap items-center gap-x-8 gap-y-3 text-[0.85rem] text-[rgba(232,237,248,0.45)]"
-          aria-label="Footer"
-        >
-          <Link className="min-h-10 inline-flex items-center no-underline hover:text-[rgba(232,237,248,0.8)]" href="/solutions">
-            Solutions
+        <nav className="flex flex-wrap items-center gap-x-8 gap-y-3" aria-label="Footer">
+          <Link className="site-link min-h-10 inline-flex items-center no-underline" href="/about">
+            about
           </Link>
-          <Link className="min-h-10 inline-flex items-center no-underline hover:text-[rgba(232,237,248,0.8)]" href="/vision">
-            Vision
+          <Link className="site-link min-h-10 inline-flex items-center no-underline" href="/pricing">
+            pricing
           </Link>
-          <Link className="min-h-10 inline-flex items-center no-underline hover:text-[rgba(232,237,248,0.8)]" href="/blog">
-            Blog
+          <Link className="site-link min-h-10 inline-flex items-center no-underline" href="/blog">
+            blog
           </Link>
-          <Link className="min-h-10 inline-flex items-center no-underline hover:text-[rgba(232,237,248,0.8)]" href="#contact">
-            Voice Demo
+          <Link className="site-link min-h-10 inline-flex items-center no-underline" href="/contact">
+            contact
           </Link>
         </nav>
 
-        <p className="text-[0.8rem] text-[rgba(232,237,248,0.3)] sm:text-right">
-          © {year} Agentomatic Labs. All rights reserved.
+        <p className="text-[0.72rem] lowercase text-white/30 sm:text-right">
+          © {year} agentomatic labs
         </p>
       </div>
     </footer>
