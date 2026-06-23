@@ -1,35 +1,47 @@
-import { SitePageShell } from "@/components/site/site-page-shell";
+import type { Metadata } from "next";
 
-export default function BlogPage() {
-  const notes = [
-    "Why voice is the fastest way to qualify a visitor",
-    "Designing scripts that feel human, not robotic",
-    "How summaries turn calls into operational memory",
-  ];
+import { BlogPostListItem } from "@/components/blog/post-list-item";
+import { SiteMain, SitePageHeader } from "@/components/site/marketing-page";
+import { SitePageShell } from "@/components/site/site-page-shell";
+import { pageMetadata } from "@/lib/seo";
+import { getPublishedPosts } from "@/sanity/fetch";
+
+export const revalidate = 60;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const posts = await getPublishedPosts();
+
+  return pageMetadata({
+    title: "blog — agentomatic",
+    description:
+      "field notes on building voice agents people trust — scripts, qualification, and operational memory.",
+    path: "/blog",
+    robots: posts.length === 0 ? { index: false, follow: true } : undefined,
+  });
+}
+
+export default async function BlogPage() {
+  const posts = await getPublishedPosts();
 
   return (
     <SitePageShell>
-      <main className="px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl py-10">
-          <p className="mb-4 text-xs uppercase tracking-[0.24em] text-[#8cffd2]/70">Field notes</p>
-          <h1 className="text-balance text-5xl font-medium leading-[0.95] tracking-[-0.07em] text-white sm:text-7xl">
-            Notes on building voices people trust.
-          </h1>
-          <div className="mt-12 divide-y divide-white/[0.08] rounded-[1.75rem] border border-white/[0.08] bg-white/[0.025]">
-            {notes.map((note) => (
-              <article key={note} className="group flex items-center justify-between gap-6 p-6">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-white/[0.30]">Coming soon</p>
-                  <h2 className="mt-2 text-xl font-medium tracking-[-0.035em] text-white group-hover:text-[#8cffd2]">
-                    {note}
-                  </h2>
-                </div>
-                <span className="hidden text-sm text-white/[0.35] sm:block">Listen</span>
-              </article>
+      <SiteMain>
+        <SitePageHeader
+          kicker="field notes"
+          title="notes on building voices people trust."
+          lead="practical writing on voice agents, qualification flows, and turning calls into memory."
+        />
+
+        {posts.length > 0 ? (
+          <div className="site-divider-list mt-10">
+            {posts.map((post) => (
+              <BlogPostListItem key={post._id} post={post} />
             ))}
           </div>
-        </div>
-      </main>
+        ) : (
+          <p className="site-lead mt-10">no published notes yet — check back soon.</p>
+        )}
+      </SiteMain>
     </SitePageShell>
   );
 }

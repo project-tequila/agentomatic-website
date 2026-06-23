@@ -8,6 +8,7 @@ type SitePageShellProps = {
   children: ReactNode;
   showSiteChrome?: boolean;
   showContactAndFooter?: boolean;
+  immersive3d?: boolean;
 };
 
 /** Shared wrapper: optional chrome, page body, optional contact block + footer. */
@@ -15,9 +16,16 @@ export function SitePageShell({
   children,
   showSiteChrome = true,
   showContactAndFooter = true,
+  immersive3d = false,
 }: SitePageShellProps) {
   return (
-    <div className="voice-page min-h-dvh text-[#F7FBFF] antialiased [font-family:var(--font-sans),system-ui,sans-serif]">
+    <div
+      className={
+        immersive3d
+          ? "site-shell voice-page voice-page--immersive voice-page--rumik min-h-dvh"
+          : "site-shell voice-page voice-page--rumik min-h-dvh"
+      }
+    >
       {showSiteChrome ? <SiteChrome /> : null}
       {children}
       {showContactAndFooter ? (

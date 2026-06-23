@@ -1,12 +1,24 @@
-import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
-import { DM_Sans, IBM_Plex_Mono, Syne } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { DM_Sans, IBM_Plex_Mono, Newsreader, Syne } from "next/font/google";
+
+import { JsonLd } from "@/components/site/json-ld";
+import { SiteDemoCallRoot } from "@/components/site/site-demo-call-root";
+import { organizationJsonLd, rootMetadata, websiteJsonLd } from "@/lib/seo";
+
 import "./globals.css";
 
 const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-sans",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
+});
+
+const harveySerif = Newsreader({
+  variable: "--font-harvey-serif",
+  subsets: ["latin"],
+  weight: ["300", "400", "500"],
+  style: ["normal", "italic"],
 });
 
 const marketingSyne = Syne({
@@ -21,15 +33,12 @@ const marketingDmSans = DM_Sans({
   weight: ["300", "400", "500"],
 });
 
-export const metadata: Metadata = {
-  title: "Agentomatic Voice",
-  description: "A minimal voice AI agent experience for calls, leads, and visitor conversations.",
-};
+export const metadata: Metadata = rootMetadata;
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#050607",
+  themeColor: "#121418",
 };
 
 export default function RootLayout({
@@ -40,10 +49,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${ibmPlexMono.variable} ${marketingSyne.variable} ${marketingDmSans.variable} h-full antialiased`}
+      className={`${ibmPlexMono.variable} ${marketingSyne.variable} ${marketingDmSans.variable} ${harveySerif.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-black text-white" suppressHydrationWarning>
-        {children}
+      <body className="min-h-full flex flex-col bg-[#121418] text-white" suppressHydrationWarning>
+        <JsonLd data={organizationJsonLd()} />
+        <JsonLd data={websiteJsonLd()} />
+        <SiteDemoCallRoot>{children}</SiteDemoCallRoot>
         <Analytics />
       </body>
     </html>

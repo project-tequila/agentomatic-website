@@ -1,0 +1,312 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Check, PhoneCall, CalendarCheck, Sparkles, ClipboardList } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+type Step = {
+  title: string;
+  think: string;
+  detail: string;
+  icon: LucideIcon;
+};
+
+const STEPS: Step[] = [
+  {
+    title: "incoming call",
+    think: "answering on the first ring…",
+    detail: "+1 (415) 555-0148 · routed to agentomatic",
+    icon: PhoneCall,
+  },
+  {
+    title: "understand intent",
+    think: "listening and parsing the request…",
+    detail: "caller wants to book a deep clean for friday",
+    icon: Sparkles,
+  },
+  {
+    title: "check availability",
+    think: "scanning the connected calendar…",
+    detail: "friday 2:30pm is open with the right crew",
+    icon: CalendarCheck,
+  },
+  {
+    title: "confirm & book",
+    think: "writing the appointment and sending a text…",
+    detail: "booked · confirmation sent to the caller",
+    icon: ClipboardList,
+  },
+];
+
+const SUMMARY =
+  "Booked a Friday 2:30pm deep clean, confirmed the address, and texted a confirmation. Handed a clean summary to your team.";
+
+const THINK_MS = 1400;
+const DONE_MS = 1100;
+
+export function HarveyAgentHero() {
+  return (
+    <div className="harvey">
+      <HarveyNav />
+
+      <main className="harvey-container">
+        <section className="harvey-hero">
+          <div>
+            <span className="harvey-eyebrow">
+              <span className="harvey-eyebrow__dot" aria-hidden />
+              agentomatic agents
+            </span>
+
+            <h1 className="harvey-title">
+              Agents that handle the call, <em>end to end.</em>
+            </h1>
+
+            <p className="harvey-lead">
+              From the first hello to the booked appointment, agentomatic agents
+              listen, decide, and act — so your team stays focused on the work
+              only people can do.
+            </p>
+
+            <div className="harvey-cta-row">
+              <Link href="#demo" className="harvey-btn harvey-btn--primary">
+                Request a demo
+              </Link>
+              <Link href="#how" className="harvey-btn harvey-btn--ghost">
+                See it work
+              </Link>
+            </div>
+
+            <div className="harvey-trust">
+              <p className="harvey-trust__label">trusted by modern front desks</p>
+              <div className="harvey-trust__row">
+                <span className="harvey-trust__name">Northwind</span>
+                <span className="harvey-trust__name">Brightwork</span>
+                <span className="harvey-trust__name">Marlowe&nbsp;&amp;&nbsp;Co</span>
+                <span className="harvey-trust__name">Verant</span>
+              </div>
+            </div>
+          </div>
+
+          <AgentConsole />
+        </section>
+
+        <section className="harvey-stats" aria-label="results">
+          {[
+            ["100%", "of calls answered, day or night"],
+            ["0.4s", "average time to first response"],
+            ["32", "languages handled natively"],
+            ["99.99%", "uptime across the network"],
+          ].map(([num, label]) => (
+            <div key={label} className="harvey-stat">
+              <div className="harvey-stat__num">{num}</div>
+              <div className="harvey-stat__label">{label}</div>
+            </div>
+          ))}
+        </section>
+
+        <section id="demo" className="harvey-cta-band">
+          <h2 className="harvey-cta-band__title">
+            Put an agent on the phones <em>tonight.</em>
+          </h2>
+          <div className="harvey-cta-band__row">
+            <Link href="/" className="harvey-btn harvey-btn--primary">
+              Request a demo
+            </Link>
+            <Link href="/solutions" className="harvey-btn harvey-btn--ghost">
+              Explore solutions
+            </Link>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
+
+function HarveyNav() {
+  const [solid, setSolid] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setSolid(window.scrollY > 12);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <header className={`harvey-nav${solid ? " harvey-nav--solid" : ""}`}>
+      <div className="harvey-container harvey-nav__inner">
+        <Link href="/" className="harvey-brand">
+          <span className="harvey-brand__mark" aria-hidden />
+          agentomatic
+        </Link>
+        <nav className="harvey-nav__links" aria-label="primary">
+          <Link href="/about" className="harvey-nav__link">
+            about
+          </Link>
+          <Link href="/pricing" className="harvey-nav__link">
+            pricing
+          </Link>
+          <Link href="/blog" className="harvey-nav__link">
+            blog
+          </Link>
+          <Link href="/contact" className="harvey-nav__link">
+            contact
+          </Link>
+        </nav>
+        <Link href="#demo" className="harvey-btn harvey-btn--primary harvey-btn--sm">
+          Request a demo
+        </Link>
+      </div>
+    </header>
+  );
+}
+
+type Phase = "thinking" | "done";
+
+function AgentConsole() {
+  const [index, setIndex] = useState(0);
+  const [phase, setPhase] = useState<Phase>("thinking");
+  const [showSummary, setShowSummary] = useState(false);
+  const [typed, setTyped] = useState("");
+
+  // Single orchestrator: drives the full thinking -> done -> summary -> restart loop.
+  useEffect(() => {
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    let typeInterval: ReturnType<typeof setInterval> | undefined;
+    const wait = (ms: number) => new Promise<void>((r) => timers.push(setTimeout(r, ms)));
+
+    let cancelled = false;
+
+    const typeSummary = () =>
+      new Promise<void>((resolve) => {
+        let i = 0;
+        const tick = reduce ? SUMMARY.length : 1;
+        typeInterval = setInterval(() => {
+          i = Math.min(SUMMARY.length, i + tick);
+          setTyped(SUMMARY.slice(0, i));
+          if (i >= SUMMARY.length) {
+            if (typeInterval) clearInterval(typeInterval);
+            resolve();
+          }
+        }, 22);
+      });
+
+    const loop = async () => {
+      while (!cancelled) {
+        setShowSummary(false);
+        setTyped("");
+        for (let i = 0; i < STEPS.length; i += 1) {
+          if (cancelled) return;
+          setIndex(i);
+          setPhase("thinking");
+          await wait(reduce ? 500 : THINK_MS);
+          if (cancelled) return;
+          setPhase("done");
+          await wait(reduce ? 350 : DONE_MS);
+        }
+        if (cancelled) return;
+        setShowSummary(true);
+        await typeSummary();
+        await wait(3200);
+      }
+    };
+
+    loop();
+
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+      if (typeInterval) clearInterval(typeInterval);
+    };
+  }, []);
+
+  return (
+    <div className="harvey-console" id="how" aria-label="agent working">
+      <div className="harvey-console__bar">
+        <div className="harvey-console__id">
+          <span className="harvey-console__avatar" aria-hidden>
+            <Sparkles size={14} strokeWidth={2} />
+          </span>
+          frontdesk agent
+        </div>
+        <span className="harvey-status">
+          <span className="harvey-status__dot" aria-hidden />
+          live call
+        </span>
+      </div>
+
+      <div className="harvey-console__body">
+        <p className="harvey-console__goal">
+          <strong>goal:</strong> answer the call, book the request, and hand off
+          a summary.
+        </p>
+
+        <div className="harvey-steps">
+          {STEPS.map((step, i) => {
+            const state =
+              i < index || (i === index && phase === "done")
+                ? "done"
+                : i === index
+                  ? "active"
+                  : "idle";
+            const Icon = step.icon;
+            return (
+              <div
+                key={step.title}
+                className={`harvey-step${state === "active" ? " harvey-step--active" : ""}${
+                  state === "done" ? " harvey-step--done" : ""
+                }`}
+              >
+                <span className="harvey-step__icon" aria-hidden>
+                  {state === "done" ? (
+                    <Check size={13} strokeWidth={2.5} />
+                  ) : state === "active" ? (
+                    <span className="harvey-spinner" />
+                  ) : (
+                    <Icon size={13} strokeWidth={2} />
+                  )}
+                </span>
+                <div className="harvey-step__main">
+                  <div className="harvey-step__title">{step.title}</div>
+                  <div className="harvey-step__detail">
+                    {state === "active" ? (
+                      <span className="harvey-step__think">
+                        {step.think}
+                        <span className="harvey-caret" aria-hidden>
+                          .
+                        </span>
+                      </span>
+                    ) : state === "done" ? (
+                      step.detail
+                    ) : (
+                      ""
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {showSummary ? (
+          <div className="harvey-console__output">
+            <div className="harvey-console__output-label">work product</div>
+            <p className="harvey-console__output-text">
+              {typed}
+              {typed.length < SUMMARY.length ? (
+                <span className="harvey-caret" aria-hidden>
+                  .
+                </span>
+              ) : null}
+            </p>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
