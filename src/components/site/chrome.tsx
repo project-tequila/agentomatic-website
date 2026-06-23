@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { HomeLogoLink } from "@/components/site/home-logo-link";
-import { BOOKER_ROUTE } from "@/lib/booker/booker-session";
+import { BOOKER_ROUTE, BOOKER_SIGNUP_ROUTE } from "@/lib/booker/booker-session";
 import { openDemoCall } from "@/lib/demo-call/open-demo-call";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +18,8 @@ const navItems = [
 ] as const;
 
 const RUMIK_EASE = [0.22, 0.7, 0.18, 1] as const;
+
+const MotionLink = motion.create(Link);
 
 function navActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -71,11 +73,13 @@ function MotionChromeCta({ className, onClick, children }: MotionChromeButtonPro
   );
 }
 
-function MotionChromeSignIn({
+function MotionChromeLink({
+  href,
   className,
   onClick,
   children,
 }: {
+  href: string;
   className?: string;
   onClick?: () => void;
   children: ReactNode;
@@ -83,11 +87,16 @@ function MotionChromeSignIn({
   const reduceMotion = useReducedMotion();
 
   return (
-    <motion.div whileHover={reduceMotion ? undefined : { y: -1 }} transition={{ duration: 0.22, ease: RUMIK_EASE }}>
-      <Link href={BOOKER_ROUTE} className={className} onClick={onClick}>
-        {children}
-      </Link>
-    </motion.div>
+    <MotionLink
+      href={href}
+      className={className}
+      onClick={onClick}
+      whileHover={reduceMotion ? undefined : { y: -1 }}
+      whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+      transition={{ duration: 0.22, ease: RUMIK_EASE }}
+    >
+      {children}
+    </MotionLink>
   );
 }
 
@@ -122,13 +131,17 @@ export function SiteChrome() {
       <div aria-hidden className="site-chrome__spacer shrink-0" />
 
       <motion.header
-        className="site-chrome fixed inset-x-0 top-0 z-20"
+        className={cn("site-chrome", menuOpen && "site-chrome--menu-open")}
         initial={false}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.35, ease: RUMIK_EASE }}
       >
         <div className="site-chrome__inner">
-          <motion.div whileHover={reduceMotion ? undefined : { scale: 1.015 }} transition={{ duration: 0.28, ease: RUMIK_EASE }}>
+          <motion.div
+            className="site-chrome__brand"
+            whileHover={reduceMotion ? undefined : { scale: 1.015 }}
+            transition={{ duration: 0.28, ease: RUMIK_EASE }}
+          >
             <HomeLogoLink className="site-chrome-logo">
               <span className="site-chrome-logo__mark" aria-hidden>
                 <span className="site-chrome-logo__dot" />
@@ -177,13 +190,19 @@ export function SiteChrome() {
                 <ChromeNavLink key={item.href} href={item.href} label={item.label} active={navActive(pathname, item.href)} />
               ))}
             </ul>
-            <div className="site-chrome__actions">
-              <MotionChromeSignIn className="site-chrome-sign-in">sign in</MotionChromeSignIn>
-              <MotionChromeCta className="site-chrome-cta" onClick={onTalkToAgent}>
-                {ctaLabel}
-              </MotionChromeCta>
-            </div>
           </nav>
+
+          <div className="site-chrome__actions">
+            <MotionChromeLink href={BOOKER_ROUTE} className="site-chrome-action-btn site-chrome-sign-in">
+              sign in
+            </MotionChromeLink>
+            <MotionChromeLink href={BOOKER_SIGNUP_ROUTE} className="site-chrome-action-btn site-chrome-sign-up">
+              sign up
+            </MotionChromeLink>
+            <MotionChromeCta className="site-chrome-action-btn site-chrome-cta" onClick={onTalkToAgent}>
+              {ctaLabel}
+            </MotionChromeCta>
+          </div>
         </div>
       </motion.header>
 
@@ -245,10 +264,24 @@ export function SiteChrome() {
               delay: menuOpen && !reduceMotion ? 0.28 : 0,
             }}
           >
-            <MotionChromeSignIn className="site-chrome-sign-in site-chrome-sign-in--full" onClick={() => setMenuOpen(false)}>
+            <MotionChromeLink
+              href={BOOKER_ROUTE}
+              className="site-chrome-action-btn site-chrome-action-btn--full site-chrome-sign-in"
+              onClick={() => setMenuOpen(false)}
+            >
               sign in
-            </MotionChromeSignIn>
-            <MotionChromeCta className="site-chrome-cta site-chrome-cta--full" onClick={onTalkToAgent}>
+            </MotionChromeLink>
+            <MotionChromeLink
+              href={BOOKER_SIGNUP_ROUTE}
+              className="site-chrome-action-btn site-chrome-action-btn--full site-chrome-sign-up"
+              onClick={() => setMenuOpen(false)}
+            >
+              sign up
+            </MotionChromeLink>
+            <MotionChromeCta
+              className="site-chrome-action-btn site-chrome-action-btn--full site-chrome-cta"
+              onClick={onTalkToAgent}
+            >
               {ctaLabel}
             </MotionChromeCta>
           </motion.div>

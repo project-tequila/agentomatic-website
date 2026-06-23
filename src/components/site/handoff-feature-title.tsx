@@ -101,8 +101,8 @@ export function HandoffFeatureTitle({ story }: HandoffFeatureTitleProps) {
   if (progress === null) {
     return (
       <h1 className="rumik-story__title rumik-story__title--handoff">
-        <span>Human Support,</span>
-        <span>{TAGLINE}</span>
+        <span className="handoff-title__line">Human Support,</span>
+        <span className="handoff-title__line">{TAGLINE}</span>
       </h1>
     );
   }
@@ -112,13 +112,15 @@ export function HandoffFeatureTitle({ story }: HandoffFeatureTitleProps) {
 
   return (
     <h1 className="rumik-story__title rumik-story__title--handoff">
-      <span>Human Support,</span>
-      <HandoffTagline
-        typingReveal={typingReveal}
-        scrollPaused={scrollPaused}
-        reduceMotion={motionOff}
-        glow={glow}
-      />
+      <span className="handoff-title__line">Human Support,</span>
+      <span className="handoff-title__line">
+        <HandoffTagline
+          typingReveal={typingReveal}
+          scrollPaused={scrollPaused}
+          reduceMotion={motionOff}
+          glow={glow}
+        />
+      </span>
     </h1>
   );
 }

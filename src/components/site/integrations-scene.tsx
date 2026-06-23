@@ -9,7 +9,7 @@ import {
   INTEGRATION_STAGE,
   integrationChannelState,
 } from "@/lib/story/integrations-reveal";
-import { STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { STORY_STAGE_PRESERVE, STORY_SATELLITE_ICON_SCALE, storyStageViewBox } from "@/lib/story/persistent-orb";
 import { cn } from "@/lib/utils";
 
 import { IntegrationFlowStreams } from "./integration-flow-streams";
@@ -70,7 +70,7 @@ export function IntegrationsScene({ story, opacity: sceneOpacity }: Integrations
         return (
           <g
             key={channel.id}
-            transform={`translate(${tx} ${ty}) scale(${state.scale})`}
+            transform={`translate(${tx} ${ty}) scale(${state.scale * STORY_SATELLITE_ICON_SCALE})`}
             opacity={state.opacity}
             filter={`url(#int-glow-${channel.id})`}
           >

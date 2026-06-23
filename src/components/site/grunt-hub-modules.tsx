@@ -31,12 +31,64 @@ const HUB_LABEL_FONT_SIZE = 13;
 function hubLabelPlacement(moduleId: GruntHubModuleId, halfW: number) {
   switch (moduleId) {
     case "schedule":
-      return { x: -halfW - 8, anchor: "end" as const };
+      return { x: halfW + 14, anchor: "start" as const };
     case "data":
       return { x: halfW + 8, anchor: "start" as const };
     default:
       return { x: 0, anchor: "middle" as const };
   }
+}
+
+function hubLabelOffsetY(moduleId: GruntHubModuleId, cardTop: number) {
+  if (moduleId === "schedule") return cardTop + 10;
+  return cardTop - HUB_LABEL_GAP;
+}
+
+function HubModuleLabelText({
+  text,
+  labelReveal,
+  x,
+  y,
+  anchor,
+  accent,
+}: {
+  text: string;
+  labelReveal: number;
+  x: number;
+  y: number;
+  anchor: "start" | "middle" | "end";
+  accent: string;
+}) {
+  const charW = HUB_LABEL_FONT_SIZE * 0.58;
+  const totalW = text.length * charW;
+  const underlineX =
+    anchor === "middle" ? -totalW / 2 - 4 : anchor === "end" ? x - totalW - 4 : x - 4;
+
+  return (
+    <>
+      <text
+        x={x}
+        y={y}
+        textAnchor={anchor}
+        fill={C.cream}
+        fontSize={HUB_LABEL_FONT_SIZE}
+        fontWeight="700"
+        letterSpacing="0.04em"
+        className="grunt-scene__hub-label-text"
+      >
+        {text.split("").map((ch, i) => {
+          const op = gruntModuleLetterOpacity(labelReveal, i, text.length);
+          const lift = gruntModuleLetterLift(labelReveal, i, text.length);
+          return (
+            <tspan key={`${ch}-${i}`} opacity={op} dy={i === 0 ? lift : 0}>
+              {ch}
+            </tspan>
+          );
+        })}
+      </text>
+      <rect x={underlineX} y={y - 14} width={totalW + 8} height={2.5} rx="1" fill={accent} opacity={labelReveal * 0.35} />
+    </>
+  );
 }
 const HUB_SUBHEAD_Y = 56;
 
@@ -72,36 +124,13 @@ export function HubModuleFloatingLabel({
   const text = GRUNT_MODULE_LABELS[moduleId];
   const { w, h } = GRUNT_MODULE_SIZE[moduleId];
   const halfW = w / 2;
-  const labelY = hubCardTop(h) - HUB_LABEL_GAP;
+  const top = hubCardTop(h);
+  const labelY = hubLabelOffsetY(moduleId, top);
   const placement = hubLabelPlacement(moduleId, halfW);
-  const charW = HUB_LABEL_FONT_SIZE * 0.58;
-  const totalW = text.length * charW;
-  const underlineX =
-    placement.anchor === "middle" ? -totalW / 2 - 4 : placement.anchor === "end" ? placement.x - totalW - 4 : placement.x - 4;
 
   return (
     <g transform={`translate(0 ${labelY})`} className="grunt-scene__hub-floating-label">
-      <text
-        x={placement.x}
-        y={0}
-        textAnchor={placement.anchor}
-        fill={C.cream}
-        fontSize={HUB_LABEL_FONT_SIZE}
-        fontWeight="700"
-        fontFamily="system-ui, sans-serif"
-        letterSpacing="0.04em"
-      >
-        {text.split("").map((ch, i) => {
-          const op = gruntModuleLetterOpacity(labelReveal, i, text.length);
-          const lift = gruntModuleLetterLift(labelReveal, i, text.length);
-          return (
-            <tspan key={`${ch}-${i}`} opacity={op} dy={i === 0 ? lift : 0}>
-              {ch}
-            </tspan>
-          );
-        })}
-      </text>
-      <rect x={underlineX} y={-14} width={totalW + 8} height={2.5} rx="1" fill={accent} opacity={labelReveal * 0.35} />
+      <HubModuleLabelText text={text} labelReveal={labelReveal} x={placement.x} y={0} anchor={placement.anchor} accent={accent} />
     </g>
   );
 }
@@ -259,11 +288,13 @@ function SettledModuleIcon({
   moduleId,
   arrived,
   live,
+  x = 0,
   y: yOverride,
 }: {
   moduleId: GruntHubModuleId;
   arrived: number;
   live: boolean;
+  x?: number;
   y?: number;
 }) {
   if (arrived < 0.12) return null;
@@ -283,7 +314,7 @@ function SettledModuleIcon({
 
   return (
     <g
-      transform={`translate(0 ${y}) scale(${settleScale * glyphScale})`}
+      transform={`translate(${x} ${y}) scale(${settleScale * glyphScale})`}
       opacity={isHero ? 0.45 + arrived * 0.55 : 0.35 + arrived * 0.65}
       className={iconClass}
     >
@@ -317,6 +348,10 @@ export function HubPlusArms({ opacity, sync }: { opacity: number; sync: number }
 }
 
 const SCHEDULE_SLOTS = ["9:00", "11:30", "2:15"] as const;
+const SCHEDULE_ICON_X = -22;
+const SCHEDULE_ICON_Y = 48;
+const SCHEDULE_BARS_X = 12;
+const SCHEDULE_BAR_W = 72;
 
 export function ScheduleModule({
   fill,
@@ -348,26 +383,18 @@ export function ScheduleModule({
 
   return (
     <>
-      <HubModuleFloatingLabel moduleId="schedule" labelReveal={labelReveal} accent={C.sky} />
       <ModuleShell moduleId="schedule" accent={C.sky} focused={focused} hovered={hovered} live={live} onHoverChange={onHoverChange}>
-        <SettledModuleIcon moduleId="schedule" arrived={iconArrived} live={live} />
-        <HubTypingSubhead
-          text="today's slots"
-          typingReveal={subheadTyping(0)}
-          scrollPaused={scrollPaused}
-          reduceMotion={reduceMotion}
-          y={HUB_SUBHEAD_Y}
-        />
-        <g transform={`translate(-48 ${HUB_SUBHEAD_Y + 8})`} opacity={bodyReveal} className="grunt-scene__hub-card-body">
+        <SettledModuleIcon moduleId="schedule" arrived={iconArrived} live={live} x={SCHEDULE_ICON_X} y={SCHEDULE_ICON_Y} />
+        <g transform={`translate(${SCHEDULE_BARS_X} ${HUB_SUBHEAD_Y + 4})`} opacity={bodyReveal} className="grunt-scene__hub-card-body">
         {SCHEDULE_SLOTS.map((time, i) => {
           const on = slotsOn[i];
           return (
             <g key={time} transform={`translate(0 ${i * 14})`} opacity={on ? 1 : 0.28}>
-              <rect x="0" y="0" width="96" height="11" rx="3" fill={C.slate} stroke={C.sky} strokeWidth="0.8" strokeOpacity={on ? 0.55 : 0.2} />
+              <rect x="0" y="0" width={SCHEDULE_BAR_W} height="11" rx="3" fill={C.slate} stroke={C.sky} strokeWidth="0.8" strokeOpacity={on ? 0.55 : 0.2} />
               <rect
                 x="2"
                 y="2"
-                width={on ? 92 : 22}
+                width={on ? SCHEDULE_BAR_W - 4 : 18}
                 height="7"
                 rx="2"
                 fill={C.sky}
@@ -375,29 +402,30 @@ export function ScheduleModule({
                 className={on && live ? "grunt-scene__schedule-slot--snap" : undefined}
                 style={{ animationDelay: `${i * 0.15}s` } as CSSProperties}
               />
-              <text x="82" y="8" textAnchor="end" fill={C.muted} fontSize="6.5" fontWeight="600" fontFamily="system-ui, sans-serif">
+              <text x={SCHEDULE_BAR_W - 4} y="8" textAnchor="end" fill={C.muted} fontSize="6.5" fontWeight="600" fontFamily="system-ui, sans-serif">
                 {time}
               </text>
             </g>
           );
         })}
+      </g>
+      <g transform={`translate(${SCHEDULE_BARS_X} ${HUB_SUBHEAD_Y + 48})`} opacity={reminderOn ? 1 : 0.25}>
+        <rect x="0" y="0" width={SCHEDULE_BAR_W} height="12" rx="3" fill={C.slate} stroke={C.amber} strokeWidth="0.8" strokeOpacity={reminderOn ? 0.55 : 0.2} />
+        <g transform="translate(6 2) scale(0.55)">
+          <StoryBellIcon ringing={live && reminderOn} />
         </g>
-        <g transform={`translate(-48 ${HUB_SUBHEAD_Y + 56})`} opacity={reminderOn ? 1 : 0.25}>
-          <rect x="0" y="0" width="96" height="12" rx="3" fill={C.slate} stroke={C.amber} strokeWidth="0.8" strokeOpacity={reminderOn ? 0.55 : 0.2} />
-          <g transform="translate(6 2) scale(0.55)">
-            <StoryBellIcon ringing={live && reminderOn} />
-          </g>
-        </g>
+      </g>
         <HubTypingSubhead
           text="callback reminder"
           typingReveal={subheadTyping(1)}
           scrollPaused={scrollPaused}
           reduceMotion={reduceMotion}
-          x={-26}
-          y={HUB_SUBHEAD_Y + 64}
+          x={SCHEDULE_BARS_X + 2}
+          y={HUB_SUBHEAD_Y + 56}
           anchor="start"
         />
       </ModuleShell>
+      <HubModuleFloatingLabel moduleId="schedule" labelReveal={labelReveal} accent={C.sky} />
     </>
   );
 }

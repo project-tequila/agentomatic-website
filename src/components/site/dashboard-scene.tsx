@@ -9,11 +9,12 @@ import {
   DASHBOARD_EXCHANGE_H,
   DASHBOARD_EXCHANGES,
   DASHBOARD_HEADER_H,
+  DASHBOARD_RAIL_ICONS,
   DASHBOARD_STAGE,
   DASHBOARD_THREAD,
-  type DashboardQueueIcon,
   type DashboardResponseType,
   dashboardActiveComposerIndex,
+  dashboardActiveExchangeIndex,
   dashboardActiveTypingIndex,
   dashboardChatScrollOffset,
   dashboardChatToOrbPath,
@@ -29,13 +30,16 @@ import {
   dashboardOrbArcFlow,
   dashboardOrbArcReveal,
   dashboardOrbToIconPath,
-  dashboardQueueItemActive,
+  dashboardRailIconIndex,
+  dashboardRailItemActive,
   dashboardQueueReveal,
   dashboardSceneComposition,
   dashboardSettlePulse,
 } from "@/lib/story/dashboard-reveal";
-import { STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
-import { STORY_GLYPH, StoryBellIcon } from "@/components/site/story-stage-glyphs";
+import { DashboardActionGlyph } from "@/components/site/dashboard-action-glyphs";
+import { PremiumChannelGlyph } from "@/components/site/integration-channel-glyphs";
+import { STORY_STAGE_PRESERVE, STORY_SATELLITE_ICON_SCALE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { STORY_GLYPH } from "@/components/site/story-stage-glyphs";
 import { cn } from "@/lib/utils";
 
 type DashboardSceneProps = {
@@ -54,43 +58,8 @@ function typedCharOpacity(index: number, typingReveal: number, textLen: number) 
   return 0;
 }
 
-function ActionIcon({ icon, color, active }: { icon: DashboardQueueIcon; color: string; active: number }) {
-  const lit = active > 0.35;
-  if (icon === "call") {
-    return (
-      <g opacity={0.35 + active * 0.65}>
-        <rect x={-10} y={-12} width={20} height={24} rx={5} fill="rgba(18,20,24,0.95)" stroke={color} strokeWidth={lit ? 1.6 : 1.1} />
-        <path d="M-4 -6 C-4 -9 4 -9 4 -6 C4 -2 0 -1 0 3 L0 6" fill="none" stroke={color} strokeWidth={1.2} strokeLinecap="round" />
-        {lit ? <circle r={14} fill="none" stroke={color} strokeWidth={1} opacity={0.35 * active} className="dashboard-scene__queue-ring" /> : null}
-      </g>
-    );
-  }
-  if (icon === "queue") {
-    return (
-      <g opacity={0.35 + active * 0.65}>
-        <rect x={-11} y={-11} width={22} height={22} rx={6} fill="rgba(18,20,24,0.95)" stroke={color} strokeWidth={lit ? 1.6 : 1.1} />
-        <path d="M-5 -3 L-1 1 L5 -5" fill="none" stroke={color} strokeWidth={1.3} strokeLinecap="round" strokeLinejoin="round" opacity={lit ? 1 : 0.5} />
-        <line x1={-5} y1={4} x2={5} y2={4} stroke={color} strokeWidth={1.1} strokeLinecap="round" opacity={0.55} />
-        <line x1={-5} y1={7} x2={2} y2={7} stroke={color} strokeWidth={1.1} strokeLinecap="round" opacity={0.4} />
-      </g>
-    );
-  }
-  if (icon === "calendar") {
-    return (
-      <g opacity={0.35 + active * 0.65}>
-        <rect x={-11} y={-12} width={22} height={24} rx={5} fill="rgba(18,20,24,0.95)" stroke={color} strokeWidth={lit ? 1.6 : 1.1} />
-        <rect x={-8} y={-9} width={16} height={5} rx={2} fill={color} opacity={0.85} />
-        <rect x={-6} y={-1} width={6} height={5} rx={1.5} fill={color} opacity={lit ? 0.9 : 0.45} />
-        <rect x={2} y={-1} width={6} height={5} rx={1.5} fill="rgba(245,242,235,0.18)" />
-        {lit ? <circle r={14} fill="none" stroke={color} strokeWidth={1} opacity={0.3 * active} className="dashboard-scene__queue-ring" /> : null}
-      </g>
-    );
-  }
-  return (
-    <g opacity={0.35 + active * 0.65} className={lit ? "dashboard-scene__queue-bell" : undefined}>
-      <StoryBellIcon ringing={lit && active > 0.6} scale={0.72} />
-    </g>
-  );
+function ActionIcon({ icon, color, active }: { icon: Parameters<typeof DashboardActionGlyph>[0]["icon"]; color: string; active: number }) {
+  return <DashboardActionGlyph icon={icon} color={color} active={active} />;
 }
 
 function ManagerBubble({
@@ -185,35 +154,48 @@ function TypingDots({ opacity, reduceMotion }: { opacity: number; reduceMotion: 
   );
 }
 
-function BookingsReply({ opacity, complete, reduceMotion }: { opacity: number; complete: number; reduceMotion: boolean }) {
+function ReplyGlyph({ id, color, x, y, scale = 0.22 }: { id: string; color: string; x: number; y: number; scale?: number }) {
+  return (
+    <g transform={`translate(${x} ${y}) scale(${scale})`}>
+      <PremiumChannelGlyph id={id} color={color} uid={`reply-${id}`} />
+    </g>
+  );
+}
+
+function DatabaseReply({ opacity, complete, reduceMotion }: { opacity: number; complete: number; reduceMotion: boolean }) {
   const C = STORY_GLYPH;
   const count = Math.round(8 + complete * 4);
   return (
     <g opacity={opacity} transform="translate(0 36)">
       <rect x={0} y={0} width={158} height={42} rx={10} fill="rgba(18,20,24,0.94)" stroke={C.mint} strokeWidth={1.3} strokeOpacity={0.42} />
-      <rect x={8} y={8} width={52} height={26} rx={6} fill="rgba(116,192,252,0.14)" stroke={C.sky} strokeWidth={1.1} className={!reduceMotion && complete > 0.6 ? "dashboard-scene__booking-badge" : undefined} />
-      <text x={16} y={25} fill={C.sky} fontSize={11} fontWeight={700} fontFamily="system-ui, sans-serif">
-        {count}
-      </text>
-      <text x={34} y={25} fill={C.muted} fontSize={8} fontWeight={500} fontFamily="system-ui, sans-serif">
-        today
+      <ReplyGlyph id="database" color={C.sky} x={18} y={21} />
+      <text x={36} y={19} fill={C.cream} fontSize={9.5} fontWeight={600} fontFamily="system-ui, sans-serif">
+        {count} bookings
       </text>
       <rect x={72} y={13} width={72} height={4} rx={2} fill={C.sky} opacity={0.45 + complete * 0.35} />
       <rect x={72} y={23} width={52 * complete} height={4} rx={2} fill={C.muted} />
       <rect x={72} y={31} width={40 * complete} height={3} rx={1.5} fill="rgba(245,242,235,0.18)" />
+      {complete > 0.65 ? (
+        <g transform="translate(136 21)" className={!reduceMotion ? "dashboard-scene__check--pop" : undefined} opacity={complete}>
+          <circle r={7} fill="rgba(140,255,210,0.16)" stroke={C.mint} strokeWidth={1.1} />
+          <path d="M-3 0 L-1.2 1.8 L3.2 -2.2" fill="none" stroke={C.mint} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
+        </g>
+      ) : null}
+      <text x={36} y={31} fill={C.muted} fontSize={8} fontFamily="system-ui, sans-serif">
+        records synced
+      </text>
     </g>
   );
 }
 
-function OutboundReply({ opacity, complete, reduceMotion }: { opacity: number; complete: number; reduceMotion: boolean }) {
+function PhoneReply({ opacity, complete, reduceMotion }: { opacity: number; complete: number; reduceMotion: boolean }) {
   const C = STORY_GLYPH;
   const live = complete > 0.3 && complete < 0.85 && !reduceMotion;
   return (
     <g opacity={opacity} transform="translate(0 36)">
       <rect x={0} y={0} width={166} height={42} rx={10} fill="rgba(18,20,24,0.94)" stroke={C.mint} strokeWidth={1.3} strokeOpacity={0.42} />
       <g transform="translate(18 21)" className={live ? "dashboard-scene__phone-pulse" : undefined}>
-        <circle r={12} fill="rgba(255,200,87,0.12)" stroke={C.amber} strokeWidth={1.2} opacity={0.55 + complete * 0.4} />
-        <path d="M-4 -5 C-4 -8 4 -8 4 -5 C4 -1 0 0 0 4 L0 6" fill="none" stroke={C.amber} strokeWidth={1.2} strokeLinecap="round" />
+        <ReplyGlyph id="phone" color={C.amber} x={0} y={0} scale={0.24} />
       </g>
       <text x={36} y={19} fill={C.cream} fontSize={9.5} fontWeight={600} fontFamily="system-ui, sans-serif">
         3 outbound
@@ -239,9 +221,7 @@ function CalendarReply({ opacity, complete, reduceMotion }: { opacity: number; c
     <g opacity={opacity} transform="translate(0 36)">
       <rect x={0} y={0} width={174} height={42} rx={10} fill="rgba(18,20,24,0.94)" stroke={C.mint} strokeWidth={1.3} strokeOpacity={0.42} />
       <g transform="translate(18 21)" className={!reduceMotion && complete > 0.5 ? "dashboard-scene__calendar-block" : undefined}>
-        <rect x={-10} y={-12} width={20} height={22} rx={4} fill={C.ink} stroke={C.violet} strokeWidth={1.2} />
-        <rect x={-8} y={-10} width={16} height={5} rx={1.5} fill={C.violet} opacity={0.9} />
-        <rect x={-6} y={-2} width={12} height={8} rx={2} fill={C.violet} opacity={0.35 + complete * 0.55} />
+        <ReplyGlyph id="calendar" color={C.amber} x={0} y={0} scale={0.24} />
       </g>
       <text x={36} y={19} fill={C.cream} fontSize={9.5} fontWeight={600} fontFamily="system-ui, sans-serif">
         2–4pm blocked
@@ -261,12 +241,12 @@ function CalendarReply({ opacity, complete, reduceMotion }: { opacity: number; c
 
 function ReminderReply({ opacity, complete, reduceMotion }: { opacity: number; complete: number; reduceMotion: boolean }) {
   const C = STORY_GLYPH;
-  const ringing = complete > 0.4 && complete < 0.9 && !reduceMotion;
+  const live = complete > 0.4 && complete < 0.9 && !reduceMotion;
   return (
     <g opacity={opacity} transform="translate(0 36)">
       <rect x={0} y={0} width={142} height={42} rx={10} fill="rgba(18,20,24,0.94)" stroke={C.mint} strokeWidth={1.3} strokeOpacity={0.42} />
-      <g transform="translate(16 21) scale(0.72)">
-        <StoryBellIcon ringing={ringing} />
+      <g transform="translate(16 21)" className={live ? "dashboard-scene__queue-bell" : undefined}>
+        <ReplyGlyph id="whatsapp" color="#22c55e" x={0} y={0} scale={0.24} />
       </g>
       <text x={34} y={19} fill={C.cream} fontSize={9.5} fontWeight={600} fontFamily="system-ui, sans-serif">
         no-shows nudged
@@ -295,8 +275,8 @@ function AgentReply({
   complete: number;
   reduceMotion: boolean;
 }) {
-  if (type === "bookings") return <BookingsReply opacity={opacity} complete={complete} reduceMotion={reduceMotion} />;
-  if (type === "outbound") return <OutboundReply opacity={opacity} complete={complete} reduceMotion={reduceMotion} />;
+  if (type === "database") return <DatabaseReply opacity={opacity} complete={complete} reduceMotion={reduceMotion} />;
+  if (type === "phone") return <PhoneReply opacity={opacity} complete={complete} reduceMotion={reduceMotion} />;
   if (type === "calendar") return <CalendarReply opacity={opacity} complete={complete} reduceMotion={reduceMotion} />;
   return <ReminderReply opacity={opacity} complete={complete} reduceMotion={reduceMotion} />;
 }
@@ -317,6 +297,7 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
   const arcFlow = dashboardOrbArcFlow(progress);
   const typingIndex = dashboardActiveTypingIndex(progress);
   const composerIndex = dashboardActiveComposerIndex(progress);
+  const activeExchangeIdx = dashboardActiveExchangeIndex(progress);
   const enterPulse = composerIndex >= 0 ? dashboardExchangeEnterMoment(progress, composerIndex) : 0;
 
   const C = STORY_GLYPH;
@@ -405,10 +386,13 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
         ) : null}
       </g>
 
-      {DASHBOARD_EXCHANGES.map((item, i) => {
+      {activeExchangeIdx >= 0 ? (() => {
+        const i = activeExchangeIdx;
+        const item = DASHBOARD_EXCHANGES[i];
         const flowOrb = dashboardExchangeFlowToOrb(progress, i);
         const flowIcon = dashboardExchangeFlowToIcon(progress, i);
-        const iconPath = dashboardOrbToIconPath(i, orbX, orbY);
+        const railIdx = dashboardRailIconIndex(item.icon);
+        const iconPath = dashboardOrbToIconPath(railIdx, orbX, orbY);
         if (flowOrb < 0.08 && flowIcon < 0.08) return null;
         return (
           <g key={`flow-${item.id}`} opacity={queueRail}>
@@ -449,20 +433,20 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
             ) : null}
           </g>
         );
-      })}
+      })() : null}
 
       <g opacity={queueRail * frame} transform={`translate(0 ${slideY * 0.5})`}>
         <rect x={icons.x} y={icons.y} width={icons.w} height={icons.h} rx={10} fill="rgba(18,20,24,0.55)" stroke="rgba(245,242,235,0.08)" strokeWidth={1} />
-        {DASHBOARD_EXCHANGES.map((item, i) => {
-          const active = dashboardQueueItemActive(progress, i);
-          const iy = icons.y + 28 + i * 40;
+        {DASHBOARD_RAIL_ICONS.map((item, i) => {
+          const active = dashboardRailItemActive(progress, i);
+          const iy = DASHBOARD_ACTION_ICONS.y + 24 + i * 36;
           return (
             <g
               key={item.id}
-              transform={`translate(${icons.x + icons.w / 2} ${iy})`}
+              transform={`translate(${icons.x + icons.w / 2} ${iy}) scale(${STORY_SATELLITE_ICON_SCALE})`}
               className={cn(active > 0.5 && !motionOff && "dashboard-scene__queue-item--live")}
             >
-              <ActionIcon icon={item.icon} color={item.color} active={active} />
+              <ActionIcon icon={item.id} color={item.color} active={active} />
             </g>
           );
         })}

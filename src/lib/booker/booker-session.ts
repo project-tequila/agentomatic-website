@@ -34,3 +34,6 @@ export const APPOINTMENT_BOOKER_URL =
 
 /** Internal sign-in route; redirects to the appointment booker. */
 export const BOOKER_ROUTE = "/signin";
+
+/** Internal sign-up route; redirects to the appointment booker /register page. */
+export const BOOKER_SIGNUP_ROUTE = "/signup";

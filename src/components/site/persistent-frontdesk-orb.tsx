@@ -1,15 +1,19 @@
 "use client";
 
 import { useReducedMotion } from "framer-motion";
+import type { CSSProperties } from "react";
 
 import { useHeliosVoice } from "@/lib/helios/helios-provider";
 import { useVideoFrame } from "@/lib/helios/use-video-frame";
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import { handoffOrbShift } from "@/lib/story/handoff-reveal";
 import {
+  gruntStageViewBox,
   PERSISTENT_ORB,
   STORY_STAGE_PRESERVE,
   storyStageViewBox,
+  persistentOrbHitShiftPercent,
+  persistentOrbHitSizePercent,
   persistentOrbIntensity,
   persistentOrbDashboardOverlay,
   persistentOrbModeBlend,
@@ -20,6 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { FrontdeskVoiceOrb } from "./frontdesk-voice-orb";
+import { SiteOrbHitZone } from "./site-orb-hit-zone";
 
 type PersistentFrontdeskOrbProps = {
   story: number;
@@ -79,10 +84,17 @@ export function PersistentFrontdeskOrb({ story }: PersistentFrontdeskOrbProps) {
 
   if (layerOpacity < 0.02) return null;
 
+  const orbViewBox = mode === "grunt" || nextMode === "grunt" ? gruntStageViewBox() : storyStageViewBox();
+  const orbHitStyle = {
+    opacity: layerOpacity,
+    "--story-orb-hit-shift-x": `${persistentOrbHitShiftPercent(orbShiftX, orbViewBox)}%`,
+    "--story-orb-hit-size-pct": `${persistentOrbHitSizePercent(orbViewBox)}%`,
+  } as CSSProperties;
+
   return (
-    <div className="story-illustration-bg__persistent-orb" style={{ opacity: layerOpacity }}>
+    <div className="story-illustration-bg__persistent-orb" style={orbHitStyle}>
       <svg
-        viewBox={storyStageViewBox()}
+        viewBox={orbViewBox}
         className="story-illustration-bg__persistent-orb-svg"
         preserveAspectRatio={STORY_STAGE_PRESERVE}
         fill="none"
@@ -112,6 +124,7 @@ export function PersistentFrontdeskOrb({ story }: PersistentFrontdeskOrbProps) {
           />
         ) : null}
       </svg>
+      <SiteOrbHitZone variant="immersive" />
     </div>
   );
 }

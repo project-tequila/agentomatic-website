@@ -21,7 +21,7 @@ import {
   remindersReturnFlow,
   remindersSceneComposition,
 } from "@/lib/story/reminders-reveal";
-import { STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { STORY_STAGE_PRESERVE, STORY_SATELLITE_ICON_SCALE, storyStageViewBox } from "@/lib/story/persistent-orb";
 import {
   STORY_GLYPH,
   StoryBellIcon,
@@ -160,7 +160,7 @@ export function RemindersScene({ story, opacity: sceneOpacity }: RemindersSceneP
       </g>
 
       <g
-        transform={`translate(${REMINDERS_CALLER.x - 32} ${REMINDERS_CALLER.y - 59}) scale(0.82)`}
+        transform={`translate(${REMINDERS_CALLER.x - 32} ${REMINDERS_CALLER.y - 59}) scale(${0.82 * STORY_SATELLITE_ICON_SCALE})`}
         opacity={caller * composition}
         className={cn(
           "reminders-scene__caller-phone",
@@ -189,13 +189,13 @@ export function RemindersScene({ story, opacity: sceneOpacity }: RemindersSceneP
       {!reduceMotion && reminderActive ? (
         <g opacity={reminderFlow} className="reminders-scene__bell--on-flow">
           <g className="reminders-scene__bell--ring">
-            <StoryBellIcon ringing={bellRinging} scale={0.88} />
+            <StoryBellIcon ringing={bellRinging} scale={0.88 * STORY_SATELLITE_ICON_SCALE} />
           </g>
           <animateMotion dur="2.2s" repeatCount="indefinite" path={reminderPath} calcMode="linear" />
         </g>
       ) : null}
 
-      <g transform={`translate(${REMINDERS_CALENDAR.x} ${REMINDERS_CALENDAR.y})`} opacity={calendar}>
+      <g transform={`translate(${REMINDERS_CALENDAR.x} ${REMINDERS_CALENDAR.y}) scale(${STORY_SATELLITE_ICON_SCALE})`} opacity={calendar}>
         <StoryCalendarIcon live={calendarRingLive} booked={booking} prominent glowFilter="url(#remindersCalendarGlow)" />
       </g>
 

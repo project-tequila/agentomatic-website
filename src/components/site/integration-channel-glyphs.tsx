@@ -12,6 +12,7 @@ export function PremiumChannelGlyph({ id, color, uid }: PremiumChannelGlyphProps
   if (id === "phone") return <PhonePremium color={color} uid={uid} />;
   if (id === "whatsapp") return <WhatsAppPremium color={color} uid={uid} />;
   if (id === "email") return <EmailPremium color={color} uid={uid} />;
+  if (id === "database") return <DatabasePremium color={color} uid={uid} />;
   return <CalendarPremium color={color} uid={uid} />;
 }
 
@@ -69,6 +70,30 @@ function EmailPremium({ color, uid }: { color: string; uid: string }) {
       <path d="M4 14 L24 28 L44 14" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.9" />
       <path d="M4 14 L24 28 L44 14 V38 H4 Z" fill={color} opacity="0.14" />
       <path d="M10 34 L24 22 L38 34" fill="none" stroke={color} strokeWidth="1.4" opacity="0.4" />
+    </g>
+  );
+}
+
+function DatabasePremium({ color, uid }: { color: string; uid: string }) {
+  return (
+    <g transform={`translate(${-HALF} ${-HALF})`}>
+      <defs>
+        <linearGradient id={`dbGrad-${uid}`} x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor={color} stopOpacity="0.95" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.5" />
+        </linearGradient>
+      </defs>
+      <ellipse cx={HALF} cy={16} rx={14} ry={5} fill="none" stroke={`url(#dbGrad-${uid})`} strokeWidth="2.2" />
+      <path
+        d={`M${HALF - 14} 16 V30 C${HALF - 14} 35 ${HALF + 14} 35 ${HALF + 14} 30 V16`}
+        fill="rgba(18,20,24,0.9)"
+        stroke={`url(#dbGrad-${uid})`}
+        strokeWidth="2.2"
+      />
+      <ellipse cx={HALF} cy={22} rx={14} ry={5} fill="none" stroke={color} strokeWidth="1.6" opacity="0.75" />
+      <ellipse cx={HALF} cy={28} rx={14} ry={5} fill="none" stroke={color} strokeWidth="1.4" opacity="0.55" />
+      <line x1={HALF - 14} y1={22} x2={HALF + 14} y2={22} stroke={color} strokeWidth="1.2" opacity="0.45" />
+      <line x1={HALF - 14} y1={28} x2={HALF + 14} y2={28} stroke={color} strokeWidth="1.2" opacity="0.35" />
     </g>
   );
 }

@@ -13,8 +13,8 @@ export const DASHBOARD_STAGE = {
 /** Large chat panel — upper-left, clears center orb hub (cx 360, ~r 108). */
 export const DASHBOARD_THREAD = { x: 48, y: 28, w: 296, h: 206 } as const;
 
-/** Agent action rail — far right; work icons light up as tasks complete. */
-export const DASHBOARD_ACTION_ICONS = { x: 620, y: 44, w: 52, h: 168 } as const;
+/** Agent action rail — far right; integration glyphs light up as tasks complete. */
+export const DASHBOARD_ACTION_ICONS = { x: 620, y: 36, w: 52, h: 204 } as const;
 
 /** @deprecated use DASHBOARD_ACTION_ICONS */
 export const DASHBOARD_QUEUE = DASHBOARD_ACTION_ICONS;
@@ -25,9 +25,17 @@ export const DASHBOARD_COMPOSER_H = 28;
 /** Vertical space per manager + agent exchange in the scroll feed. */
 export const DASHBOARD_EXCHANGE_H = 94;
 
-export type DashboardQueueIcon = "call" | "queue" | "calendar" | "bell";
+/** Spacing between rail icon centers. */
+export const DASHBOARD_RAIL_ICON_STEP = 36;
 
-export type DashboardResponseType = "bookings" | "outbound" | "calendar" | "reminder";
+export type DashboardQueueIcon = "database" | "phone" | "calendar" | "whatsapp" | "email";
+
+export type DashboardResponseType = "calendar" | "phone" | "reminder" | "database";
+
+export type DashboardRailIcon = {
+  id: DashboardQueueIcon;
+  color: string;
+};
 
 export type DashboardExchange = {
   id: string;
@@ -37,35 +45,44 @@ export type DashboardExchange = {
   color: string;
 };
 
+/** Right-rail channel icons — same order/colors as integrations chapter. */
+export const DASHBOARD_RAIL_ICONS: DashboardRailIcon[] = [
+  { id: "phone", color: "#ff8787" },
+  { id: "whatsapp", color: "#22c55e" },
+  { id: "calendar", color: "#ffc857" },
+  { id: "email", color: "#c084fc" },
+  { id: "database", color: "#74c0fc" },
+];
+
 /** Scroll-synced chat exchanges — each maps to a right-rail action icon. */
 export const DASHBOARD_EXCHANGES: DashboardExchange[] = [
-  {
-    id: "bookings",
-    manager: "pull up today's bookings",
-    responseType: "bookings",
-    icon: "queue",
-    color: "#74c0fc",
-  },
-  {
-    id: "waitlist",
-    manager: "call the waitlist",
-    responseType: "outbound",
-    icon: "call",
-    color: "#ffc857",
-  },
   {
     id: "calendar",
     manager: "block my calendar 2–4pm",
     responseType: "calendar",
     icon: "calendar",
-    color: "#9b87f5",
+    color: "#ffc857",
+  },
+  {
+    id: "phone",
+    manager: "call the waitlist",
+    responseType: "phone",
+    icon: "phone",
+    color: "#ff8787",
   },
   {
     id: "nudge",
     manager: "ping no-shows",
     responseType: "reminder",
-    icon: "bell",
-    color: "#8cffd2",
+    icon: "whatsapp",
+    color: "#22c55e",
+  },
+  {
+    id: "database",
+    manager: "pull up today's bookings",
+    responseType: "database",
+    icon: "database",
+    color: "#74c0fc",
   },
 ];
 
@@ -144,6 +161,38 @@ function exchangePhase(progress: number, index: number, phase: ExchangePhase) {
   return smoothstep(clampPhase(progress, schedule[phase]));
 }
 
+/** Phase window only — returns 0 before start and after end (for transient flows). */
+function exchangePhaseTransient(progress: number, index: number, phase: ExchangePhase) {
+  const schedule = EXCHANGE_SCHEDULE[index];
+  if (!schedule) return 0;
+  const [start, end] = schedule[phase];
+  if (progress < start || progress > end) return 0;
+  return smoothstep(clampPhase(progress, [start, end]));
+}
+
+/**
+ * Scroll-synced "current" exchange — from manager typing start until the next
+ * exchange begins (or scene end). Drives which single rail icon may interact.
+ */
+export function dashboardActiveExchangeIndex(progress: number) {
+  let active = -1;
+  for (let i = 0; i < DASHBOARD_EXCHANGES.length; i++) {
+    const schedule = EXCHANGE_SCHEDULE[i];
+    if (schedule && progress >= schedule.managerTyping[0]) active = i;
+  }
+  return active;
+}
+
+/** Index of a channel icon on the right rail. */
+export function dashboardRailIconIndex(icon: DashboardQueueIcon) {
+  return DASHBOARD_RAIL_ICONS.findIndex((item) => item.id === icon);
+}
+
+/** Y center for a rail icon slot. */
+export function dashboardRailIconY(railIndex: number) {
+  return DASHBOARD_ACTION_ICONS.y + 24 + railIndex * DASHBOARD_RAIL_ICON_STEP;
+}
+
 /** Chat shell slides up and fades in. */
 export function dashboardFrameReveal(progress: number) {
   return smoothstep(clampPhase(progress, [0.03, 0.15]));
@@ -192,11 +241,10 @@ export function dashboardExchangeManagerReveal(progress: number, index: number) 
   return smoothstep(clampPhase(progress, [schedule.enter[0], schedule.enter[1] + 0.008]));
 }
 
-/** Phase C — flow particle chat → orb. */
+/** Phase C — flow particle chat → orb (active exchange only, transient window). */
 export function dashboardExchangeFlowToOrb(progress: number, index: number) {
-  const flow = exchangePhase(progress, index, "flowToOrb");
-  const agent = exchangePhase(progress, index, "agent");
-  return flow * (1 - agent * 0.35);
+  if (index !== dashboardActiveExchangeIndex(progress)) return 0;
+  return exchangePhaseTransient(progress, index, "flowToOrb");
 }
 
 /** Phase D — agent typing indicator before reply. */
@@ -211,9 +259,13 @@ export function dashboardExchangeAgentReveal(progress: number, index: number) {
   return exchangePhase(progress, index, "agent");
 }
 
-/** Phase E — flow orb → right action icon. */
+/** Phase E — flow orb → right action icon (active exchange only, transient window). */
 export function dashboardExchangeFlowToIcon(progress: number, index: number) {
-  const flow = exchangePhase(progress, index, "flowToIcon");
+  if (index !== dashboardActiveExchangeIndex(progress)) return 0;
+  const schedule = EXCHANGE_SCHEDULE[index];
+  if (!schedule) return 0;
+  const flow = exchangePhaseTransient(progress, index, "flowToIcon");
+  if (flow <= 0) return 0;
   const agent = exchangePhase(progress, index, "agent");
   return flow * (0.45 + agent * 0.55);
 }
@@ -236,16 +288,33 @@ export function dashboardActiveComposerIndex(progress: number) {
   return -1;
 }
 
-/** Action icon pulses when its matching exchange completes. */
+/** Action icon highlight for one exchange (0 unless it is the active exchange). */
 export function dashboardQueueItemActive(progress: number, index: number) {
-  const iconFlow = dashboardExchangeFlowToIcon(progress, index);
-  const agent = dashboardExchangeAgentReveal(progress, index);
-  const hold = interpolate(progress, [0.72, 0.92], [1, 0.55], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  const active = Math.max(iconFlow, smoothstep(agent));
-  return active * (agent > 0.75 ? hold : 1);
+  if (index !== dashboardActiveExchangeIndex(progress)) return 0;
+
+  const schedule = EXCHANGE_SCHEDULE[index];
+  if (!schedule) return 0;
+
+  // Icon stays dim during manager typing; lights from chat→orb through orb→icon.
+  if (progress < schedule.flowToOrb[0] || progress > schedule.flowToIcon[1] + 0.01) return 0;
+
+  const flowOrb = exchangePhaseTransient(progress, index, "flowToOrb");
+  const typing = exchangePhaseTransient(progress, index, "agentTyping");
+  const agent = exchangePhase(progress, index, "agent");
+  const flowIcon = dashboardExchangeFlowToIcon(progress, index);
+
+  return Math.max(flowOrb * 0.45, typing * 0.72, agent, flowIcon);
+}
+
+/** Rail slot highlight — only the active exchange's mapped icon. */
+export function dashboardRailItemActive(progress: number, railIndex: number) {
+  const activeIdx = dashboardActiveExchangeIndex(progress);
+  if (activeIdx < 0) return 0;
+
+  const exchange = DASHBOARD_EXCHANGES[activeIdx];
+  if (dashboardRailIconIndex(exchange.icon) !== railIndex) return 0;
+
+  return dashboardQueueItemActive(progress, activeIdx);
 }
 
 /** Chat→orb hub arc — intensifies as exchanges land. */
@@ -256,12 +325,10 @@ export function dashboardOrbArcReveal(progress: number) {
 /** Flow intensity on the chat→orb arc (particles + dash motion). */
 export function dashboardOrbArcFlow(progress: number) {
   const arc = dashboardOrbArcReveal(progress);
-  const actions = interpolate(progress, [0.25, 0.82], [0.25, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  const settle = dashboardSettlePulse(progress);
-  return arc * (0.4 + actions * 0.45 + settle * 0.15);
+  const activeIdx = dashboardActiveExchangeIndex(progress);
+  const exchangeFlow =
+    activeIdx >= 0 ? Math.max(dashboardExchangeFlowToOrb(progress, activeIdx), dashboardExchangeFlowToIcon(progress, activeIdx) * 0.85) : 0;
+  return arc * exchangeFlow;
 }
 
 /** @deprecated use dashboardExchangeFlowToIcon */
@@ -312,9 +379,9 @@ export function dashboardOrbArcPath(orbX = DASHBOARD_STAGE.orbX, orbY = DASHBOAR
 }
 
 /** Per-exchange arc from orb hub to the matching right-rail icon. */
-export function dashboardOrbToIconPath(index: number, orbX = DASHBOARD_STAGE.orbX, orbY = DASHBOARD_STAGE.orbY) {
+export function dashboardOrbToIconPath(railIndex: number, orbX = DASHBOARD_STAGE.orbX, orbY = DASHBOARD_STAGE.orbY) {
   const icons = DASHBOARD_ACTION_ICONS;
-  const itemY = icons.y + 28 + index * 40;
+  const itemY = dashboardRailIconY(railIndex);
   const startX = orbX + 42;
   const startY = orbY - 6;
   const endX = icons.x + 2;

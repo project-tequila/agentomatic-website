@@ -22,7 +22,7 @@ import {
   handoffTransferPeak,
   handoffWarmHandoffLabel,
 } from "@/lib/story/handoff-reveal";
-import { STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { STORY_STAGE_PRESERVE, STORY_SATELLITE_ICON_SCALE, storyStageViewBox } from "@/lib/story/persistent-orb";
 import { StoryHumanAgent } from "@/components/site/story-stage-glyphs";
 import { RealisticPhoneSvg } from "@/components/site/realistic-phone-svg";
 import { cn } from "@/lib/utils";
@@ -94,7 +94,7 @@ function PillLabel({
 function CallerPhone({ opacity, live, ringing }: { opacity: number; live: boolean; ringing: boolean }) {
   return (
     <g
-      transform={`translate(${HANDOFF_CALLER.x - 32} ${HANDOFF_CALLER.y - 59}) scale(0.82)`}
+      transform={`translate(${HANDOFF_CALLER.x - 32} ${HANDOFF_CALLER.y - 59}) scale(${0.82 * STORY_SATELLITE_ICON_SCALE})`}
       opacity={opacity}
       className={cn(
         "handoff-scene__caller-phone",
@@ -136,7 +136,7 @@ function HumanAgent({
   return (
     <g transform={`translate(${x} ${y})`}>
       <StoryHumanAgent
-        scale={scale}
+        scale={scale * STORY_SATELLITE_ICON_SCALE}
         ringOpacity={ringOpacity}
         live={live}
         className={cn(live && "handoff-scene__human--live")}
@@ -162,7 +162,7 @@ function CallSummaryCard({
 }) {
   return (
     <g
-      transform={`translate(${x} ${y}) scale(${scale})`}
+      transform={`translate(${x} ${y}) scale(${scale * STORY_SATELLITE_ICON_SCALE})`}
       opacity={opacity}
       className="handoff-scene__summary"
       filter={glow > 0.35 ? "url(#handoffSummaryGlow)" : undefined}

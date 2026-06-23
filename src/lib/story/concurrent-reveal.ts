@@ -2,7 +2,7 @@ import { interpolate } from "@helios-project/core";
 
 import { gatedBodyTypingReveal } from "./body-typing-reveal";
 
-import { PERSISTENT_ORB } from "./persistent-orb";
+import { PERSISTENT_ORB, STORY_SATELLITE_ICON_SCALE } from "./persistent-orb";
 
 export type CallDirection = "inbound" | "outbound";
 
@@ -170,7 +170,7 @@ export function concurrentNetworkPhoneLayout(
   const x = orbX + Math.cos(node.angle) * radius;
   const y = orbY + Math.sin(node.angle) * radius * 0.82;
   const depthScale = 0.52 + node.depth * 0.56;
-  const scale = depthScale * (0.55 + reveal * 0.45);
+  const scale = depthScale * (0.55 + reveal * 0.45) * STORY_SATELLITE_ICON_SCALE;
   const opacity = reveal * (0.22 + node.depth * 0.78);
   const highlight = reveal * (0.35 + node.depth * 0.65);
 

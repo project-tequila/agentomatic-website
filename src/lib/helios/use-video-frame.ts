@@ -39,10 +39,24 @@ function snapshotsEqual(a: VideoFrameState, b: VideoFrameState): boolean {
   );
 }
 
+function scheduleStoreChange(onStoreChange: () => void) {
+  queueMicrotask(onStoreChange);
+}
+
 export function useVideoFrame(helios: Helios<VoiceHeliosInputProps> | null): VideoFrameState {
   const cacheRef = useRef<VideoFrameState>(serverSnapshot);
 
-  const getSnapshot = useCallback(() => cacheRef.current, []);
+  const getSnapshot = useCallback(() => {
+    if (!helios) return serverSnapshot;
+
+    const frameState = toVideoFrameState(helios.getState());
+    if (snapshotsEqual(cacheRef.current, frameState)) {
+      return cacheRef.current;
+    }
+
+    cacheRef.current = frameState;
+    return frameState;
+  }, [helios]);
 
   const subscribe = useCallback(
     (onStoreChange: () => void) => {
@@ -52,7 +66,7 @@ export function useVideoFrame(helios: Helios<VoiceHeliosInputProps> | null): Vid
         const frameState = toVideoFrameState(next);
         if (snapshotsEqual(cacheRef.current, frameState)) return;
         cacheRef.current = frameState;
-        onStoreChange();
+        scheduleStoreChange(onStoreChange);
       });
     },
     [helios],

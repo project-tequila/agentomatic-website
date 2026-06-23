@@ -11,10 +11,10 @@ export const GRUNT_STAGE = {
 } as const;
 
 /** Equal distance from orb center (prior spread pulled in 20%). */
-export const GRUNT_ARM_LENGTH = 179;
+export const GRUNT_ARM_LENGTH = 152;
 
 /** Card centers — distance from orb along each plus arm. */
-export const GRUNT_MODULE_RADIUS = 199;
+export const GRUNT_MODULE_RADIUS = 150;
 
 export const GRUNT_MODULE_LABELS: Record<GruntHubModuleId, string> = {
   schedule: "scheduling",
@@ -48,10 +48,10 @@ export const GRUNT_PLUS_ARMS = {
   horizontal: { y: orbY, x1: orbX - GRUNT_MODULE_RADIUS, x2: orbX + GRUNT_MODULE_RADIUS },
 } as const;
 
-export const GRUNT_STATUS = { x: 36, y: 408 } as const;
+export const GRUNT_STATUS = { x: 36, y: 378 } as const;
 
 export const GRUNT_MODULE_SIZE: Record<GruntHubModuleId, { w: number; h: number }> = {
-  schedule: { w: 112, h: 108 },
+  schedule: { w: 148, h: 104 },
   conversations: { w: 118, h: 108 },
   data: { w: 112, h: 108 },
   route: { w: 118, h: 108 },
@@ -115,7 +115,7 @@ export function gruntModuleLive(progress: number, revealAt: number) {
 export function gruntModuleEnterOffset(progress: number, module: GruntHubModule) {
   const t = 1 - gruntModuleReveal(progress, module.revealAt);
   const ease = t * t;
-  const spread = 50;
+  const spread = 32;
   switch (module.id) {
     case "schedule":
       return { x: 0, y: -spread * ease };

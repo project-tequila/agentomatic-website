@@ -92,7 +92,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         })}
       />
       <SiteMain>
-        <article className="max-w-3xl">
+        <article className="w-full max-w-3xl">
           <div className="site-page-header">
             <p className="site-card__meta">
               <Link href="/blog" className="site-link hover:opacity-80">

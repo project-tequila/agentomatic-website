@@ -17,7 +17,7 @@ import {
   multilingualTickerOffset,
 } from "@/lib/story/multilingual-reveal";
 import { useStoryScrollPaused } from "@/lib/story/use-story-scroll-paused";
-import { STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { STORY_STAGE_PRESERVE, STORY_SATELLITE_ICON_SCALE, storyStageViewBox } from "@/lib/story/persistent-orb";
 import { cn } from "@/lib/utils";
 
 type MultilingualSceneProps = {
@@ -96,7 +96,11 @@ export function MultilingualScene({ story, opacity: sceneOpacity }: Multilingual
         ) : null}
       </g>
 
-      <g transform={`translate(${cardX} ${cardY})`} opacity={cardReveal} className="multilingual-scene__card-wrap">
+      <g
+        transform={`translate(${cardX + cardW / 2} ${cardY + cardH / 2}) scale(${STORY_SATELLITE_ICON_SCALE}) translate(${-cardW / 2} ${-cardH / 2})`}
+        opacity={cardReveal}
+        className="multilingual-scene__card-wrap"
+      >
         <rect
           x={0}
           y={0}

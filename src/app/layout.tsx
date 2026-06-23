@@ -38,6 +38,7 @@ export const metadata: Metadata = rootMetadata;
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
   themeColor: "#121418",
 };
 
@@ -50,6 +51,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${ibmPlexMono.variable} ${marketingSyne.variable} ${marketingDmSans.variable} ${harveySerif.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-[#121418] text-white" suppressHydrationWarning>
         <JsonLd data={organizationJsonLd()} />

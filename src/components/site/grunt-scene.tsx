@@ -44,7 +44,7 @@ import {
   type GruntHubModuleId,
 } from "@/lib/story/grunt-reveal";
 import { useStoryScrollPaused } from "@/lib/story/use-story-scroll-paused";
-import { STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { gruntStageViewBox, STORY_SATELLITE_ICON_SCALE, STORY_STAGE_PRESERVE } from "@/lib/story/persistent-orb";
 import { STORY_GLYPH } from "@/components/site/story-stage-glyphs";
 
 type GruntSceneProps = {
@@ -130,7 +130,7 @@ export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
 
   return (
     <svg
-      viewBox={storyStageViewBox()}
+      viewBox={gruntStageViewBox()}
       preserveAspectRatio={STORY_STAGE_PRESERVE}
       className="grunt-scene grunt-scene--hub grunt-scene--hub-plus grunt-scene--interactive"
       aria-hidden
@@ -215,7 +215,7 @@ export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
         return (
           <g
             key={mod.id}
-            transform={`translate(${mod.x + enter.x} ${mod.y + enter.y}) scale(${scale})`}
+            transform={`translate(${mod.x + enter.x} ${mod.y + enter.y}) scale(${scale * STORY_SATELLITE_ICON_SCALE})`}
             opacity={op}
             className="grunt-scene__hub-module-wrap"
           >

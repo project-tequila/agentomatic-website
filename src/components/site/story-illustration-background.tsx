@@ -68,10 +68,15 @@ export function StoryIllustrationBackground() {
       <div
         className="story-illustration-bg__wash"
         data-tone={atmosphere.wash}
-        style={{ opacity: 0.5 + scene * 0.15 }}
+        style={{ opacity: 0.18 + scene * 0.08 }}
       />
 
-      <div className="story-illustration-bg__stage-anchor">
+      <div
+        className={cn(
+          "story-illustration-bg__stage-anchor",
+          gruntOpacity > 0.02 && "story-illustration-bg__stage-anchor--grunt",
+        )}
+      >
         <div className="story-illustration-bg__stage">
         {scenes.map(({ id, opacity }) => (
           <div key={id} className="story-illustration-bg__scene" style={{ opacity }}>
