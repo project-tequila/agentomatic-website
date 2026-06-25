@@ -4,7 +4,8 @@ import { interpolate } from "@helios-project/core";
 import { useReducedMotion } from "framer-motion";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
-import { PERSISTENT_ORB, STORY_SATELLITE_ICON_SCALE, STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { PERSISTENT_ORB, STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 
 type HoursDayNightCycleProps = {
   story: number;
@@ -15,7 +16,6 @@ const W = PERSISTENT_ORB.width;
 const H = PERSISTENT_ORB.height;
 const CX = PERSISTENT_ORB.cx;
 const CY = PERSISTENT_ORB.cy;
-const ORBIT_R = 132 * STORY_SATELLITE_ICON_SCALE;
 
 const STARS = [
   { x: 92, y: 56, r: 1.6 },
@@ -37,6 +37,8 @@ const STARS = [
 
 export function HoursDayNightCycle({ story, sceneOpacity }: HoursDayNightCycleProps) {
   const reduceMotion = useReducedMotion();
+  const spatial = useStorySpatialLayout();
+  const ORBIT_R = spatial.hours.orbitRadius;
   const progress = featureBandProgress(story, "hours");
   if (progress === null || sceneOpacity < 0.02) return null;
 

@@ -129,16 +129,16 @@ export function gruntModuleEnterOffset(progress: number, module: GruntHubModule)
 }
 
 /** Soft curve from orb to module card edge — tendrils. */
-export function gruntTendrilPath(module: GruntHubModule) {
-  return gruntFlowPath(module, GRUNT_MODULE_RADIUS - 46);
+export function gruntTendrilPath(module: GruntHubModule, moduleRadius = GRUNT_MODULE_RADIUS) {
+  return gruntFlowPath(module, moduleRadius - 46, moduleRadius);
 }
 
 /** Icons travel the open corridor before each card. */
-export function gruntOrbFlowPath(module: GruntHubModule) {
-  return gruntFlowPath(module, GRUNT_MODULE_RADIUS * 0.62);
+export function gruntOrbFlowPath(module: GruntHubModule, moduleRadius = GRUNT_MODULE_RADIUS) {
+  return gruntFlowPath(module, moduleRadius * 0.62, moduleRadius);
 }
 
-function gruntFlowPath(module: GruntHubModule, reach: number) {
+function gruntFlowPath(module: GruntHubModule, reach: number, moduleRadius = GRUNT_MODULE_RADIUS) {
   const dx = module.x - orbX;
   const dy = module.y - orbY;
   const len = Math.hypot(dx, dy) || 1;
@@ -155,18 +155,17 @@ function gruntFlowPath(module: GruntHubModule, reach: number) {
   return `M ${orbX} ${orbY} C ${orbX + (endX - orbX) * 0.28} ${orbY + side}, ${orbX + (endX - orbX) * 0.62} ${orbY - side * 0.55}, ${endX} ${endY}`;
 }
 
-export function gruntModuleFlowAnchor(id: GruntHubModuleId) {
-  const mod = GRUNT_HUB_MODULES.find((m) => m.id === id)!;
+export function gruntModuleFlowAnchor(mod: GruntHubModule, moduleRadius = GRUNT_MODULE_RADIUS) {
   const dx = mod.x - orbX;
   const dy = mod.y - orbY;
   const len = Math.hypot(dx, dy) || 1;
-  const stop = GRUNT_MODULE_RADIUS * 0.62;
+  const stop = moduleRadius * 0.62;
   return { x: orbX + (dx / len) * stop, y: orbY + (dy / len) * stop };
 }
 
 /** Scroll-synced icon position along the arm (0 = orb, 1 = card approach). */
-export function gruntOrbIconPosition(module: GruntHubModule, flow: number) {
-  const anchor = gruntModuleFlowAnchor(module.id);
+export function gruntOrbIconPosition(module: GruntHubModule, flow: number, moduleRadius = GRUNT_MODULE_RADIUS) {
+  const anchor = gruntModuleFlowAnchor(module, moduleRadius);
   const t = clamp01(flow);
   return {
     x: orbX + (anchor.x - orbX) * t,

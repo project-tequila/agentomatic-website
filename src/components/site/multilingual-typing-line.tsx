@@ -89,7 +89,7 @@ export function MultilingualTypingLine({
         fillOpacity={fillOpacity}
         fontSize={fontSize}
         fontWeight={fontWeight}
-        fontFamily="system-ui, sans-serif"
+        fontFamily="system-ui, 'Segoe UI', 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Noto Sans Telugu', 'Noto Sans Bengali', 'Noto Sans Gujarati', 'Noto Sans Kannada', 'Noto Sans Malayalam', 'Noto Sans Gurmukhi', 'Noto Sans Oriya', sans-serif"
         letterSpacing={letterSpacing}
       >
         {text.split("").map((ch, i) => {

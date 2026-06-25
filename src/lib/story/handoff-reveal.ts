@@ -16,12 +16,28 @@ export const HANDOFF_CALLER = { x: 48, y: PERSISTENT_ORB.cy };
 /** Outbound edge of the realistic caller phone (matches handoff-scene scale). */
 export const HANDOFF_CALLER_CONNECT_X = HANDOFF_CALLER.x + 26;
 
-/** Human starts upper-right; ends left of center after swap. */
-export const HANDOFF_HUMAN_START = { x: 536, y: 186 };
-export const HANDOFF_HUMAN_END = { x: 228, y: 224 };
+/** Human enters from above the desk; settles top-left of the orb after swap. */
+export const HANDOFF_HUMAN_START = { x: 478, y: 92 };
+export const HANDOFF_HUMAN_END = { x: 318, y: 108 };
 
 /** Orb slides right as the human takes the desk. */
 export const HANDOFF_ORB_SHIFT = 128;
+
+export type HandoffSpatial = {
+  caller: { x: number; y: number };
+  callerConnectX: number;
+  humanStart: { x: number; y: number };
+  humanEnd: { x: number; y: number };
+  orbShift: number;
+};
+
+export const HANDOFF_SPATIAL_DESKTOP: HandoffSpatial = {
+  caller: HANDOFF_CALLER,
+  callerConnectX: HANDOFF_CALLER_CONNECT_X,
+  humanStart: HANDOFF_HUMAN_START,
+  humanEnd: HANDOFF_HUMAN_END,
+  orbShift: HANDOFF_ORB_SHIFT,
+};
 
 export type HandoffLayout = {
   humanX: number;
@@ -35,13 +51,13 @@ function smoothstep(t: number) {
   return t * t * (3 - 2 * t);
 }
 
-export function handoffLayout(progress: number): HandoffLayout {
+export function handoffLayout(progress: number, spatial: HandoffSpatial = HANDOFF_SPATIAL_DESKTOP): HandoffLayout {
   const swap = smoothstep(
     interpolate(progress, [0.5, 0.86], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
   );
-  const humanX = HANDOFF_HUMAN_START.x + (HANDOFF_HUMAN_END.x - HANDOFF_HUMAN_START.x) * swap;
-  const humanY = HANDOFF_HUMAN_START.y + (HANDOFF_HUMAN_END.y - HANDOFF_HUMAN_START.y) * swap;
-  const orbShiftX = HANDOFF_ORB_SHIFT * swap;
+  const humanX = spatial.humanStart.x + (spatial.humanEnd.x - spatial.humanStart.x) * swap;
+  const humanY = spatial.humanStart.y + (spatial.humanEnd.y - spatial.humanStart.y) * swap;
+  const orbShiftX = spatial.orbShift * swap;
 
   return {
     humanX,
@@ -52,23 +68,23 @@ export function handoffLayout(progress: number): HandoffLayout {
   };
 }
 
-export function handoffOrbShift(progress: number) {
-  return handoffLayout(progress).orbShiftX;
+export function handoffOrbShift(progress: number, spatial: HandoffSpatial = HANDOFF_SPATIAL_DESKTOP) {
+  return handoffLayout(progress, spatial).orbShiftX;
 }
 
-export function handoffCallerToOrbPath(orbX: number) {
+export function handoffCallerToOrbPath(orbX: number, spatial: HandoffSpatial = HANDOFF_SPATIAL_DESKTOP) {
   const y = PERSISTENT_ORB.cy;
-  const sx = HANDOFF_CALLER_CONNECT_X;
+  const sx = spatial.callerConnectX;
   return `M ${sx} ${y} Q ${(sx + orbX) / 2 - 12} ${y - 32} ${orbX - 44} ${y}`;
 }
 
-export function handoffCallerToHumanPath(layout: HandoffLayout) {
-  const sx = HANDOFF_CALLER_CONNECT_X;
+export function handoffCallerToHumanPath(layout: HandoffLayout, spatial: HandoffSpatial = HANDOFF_SPATIAL_DESKTOP) {
+  const sx = spatial.callerConnectX;
   const sy = PERSISTENT_ORB.cy;
   const ex = layout.humanX - 38;
   const ey = layout.humanY + 4;
-  const cx = sx + (ex - sx) * 0.46;
-  const cy = sy + (ey - sy) * 0.32 - 16;
+  const cx = sx + (ex - sx) * 0.5;
+  const cy = Math.min(sy, ey) - 48;
   return `M ${sx} ${sy} Q ${cx} ${cy} ${ex} ${ey}`;
 }
 
@@ -78,12 +94,12 @@ export function handoffCallerPath(orbX: number) {
 }
 
 export function handoffSummaryPath(layout: HandoffLayout) {
-  const sx = layout.orbX + 18;
-  const sy = PERSISTENT_ORB.cy + 12;
+  const sx = layout.orbX + 12;
+  const sy = PERSISTENT_ORB.cy - 52;
   const ex = layout.humanX - 36;
-  const ey = layout.humanY + 8;
+  const ey = layout.humanY + 6;
   const cx = (sx + ex) / 2;
-  const cy = sy - 36 + layout.swap * 12;
+  const cy = Math.min(sy, ey) - 28 + layout.swap * 8;
   return `M ${sx} ${sy} Q ${cx} ${cy} ${ex} ${ey}`;
 }
 
@@ -182,10 +198,10 @@ export function handoffSummaryReveal(progress: number, layout: HandoffLayout) {
   const t = smoothstep(travel);
   const peak = handoffTransferPeak(progress);
 
-  const startX = layout.orbX - 58;
-  const startY = PERSISTENT_ORB.cy + 38;
+  const startX = layout.orbX - 42;
+  const startY = PERSISTENT_ORB.cy - 78;
   const endX = layout.humanX - 78;
-  const endY = layout.humanY + 42;
+  const endY = layout.humanY + 38;
 
   return {
     opacity: opacity * (0.72 + peak * 0.28),

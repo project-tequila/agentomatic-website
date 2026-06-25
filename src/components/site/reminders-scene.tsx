@@ -6,8 +6,6 @@ import { useReducedMotion } from "framer-motion";
 import { CALL_THEME } from "@/lib/story/concurrent-reveal";
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import {
-  REMINDERS_CALENDAR,
-  REMINDERS_CALLER,
   REMINDERS_STAGE,
   remindersBellToCallerPath,
   remindersBookingReveal,
@@ -21,7 +19,8 @@ import {
   remindersReturnFlow,
   remindersSceneComposition,
 } from "@/lib/story/reminders-reveal";
-import { STORY_STAGE_PRESERVE, STORY_SATELLITE_ICON_SCALE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import {
   STORY_GLYPH,
   StoryBellIcon,
@@ -38,6 +37,13 @@ type RemindersSceneProps = {
 
 export function RemindersScene({ story, opacity: sceneOpacity }: RemindersSceneProps) {
   const reduceMotion = useReducedMotion();
+  const spatialLayout = useStorySpatialLayout();
+  const remindersSpatial = {
+    caller: spatialLayout.reminders.caller,
+    callerConnectX: spatialLayout.reminders.callerConnectX,
+    calendar: spatialLayout.reminders.calendar,
+  };
+  const satelliteScale = spatialLayout.reminders.satelliteScale;
   const progress = featureBandProgress(story, "reminders");
   if (progress === null || sceneOpacity < 0.02) return null;
 
@@ -50,9 +56,9 @@ export function RemindersScene({ story, opacity: sceneOpacity }: RemindersSceneP
   const reminderFlow = remindersReturnFlow(progress);
   const composition = remindersSceneComposition(progress);
 
-  const callerOrbPath = remindersCallerToOrbPath();
-  const orbCalendarPath = remindersOrbToCalendarPath();
-  const reminderPath = remindersBellToCallerPath();
+  const callerOrbPath = remindersCallerToOrbPath(undefined, remindersSpatial);
+  const orbCalendarPath = remindersOrbToCalendarPath(undefined, remindersSpatial);
+  const reminderPath = remindersBellToCallerPath(undefined, remindersSpatial);
 
   const callerLive = callerToOrb > 0.5 && progress < 0.48 && !reduceMotion;
   const calendarRingLive = orbToCalendar > 0.4 && calendarVisible > 0.85 && !reduceMotion;
@@ -95,7 +101,7 @@ export function RemindersScene({ story, opacity: sceneOpacity }: RemindersSceneP
       </defs>
 
       <ellipse cx={REMINDERS_STAGE.orbX} cy={REMINDERS_STAGE.orbY} rx="108" ry="72" fill={C.mint} opacity={0.035 * callerToOrb} />
-      <ellipse cx={REMINDERS_CALENDAR.x} cy={REMINDERS_CALENDAR.y} rx="88" ry="68" fill={C.sky} opacity={0.05 + calendar * 0.07} />
+      <ellipse cx={remindersSpatial.calendar.x} cy={remindersSpatial.calendar.y} rx="88" ry="68" fill={C.sky} opacity={0.05 + calendar * 0.07} />
 
       {/* Call flow — caller → orb (upper arc) */}
       <g opacity={callerToOrb}>
@@ -160,7 +166,7 @@ export function RemindersScene({ story, opacity: sceneOpacity }: RemindersSceneP
       </g>
 
       <g
-        transform={`translate(${REMINDERS_CALLER.x - 32} ${REMINDERS_CALLER.y - 59}) scale(${0.82 * STORY_SATELLITE_ICON_SCALE})`}
+        transform={`translate(${remindersSpatial.caller.x - 32} ${remindersSpatial.caller.y - 59}) scale(${0.82 * satelliteScale})`}
         opacity={caller * composition}
         className={cn(
           "reminders-scene__caller-phone",
@@ -189,17 +195,17 @@ export function RemindersScene({ story, opacity: sceneOpacity }: RemindersSceneP
       {!reduceMotion && reminderActive ? (
         <g opacity={reminderFlow} className="reminders-scene__bell--on-flow">
           <g className="reminders-scene__bell--ring">
-            <StoryBellIcon ringing={bellRinging} scale={0.88 * STORY_SATELLITE_ICON_SCALE} />
+            <StoryBellIcon ringing={bellRinging} scale={0.88 * satelliteScale} />
           </g>
           <animateMotion dur="2.2s" repeatCount="indefinite" path={reminderPath} calcMode="linear" />
         </g>
       ) : null}
 
-      <g transform={`translate(${REMINDERS_CALENDAR.x} ${REMINDERS_CALENDAR.y}) scale(${STORY_SATELLITE_ICON_SCALE})`} opacity={calendar}>
+      <g transform={`translate(${remindersSpatial.calendar.x} ${remindersSpatial.calendar.y}) scale(${satelliteScale})`} opacity={calendar}>
         <StoryCalendarIcon live={calendarRingLive} booked={booking} prominent glowFilter="url(#remindersCalendarGlow)" />
       </g>
 
-      <g transform={`translate(${REMINDERS_CALENDAR.x - 54} ${REMINDERS_CALENDAR.y + 34})`} opacity={booking} className="reminders-scene__booking">
+      <g transform={`translate(${remindersSpatial.calendar.x - 54} ${remindersSpatial.calendar.y + 34})`} opacity={booking} className="reminders-scene__booking">
         <StoryBookingCard fillProgress={booking} />
       </g>
     </svg>

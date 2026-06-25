@@ -2,8 +2,24 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, PhoneCall, CalendarCheck, Sparkles, ClipboardList } from "lucide-react";
+import { MULTILINGUAL_LANGUAGE_COUNT } from "@/lib/story/multilingual-reveal";
+import {
+  Check,
+  PhoneCall,
+  CalendarCheck,
+  Sparkles,
+  ClipboardList,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+
+const HARVEY_NAV_LINKS = [
+  { href: "/about", label: "about" },
+  { href: "/pricing", label: "pricing" },
+  { href: "/blog", label: "blog" },
+  { href: "/contact", label: "contact" },
+] as const;
 
 type Step = {
   title: string;
@@ -95,7 +111,7 @@ export function HarveyAgentHero() {
           {[
             ["100%", "of calls answered, day or night"],
             ["0.4s", "average time to first response"],
-            ["32", "languages handled natively"],
+            [`${MULTILINGUAL_LANGUAGE_COUNT}+`, "languages with full voice in and out"],
             ["99.99%", "uptime across the network"],
           ].map(([num, label]) => (
             <div key={label} className="harvey-stat">
@@ -125,6 +141,7 @@ export function HarveyAgentHero() {
 
 function HarveyNav() {
   const [solid, setSolid] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setSolid(window.scrollY > 12);
@@ -133,32 +150,127 @@ function HarveyNav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [menuOpen]);
+
   return (
-    <header className={`harvey-nav${solid ? " harvey-nav--solid" : ""}`}>
-      <div className="harvey-container harvey-nav__inner">
-        <Link href="/" className="harvey-brand">
-          <span className="harvey-brand__mark" aria-hidden />
-          agentomatic
-        </Link>
-        <nav className="harvey-nav__links" aria-label="primary">
-          <Link href="/about" className="harvey-nav__link">
-            about
+    <>
+      <header
+        className={cn(
+          "harvey-nav",
+          solid && "harvey-nav--solid",
+          menuOpen && "harvey-nav--menu-open",
+        )}
+      >
+        <div className="harvey-container harvey-nav__inner">
+          <Link href="/" className="harvey-brand">
+            <span className="harvey-brand__mark" aria-hidden />
+            agentomatic
           </Link>
-          <Link href="/pricing" className="harvey-nav__link">
-            pricing
+
+          <button
+            type="button"
+            className="harvey-nav__menu-btn"
+            aria-expanded={menuOpen}
+            aria-controls="harvey-nav-drawer"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span className="sr-only">{menuOpen ? "Close menu" : "Open menu"}</span>
+            <svg
+              className={cn("harvey-nav__menu-icon", menuOpen && "hidden")}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              aria-hidden
+            >
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <svg
+              className={cn("harvey-nav__menu-icon", !menuOpen && "hidden")}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              aria-hidden
+            >
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
+
+          <nav className="harvey-nav__links" aria-label="primary">
+            {HARVEY_NAV_LINKS.map((item) => (
+              <Link key={item.href} href={item.href} className="harvey-nav__link">
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
+          <Link
+            href="#demo"
+            className="harvey-btn harvey-btn--primary harvey-btn--sm harvey-nav__cta"
+          >
+            Request a demo
           </Link>
-          <Link href="/blog" className="harvey-nav__link">
-            blog
-          </Link>
-          <Link href="/contact" className="harvey-nav__link">
-            contact
+        </div>
+      </header>
+
+      <div
+        className={cn("harvey-nav-drawer-layer", !menuOpen && "pointer-events-none")}
+        aria-hidden={!menuOpen}
+      >
+        <button
+          type="button"
+          className={cn(
+            "harvey-nav-drawer-backdrop",
+            menuOpen && "harvey-nav-drawer-backdrop--open",
+          )}
+          aria-label="Close menu"
+          tabIndex={menuOpen ? 0 : -1}
+          onClick={() => setMenuOpen(false)}
+        />
+        <nav
+          id="harvey-nav-drawer"
+          className={cn("harvey-nav-drawer", menuOpen && "harvey-nav-drawer--open")}
+          aria-label="Mobile primary"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <ul className="harvey-nav-drawer__links">
+            {HARVEY_NAV_LINKS.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="harvey-nav-drawer__link"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <Link
+            href="#demo"
+            className="harvey-btn harvey-btn--primary harvey-nav-drawer__cta"
+            onClick={() => setMenuOpen(false)}
+          >
+            Request a demo
           </Link>
         </nav>
-        <Link href="#demo" className="harvey-btn harvey-btn--primary harvey-btn--sm">
-          Request a demo
-        </Link>
       </div>
-    </header>
+    </>
   );
 }
 
@@ -170,7 +282,6 @@ function AgentConsole() {
   const [showSummary, setShowSummary] = useState(false);
   const [typed, setTyped] = useState("");
 
-  // Single orchestrator: drives the full thinking -> done -> summary -> restart loop.
   useEffect(() => {
     const reduce =
       typeof window !== "undefined" &&

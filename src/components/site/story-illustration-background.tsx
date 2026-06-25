@@ -32,6 +32,7 @@ export function StoryIllustrationBackground() {
   const atmosphere = illustrationAtmosphere(story);
   const scenes = visibleIllustrationScenes(story);
   const hoursScene = scenes.find((s) => s.id === "hours");
+  const hoursOpacity = hoursScene?.opacity ?? 0;
   const integrationsOpacity = featureBandOpacity(story, "integrations");
   const multilingualOpacity = featureBandOpacity(story, "multilingual");
   const handoffOpacity = featureBandOpacity(story, "handoff");
@@ -61,6 +62,7 @@ export function StoryIllustrationBackground() {
         remindersOpacity > 0.02 && "story-illustration-bg--reminders",
         dashboardOpacity > 0.02 && remindersOpacity < 0.02 && "story-illustration-bg--dashboard",
         gruntOpacity > 0.02 && "story-illustration-bg--grunt",
+        hoursOpacity > 0.02 && "story-illustration-bg--hours",
       )}
       aria-hidden
     >

@@ -4,29 +4,33 @@ import { useReducedMotion } from "framer-motion";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import {
-  DASHBOARD_ACTION_ICONS,
   DASHBOARD_COMPOSER_H,
   DASHBOARD_EXCHANGE_H,
   DASHBOARD_EXCHANGES,
   DASHBOARD_HEADER_H,
   DASHBOARD_RAIL_ICONS,
   DASHBOARD_STAGE,
-  DASHBOARD_THREAD,
   type DashboardResponseType,
   dashboardActiveComposerIndex,
   dashboardActiveExchangeIndex,
   dashboardActiveTypingIndex,
   dashboardChatScrollOffset,
   dashboardChatToOrbPath,
+  dashboardDatabaseBookingCount,
+  dashboardExchangeAgentEnter,
   dashboardExchangeAgentReveal,
+  dashboardExchangeBubbleEnter,
   dashboardExchangeComposerTyping,
   dashboardExchangeEnterMoment,
+  dashboardExchangeFeedDim,
   dashboardExchangeFlowToIcon,
   dashboardExchangeFlowToOrb,
   dashboardExchangeManagerReveal,
+  dashboardExchangeTypingEnter,
   dashboardExchangeTypingReveal,
   dashboardFrameReveal,
   dashboardFrameSlide,
+  dashboardHeaderLiveIntensity,
   dashboardOrbArcFlow,
   dashboardOrbArcReveal,
   dashboardOrbToIconPath,
@@ -38,7 +42,8 @@ import {
 } from "@/lib/story/dashboard-reveal";
 import { DashboardActionGlyph } from "@/components/site/dashboard-action-glyphs";
 import { PremiumChannelGlyph } from "@/components/site/integration-channel-glyphs";
-import { STORY_STAGE_PRESERVE, STORY_SATELLITE_ICON_SCALE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import { STORY_GLYPH } from "@/components/site/story-stage-glyphs";
 import { cn } from "@/lib/utils";
 
@@ -66,18 +71,26 @@ function ManagerBubble({
   text,
   feedW,
   opacity,
+  enter,
   live,
 }: {
   text: string;
   feedW: number;
   opacity: number;
+  enter: number;
   live?: boolean;
 }) {
   const w = managerBubbleWidth(text);
   const x = feedW - w;
   const C = STORY_GLYPH;
+  const slideX = (1 - enter) * 12;
+  const slideY = (1 - enter) * 8;
   return (
-    <g opacity={opacity} transform={`translate(${x} 0)`} className={cn(live && "dashboard-scene__bubble--live")}>
+    <g
+      opacity={opacity * Math.min(1, enter * 1.15)}
+      transform={`translate(${x + slideX} ${slideY})`}
+      className={cn(live && "dashboard-scene__bubble--live")}
+    >
       <rect x={0} y={0} width={w} height={30} rx={9} fill="rgba(18,20,24,0.94)" stroke={C.violet} strokeWidth={1.3} strokeOpacity={0.5} />
       <text x={11} y={19} fill={C.cream} fontSize={10} fontWeight={500} fontFamily="system-ui, sans-serif">
         {text}
@@ -136,10 +149,15 @@ function ComposerTypingText({
   );
 }
 
-function TypingDots({ opacity, reduceMotion }: { opacity: number; reduceMotion: boolean }) {
+function TypingDots({ opacity, enter, reduceMotion }: { opacity: number; enter: number; reduceMotion: boolean }) {
   const C = STORY_GLYPH;
+  const slideY = (1 - enter) * 8;
   return (
-    <g opacity={opacity} transform="translate(0 36)" className="dashboard-scene__typing">
+    <g
+      opacity={opacity * enter}
+      transform={`translate(0 ${36 + slideY})`}
+      className="dashboard-scene__typing"
+    >
       <circle cx={10} cy={7} r={8} fill="rgba(140,255,210,0.12)" stroke={C.mint} strokeWidth={1} />
       <circle cx={10} cy={7} r={3} fill={C.mint} opacity={0.85} />
       <rect x={24} y={0} width={34} height={14} rx={7} fill="rgba(18,20,24,0.88)" stroke="rgba(140,255,210,0.35)" strokeWidth={1} />
@@ -164,12 +182,21 @@ function ReplyGlyph({ id, color, x, y, scale = 0.22 }: { id: string; color: stri
 
 function DatabaseReply({ opacity, complete, reduceMotion }: { opacity: number; complete: number; reduceMotion: boolean }) {
   const C = STORY_GLYPH;
-  const count = Math.round(8 + complete * 4);
+  const count = dashboardDatabaseBookingCount(complete, reduceMotion);
+  const counting = complete > 0.08 && complete < 0.92 && !reduceMotion;
   return (
     <g opacity={opacity} transform="translate(0 36)">
       <rect x={0} y={0} width={158} height={42} rx={10} fill="rgba(18,20,24,0.94)" stroke={C.mint} strokeWidth={1.3} strokeOpacity={0.42} />
       <ReplyGlyph id="database" color={C.sky} x={18} y={21} />
-      <text x={36} y={19} fill={C.cream} fontSize={9.5} fontWeight={600} fontFamily="system-ui, sans-serif">
+      <text
+        x={36}
+        y={19}
+        fill={C.cream}
+        fontSize={9.5}
+        fontWeight={600}
+        fontFamily="system-ui, sans-serif"
+        className={counting ? "dashboard-scene__booking-badge" : undefined}
+      >
         {count} bookings
       </text>
       <rect x={72} y={13} width={72} height={4} rx={2} fill={C.sky} opacity={0.45 + complete * 0.35} />
@@ -283,6 +310,7 @@ function AgentReply({
 
 export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneProps) {
   const reduceMotion = useReducedMotion();
+  const spatial = useStorySpatialLayout();
   const motionOff = !!reduceMotion;
   const progress = featureBandProgress(story, "dashboard");
   if (progress === null || sceneOpacity < 0.02) return null;
@@ -293,6 +321,7 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
   const composition = dashboardSceneComposition(progress);
   const scrollOffset = dashboardChatScrollOffset(progress);
   const settle = dashboardSettlePulse(progress);
+  const headerLive = dashboardHeaderLiveIntensity(progress);
   const arcReveal = dashboardOrbArcReveal(progress);
   const arcFlow = dashboardOrbArcFlow(progress);
   const typingIndex = dashboardActiveTypingIndex(progress);
@@ -301,8 +330,9 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
   const enterPulse = composerIndex >= 0 ? dashboardExchangeEnterMoment(progress, composerIndex) : 0;
 
   const C = STORY_GLYPH;
-  const thread = DASHBOARD_THREAD;
-  const icons = DASHBOARD_ACTION_ICONS;
+  const thread = spatial.dashboard.thread;
+  const icons = spatial.dashboard.actionIcons;
+  const satelliteScale = spatial.dashboard.satelliteScale;
   const orbX = DASHBOARD_STAGE.orbX;
   const orbY = DASHBOARD_STAGE.orbY;
 
@@ -313,7 +343,7 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
   const composerY = thread.y + thread.h - DASHBOARD_COMPOSER_H - 8;
   const composerW = thread.w - 24;
 
-  const chatToOrbPath = dashboardChatToOrbPath(orbX, orbY);
+  const chatToOrbPath = dashboardChatToOrbPath(orbX, orbY, thread);
   const arcLive = arcFlow > 0.35 && !motionOff;
 
   const activeComposerText = composerIndex >= 0 ? DASHBOARD_EXCHANGES[composerIndex]?.manager ?? "" : "";
@@ -392,7 +422,7 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
         const flowOrb = dashboardExchangeFlowToOrb(progress, i);
         const flowIcon = dashboardExchangeFlowToIcon(progress, i);
         const railIdx = dashboardRailIconIndex(item.icon);
-        const iconPath = dashboardOrbToIconPath(railIdx, orbX, orbY);
+        const iconPath = dashboardOrbToIconPath(railIdx, orbX, orbY, icons);
         if (flowOrb < 0.08 && flowIcon < 0.08) return null;
         return (
           <g key={`flow-${item.id}`} opacity={queueRail}>
@@ -439,11 +469,11 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
         <rect x={icons.x} y={icons.y} width={icons.w} height={icons.h} rx={10} fill="rgba(18,20,24,0.55)" stroke="rgba(245,242,235,0.08)" strokeWidth={1} />
         {DASHBOARD_RAIL_ICONS.map((item, i) => {
           const active = dashboardRailItemActive(progress, i);
-          const iy = DASHBOARD_ACTION_ICONS.y + 24 + i * 36;
+          const iy = icons.y + 24 + i * 36;
           return (
             <g
               key={item.id}
-              transform={`translate(${icons.x + icons.w / 2} ${iy}) scale(${STORY_SATELLITE_ICON_SCALE})`}
+              transform={`translate(${icons.x + icons.w / 2} ${iy}) scale(${satelliteScale})`}
               className={cn(active > 0.5 && !motionOff && "dashboard-scene__queue-item--live")}
             >
               <ActionIcon icon={item.id} color={item.color} active={active} />
@@ -465,7 +495,12 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
         />
 
         <g opacity={queueRail} transform={`translate(${thread.x + 14} ${thread.y + 20})`}>
-          <circle r={3.5} fill={C.mint} opacity={0.85} className={settle > 0.4 && !motionOff ? "dashboard-scene__live-dot" : undefined} />
+          <circle
+            r={3.5}
+            fill={C.mint}
+            opacity={0.65 + headerLive * 0.35}
+            className={headerLive > 0.35 && !motionOff ? "dashboard-scene__live-dot" : undefined}
+          />
           <text x={10} y={3.5} fill={C.cream} fontSize={9.5} fontWeight={600} fontFamily="system-ui, sans-serif" letterSpacing="0.06em" opacity={0.72}>
             front desk
           </text>
@@ -489,18 +524,33 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
               const managerOpacity = dashboardExchangeManagerReveal(progress, i);
               const agentOpacity = dashboardExchangeAgentReveal(progress, i);
               const typingOpacity = dashboardExchangeTypingReveal(progress, i);
+              const bubbleEnter = dashboardExchangeBubbleEnter(progress, i);
+              const agentEnter = dashboardExchangeAgentEnter(progress, i);
+              const typingEnter = dashboardExchangeTypingEnter(progress, i);
+              const feedDim = dashboardExchangeFeedDim(progress, i);
               const managerLive = managerOpacity > 0.7 && agentOpacity < 0.15 && !motionOff;
+              const agentSlideY = (1 - agentEnter) * 10;
 
               return (
-                <g key={exchange.id} transform={`translate(0 ${i * DASHBOARD_EXCHANGE_H})`}>
-                  <ManagerBubble text={exchange.manager} feedW={feedW} opacity={managerOpacity} live={managerLive} />
-                  {typingIndex === i ? <TypingDots opacity={typingOpacity} reduceMotion={motionOff} /> : null}
-                  <AgentReply
-                    type={exchange.responseType}
-                    opacity={agentOpacity}
-                    complete={agentOpacity}
-                    reduceMotion={motionOff}
+                <g key={exchange.id} transform={`translate(0 ${i * DASHBOARD_EXCHANGE_H})`} opacity={feedDim}>
+                  <ManagerBubble
+                    text={exchange.manager}
+                    feedW={feedW}
+                    opacity={managerOpacity}
+                    enter={bubbleEnter}
+                    live={managerLive}
                   />
+                  {typingIndex === i ? (
+                    <TypingDots opacity={typingOpacity} enter={typingEnter} reduceMotion={motionOff} />
+                  ) : null}
+                  <g transform={`translate(0 ${agentSlideY})`} className="dashboard-scene__agent-reply">
+                    <AgentReply
+                      type={exchange.responseType}
+                      opacity={agentOpacity * agentEnter}
+                      complete={agentOpacity}
+                      reduceMotion={motionOff}
+                    />
+                  </g>
                 </g>
               );
             })}

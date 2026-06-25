@@ -2,19 +2,22 @@
 
 import {
   INTEGRATION_CHANNELS,
-  INTEGRATION_NODES,
+  type IntegrationNode,
   integrationChannelState,
 } from "@/lib/story/integrations-reveal";
 
 type IntegrationFlowStreamsProps = {
   orbX: number;
   orbY: number;
+  nodes: readonly IntegrationNode[];
   progress: number;
   reduceMotion?: boolean;
 };
 
 const ORB_RADIUS = 38;
 const ICON_RADIUS = 54;
+/** Reference chord length so bow + dash motion stay visually uniform across channels. */
+const LINK_CHORD_REFERENCE = 108;
 
 function linkGeometry(nodeX: number, nodeY: number, orbX: number, orbY: number) {
   const dx = orbX - nodeX;
@@ -27,20 +30,22 @@ function linkGeometry(nodeX: number, nodeY: number, orbX: number, orbY: number) 
   const y1 = nodeY + uy * ICON_RADIUS;
   const x2 = orbX - ux * ORB_RADIUS;
   const y2 = orbY - uy * ORB_RADIUS;
-  const cx = (x1 + x2) / 2 + uy * 22;
-  const cy = (y1 + y2) / 2 - ux * 22;
+  const chord = Math.hypot(x2 - x1, y2 - y1) || 1;
+  const bow = 22 * (chord / LINK_CHORD_REFERENCE);
+  const cx = (x1 + x2) / 2 + uy * bow;
+  const cy = (y1 + y2) / 2 - ux * bow;
 
   const path = `M ${x1.toFixed(1)} ${y1.toFixed(1)} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}`;
 
-  return { path, x1, y1, x2, y2 };
+  return { path, x1, y1, x2, y2, chord };
 }
 
-export function IntegrationFlowStreams({ orbX, orbY, progress, reduceMotion = false }: IntegrationFlowStreamsProps) {
+export function IntegrationFlowStreams({ orbX, orbY, nodes, progress, reduceMotion = false }: IntegrationFlowStreamsProps) {
   return (
     <g className="integrations-scene__flows" aria-hidden>
       <defs>
         {INTEGRATION_CHANNELS.map((ch) => {
-          const node = INTEGRATION_NODES.find((n) => n.id === ch.id);
+          const node = nodes.find((n) => n.id === ch.id);
           const x1 = node ? node.x : orbX;
           const y1 = node ? node.y : orbY;
 
@@ -62,7 +67,7 @@ export function IntegrationFlowStreams({ orbX, orbY, progress, reduceMotion = fa
         })}
       </defs>
 
-      {INTEGRATION_NODES.map((node, index) => {
+      {nodes.map((node, index) => {
         const channel = INTEGRATION_CHANNELS[index];
         if (!channel) return null;
 
@@ -70,8 +75,10 @@ export function IntegrationFlowStreams({ orbX, orbY, progress, reduceMotion = fa
         const intensity = state.opacity * state.highlight;
         if (intensity < 0.04) return null;
 
-        const { path, x1, y1, x2, y2 } = linkGeometry(node.x, node.y, orbX, orbY);
+        const { path, x1, y1, x2, y2, chord } = linkGeometry(node.x, node.y, orbX, orbY);
         const delay = index * 0.35;
+        const travelDur = 2.2 * (chord / LINK_CHORD_REFERENCE);
+        const travelDurAccent = 2.6 * (chord / LINK_CHORD_REFERENCE);
 
         return (
           <g key={`flow-${node.id}`} opacity={0.25 + intensity * 0.75}>
@@ -83,7 +90,14 @@ export function IntegrationFlowStreams({ orbX, orbY, progress, reduceMotion = fa
               strokeDasharray="6 9"
               opacity="0.75"
               className={reduceMotion ? undefined : "integrations-scene__flow"}
-              style={reduceMotion ? undefined : { animationDelay: `${delay}s` }}
+              style={
+                reduceMotion
+                  ? undefined
+                  : {
+                      animationDelay: `${delay}s`,
+                      animationDuration: `${travelDur}s`,
+                    }
+              }
             />
             <path
               d={path}
@@ -93,29 +107,42 @@ export function IntegrationFlowStreams({ orbX, orbY, progress, reduceMotion = fa
               strokeDasharray="2 14"
               opacity="0.35"
               className={reduceMotion ? undefined : "integrations-scene__flow integrations-scene__flow--accent"}
-              style={reduceMotion ? undefined : { animationDelay: `${delay + 0.12}s` }}
+              style={
+                reduceMotion
+                  ? undefined
+                  : {
+                      animationDelay: `${delay + 0.12}s`,
+                      animationDuration: `${travelDurAccent}s`,
+                    }
+              }
             />
 
             {!reduceMotion ? (
               <>
                 <circle r="3" fill={channel.color} opacity="0.85">
-                  <animateMotion dur="2.2s" repeatCount="indefinite" path={path} begin={`${delay}s`} calcMode="linear" />
-                  <animate attributeName="opacity" values="0.3;0.95;0.3" dur="2.2s" repeatCount="indefinite" begin={`${delay}s`} />
+                  <animateMotion dur={`${travelDur}s`} repeatCount="indefinite" path={path} begin={`${delay}s`} calcMode="linear" />
+                  <animate attributeName="opacity" values="0.3;0.95;0.3" dur={`${travelDur}s`} repeatCount="indefinite" begin={`${delay}s`} />
                 </circle>
                 <circle r="2.2" fill={channel.color} opacity="0.55">
-                  <animateMotion dur="2.2s" repeatCount="indefinite" path={path} begin={`${delay + 1.1}s`} calcMode="linear" />
+                  <animateMotion
+                    dur={`${travelDur}s`}
+                    repeatCount="indefinite"
+                    path={path}
+                    begin={`${delay + travelDur * 0.5}s`}
+                    calcMode="linear"
+                  />
                 </circle>
                 <circle r="2.5" fill="#f5f2eb" opacity="0.7">
                   <animateMotion
-                    dur="2.6s"
+                    dur={`${travelDurAccent}s`}
                     repeatCount="indefinite"
                     path={path}
-                    begin={`${delay + 0.55}s`}
+                    begin={`${delay + travelDurAccent * 0.21}s`}
                     calcMode="linear"
                     keyPoints="1;0"
                     keyTimes="0;1"
                   />
-                  <animate attributeName="opacity" values="0.2;0.8;0.2" dur="2.6s" repeatCount="indefinite" begin={`${delay + 0.55}s`} />
+                  <animate attributeName="opacity" values="0.2;0.8;0.2" dur={`${travelDurAccent}s`} repeatCount="indefinite" begin={`${delay + travelDurAccent * 0.21}s`} />
                 </circle>
               </>
             ) : null}

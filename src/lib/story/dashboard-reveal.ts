@@ -10,11 +10,11 @@ export const DASHBOARD_STAGE = {
   orbY: PERSISTENT_ORB.cy,
 } as const;
 
-/** Large chat panel — upper-left, clears center orb hub (cx 360, ~r 108). */
-export const DASHBOARD_THREAD = { x: 48, y: 28, w: 296, h: 206 } as const;
+/** Large chat panel — upper-left, below chrome safe zone; clears center orb hub (cx 360, ~r 108). */
+export const DASHBOARD_THREAD = { x: 48, y: 54, w: 296, h: 206 } as const;
 
 /** Agent action rail — far right; integration glyphs light up as tasks complete. */
-export const DASHBOARD_ACTION_ICONS = { x: 620, y: 36, w: 52, h: 204 } as const;
+export const DASHBOARD_ACTION_ICONS = { x: 620, y: 58, w: 52, h: 204 } as const;
 
 /** @deprecated use DASHBOARD_ACTION_ICONS */
 export const DASHBOARD_QUEUE = DASHBOARD_ACTION_ICONS;
@@ -151,6 +151,10 @@ function smoothstep(t: number) {
   return t * t * (3 - 2 * t);
 }
 
+function easeOutCubic(t: number) {
+  return 1 - (1 - t) ** 3;
+}
+
 function clampPhase(progress: number, range: [number, number]) {
   return interpolate(progress, range, [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 }
@@ -189,8 +193,11 @@ export function dashboardRailIconIndex(icon: DashboardQueueIcon) {
 }
 
 /** Y center for a rail icon slot. */
-export function dashboardRailIconY(railIndex: number) {
-  return DASHBOARD_ACTION_ICONS.y + 24 + railIndex * DASHBOARD_RAIL_ICON_STEP;
+export function dashboardRailIconY(
+  railIndex: number,
+  actionIcons: { x: number; y: number; w: number; h: number } = DASHBOARD_ACTION_ICONS,
+) {
+  return actionIcons.y + 24 + railIndex * DASHBOARD_RAIL_ICON_STEP;
 }
 
 /** Chat shell slides up and fades in. */
@@ -209,14 +216,73 @@ export function dashboardQueueReveal(progress: number) {
   return smoothstep(clampPhase(progress, [0.08, 0.2]));
 }
 
-/** Feed translateY — scrolls completed exchanges upward. */
+/** Feed translateY — scrolls completed exchanges upward with eased deceleration. */
 export function dashboardChatScrollOffset(progress: number) {
   let offset = 0;
   for (const schedule of EXCHANGE_SCHEDULE) {
     if (!schedule.scroll) continue;
-    offset += DASHBOARD_EXCHANGE_H * smoothstep(clampPhase(progress, schedule.scroll));
+    const t = smoothstep(clampPhase(progress, schedule.scroll));
+    offset += DASHBOARD_EXCHANGE_H * easeOutCubic(t);
   }
   return offset;
+}
+
+/** Manager bubble slide-in (0→1) right after send. */
+export function dashboardExchangeBubbleEnter(progress: number, index: number) {
+  const reveal = dashboardExchangeManagerReveal(progress, index);
+  if (reveal <= 0) return 0;
+  return smoothstep(Math.min(1, reveal * 3.2));
+}
+
+/** Agent reply card slide-up (0→1) at start of agent phase. */
+export function dashboardExchangeAgentEnter(progress: number, index: number) {
+  const agent = dashboardExchangeAgentReveal(progress, index);
+  if (agent <= 0) return 0;
+  return smoothstep(Math.min(1, agent * 3.8));
+}
+
+/** Typing indicator fade/slide (0→1) at start of agent-typing phase. */
+export function dashboardExchangeTypingEnter(progress: number, index: number) {
+  const typing = dashboardExchangeTypingReveal(progress, index);
+  if (typing <= 0) return 0;
+  return smoothstep(Math.min(1, typing * 4));
+}
+
+/** Dim exchanges as they scroll out of the feed viewport. */
+export function dashboardExchangeFeedDim(progress: number, index: number) {
+  const scroll = dashboardChatScrollOffset(progress);
+  const exchangeTop = index * DASHBOARD_EXCHANGE_H;
+  const scrolledPast = scroll - exchangeTop;
+  if (scrolledPast <= DASHBOARD_EXCHANGE_H * 0.45) return 1;
+  const fade = (scrolledPast - DASHBOARD_EXCHANGE_H * 0.45) / (DASHBOARD_EXCHANGE_H * 0.75);
+  return Math.max(0.5, 1 - fade * 0.45);
+}
+
+/** Header status dot intensity — active during in-flight exchanges. */
+export function dashboardHeaderLiveIntensity(progress: number) {
+  const settle = dashboardSettlePulse(progress);
+  const active = dashboardActiveExchangeIndex(progress);
+  if (active < 0) return settle > 0.35 ? 1 : 0;
+
+  const composer = dashboardExchangeComposerTyping(progress, active);
+  const sent = dashboardExchangeManagerReveal(progress, active);
+  const agentTyping = dashboardExchangeTypingReveal(progress, active);
+  const flowOrb = dashboardExchangeFlowToOrb(progress, active);
+  const flowIcon = dashboardExchangeFlowToIcon(progress, active);
+  const agent = dashboardExchangeAgentReveal(progress, active);
+
+  if (composer > 0.05 && sent < 0.12) return 0.72;
+  if (flowOrb > 0.1 || flowIcon > 0.15) return 1;
+  if (agentTyping > 0.12) return 0.88;
+  if (agent > 0.05 && agent < 0.92) return 0.82;
+  if (settle > 0.35) return 1;
+  return 0.55;
+}
+
+/** Eased booking count for database stats card (8→12). */
+export function dashboardDatabaseBookingCount(complete: number, reduceMotion = false) {
+  const t = reduceMotion ? (complete > 0.4 ? 1 : 0) : smoothstep(complete);
+  return Math.round(8 + t * 4);
 }
 
 /** Phase A — manager message char typing in composer (0→1). */
@@ -362,8 +428,11 @@ export function dashboardBodyReveal(progress: number, reduceMotion = false) {
 }
 
 /** Arc from chat panel right edge into the orb hub. */
-export function dashboardChatToOrbPath(orbX = DASHBOARD_STAGE.orbX, orbY = DASHBOARD_STAGE.orbY) {
-  const thread = DASHBOARD_THREAD;
+export function dashboardChatToOrbPath(
+  orbX = DASHBOARD_STAGE.orbX,
+  orbY = DASHBOARD_STAGE.orbY,
+  thread: { x: number; y: number; w: number; h: number } = DASHBOARD_THREAD,
+) {
   const startX = thread.x + thread.w - 6;
   const startY = thread.y + thread.h * 0.44;
   const endX = orbX - 44;
@@ -379,9 +448,14 @@ export function dashboardOrbArcPath(orbX = DASHBOARD_STAGE.orbX, orbY = DASHBOAR
 }
 
 /** Per-exchange arc from orb hub to the matching right-rail icon. */
-export function dashboardOrbToIconPath(railIndex: number, orbX = DASHBOARD_STAGE.orbX, orbY = DASHBOARD_STAGE.orbY) {
-  const icons = DASHBOARD_ACTION_ICONS;
-  const itemY = dashboardRailIconY(railIndex);
+export function dashboardOrbToIconPath(
+  railIndex: number,
+  orbX = DASHBOARD_STAGE.orbX,
+  orbY = DASHBOARD_STAGE.orbY,
+  actionIcons: { x: number; y: number; w: number; h: number } = DASHBOARD_ACTION_ICONS,
+) {
+  const icons = actionIcons;
+  const itemY = dashboardRailIconY(railIndex, actionIcons);
   const startX = orbX + 42;
   const startY = orbY - 6;
   const endX = icons.x + 2;

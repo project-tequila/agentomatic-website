@@ -6,7 +6,6 @@ import type { CSSProperties } from "react";
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import { CALL_THEME } from "@/lib/story/concurrent-reveal";
 import {
-  HANDOFF_CALLER,
   HANDOFF_STAGE,
   handoffCallerReveal,
   handoffCallerToHumanFlow,
@@ -22,7 +21,8 @@ import {
   handoffTransferPeak,
   handoffWarmHandoffLabel,
 } from "@/lib/story/handoff-reveal";
-import { STORY_STAGE_PRESERVE, STORY_SATELLITE_ICON_SCALE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import { StoryHumanAgent } from "@/components/site/story-stage-glyphs";
 import { RealisticPhoneSvg } from "@/components/site/realistic-phone-svg";
 import { cn } from "@/lib/utils";
@@ -91,10 +91,22 @@ function PillLabel({
   );
 }
 
-function CallerPhone({ opacity, live, ringing }: { opacity: number; live: boolean; ringing: boolean }) {
+function CallerPhone({
+  caller,
+  satelliteScale,
+  opacity,
+  live,
+  ringing,
+}: {
+  caller: { x: number; y: number };
+  satelliteScale: number;
+  opacity: number;
+  live: boolean;
+  ringing: boolean;
+}) {
   return (
     <g
-      transform={`translate(${HANDOFF_CALLER.x - 32} ${HANDOFF_CALLER.y - 59}) scale(${0.82 * STORY_SATELLITE_ICON_SCALE})`}
+      transform={`translate(${caller.x - 32} ${caller.y - 59}) scale(${0.82 * satelliteScale})`}
       opacity={opacity}
       className={cn(
         "handoff-scene__caller-phone",
@@ -124,19 +136,21 @@ function HumanAgent({
   x,
   y,
   scale,
+  satelliteScale,
   ringOpacity,
   live,
 }: {
   x: number;
   y: number;
   scale: number;
+  satelliteScale: number;
   ringOpacity: number;
   live: boolean;
 }) {
   return (
     <g transform={`translate(${x} ${y})`}>
       <StoryHumanAgent
-        scale={scale * STORY_SATELLITE_ICON_SCALE}
+        scale={scale * satelliteScale}
         ringOpacity={ringOpacity}
         live={live}
         className={cn(live && "handoff-scene__human--live")}
@@ -152,6 +166,7 @@ function CallSummaryCard({
   fillProgress,
   scale,
   glow,
+  satelliteScale,
 }: {
   x: number;
   y: number;
@@ -159,10 +174,11 @@ function CallSummaryCard({
   fillProgress: number;
   scale: number;
   glow: number;
+  satelliteScale: number;
 }) {
   return (
     <g
-      transform={`translate(${x} ${y}) scale(${scale * STORY_SATELLITE_ICON_SCALE})`}
+      transform={`translate(${x} ${y}) scale(${scale * satelliteScale})`}
       opacity={opacity}
       className="handoff-scene__summary"
       filter={glow > 0.35 ? "url(#handoffSummaryGlow)" : undefined}
@@ -204,10 +220,19 @@ function TransferBeacon({
 
 export function HandoffScene({ story, opacity: sceneOpacity }: HandoffSceneProps) {
   const reduceMotion = useReducedMotion();
+  const spatialLayout = useStorySpatialLayout();
+  const handoffSpatial = {
+    caller: spatialLayout.handoff.caller,
+    callerConnectX: spatialLayout.handoff.callerConnectX,
+    humanStart: spatialLayout.handoff.humanStart,
+    humanEnd: spatialLayout.handoff.humanEnd,
+    orbShift: spatialLayout.handoff.orbShift,
+  };
+  const satelliteScale = spatialLayout.handoff.satelliteScale;
   const progress = featureBandProgress(story, "handoff");
   if (progress === null || sceneOpacity < 0.02) return null;
 
-  const layout = handoffLayout(progress);
+  const layout = handoffLayout(progress, handoffSpatial);
   const caller = handoffCallerReveal(progress);
   const callerToOrb = handoffCallerToOrbFlow(progress);
   const callerToHuman = handoffCallerToHumanFlow(progress);
@@ -217,14 +242,14 @@ export function HandoffScene({ story, opacity: sceneOpacity }: HandoffSceneProps
   const human = handoffHumanReveal(progress, !!reduceMotion);
   const warmHandoff = handoffWarmHandoffLabel(progress);
   const summary = handoffSummaryReveal(progress, layout);
-  const callerOrbPath = handoffCallerToOrbPath(layout.orbX);
-  const callerHumanPath = handoffCallerToHumanPath(layout);
+  const callerOrbPath = handoffCallerToOrbPath(layout.orbX, handoffSpatial);
+  const callerHumanPath = handoffCallerToHumanPath(layout, handoffSpatial);
   const summaryPath = handoffSummaryPath(layout);
   const callerLive = (callerToOrb > 0.4 || callerToHuman > 0.4) && !reduceMotion;
   const callerRinging = callerToOrb > 0.35 && callerToHuman < 0.2 && !reduceMotion;
   const humanLive = callerToHuman > 0.42 && human.ring > 0.35 && !reduceMotion;
   const transferMidX = (layout.orbX + layout.humanX) / 2;
-  const transferMidY = (HANDOFF_STAGE.orbY + layout.humanY) / 2 - 8;
+  const transferMidY = (HANDOFF_STAGE.orbY + layout.humanY) / 2 - 18;
 
   return (
     <svg
@@ -318,7 +343,13 @@ export function HandoffScene({ story, opacity: sceneOpacity }: HandoffSceneProps
         ) : null}
       </g>
 
-      <CallerPhone opacity={caller} live={callerLive} ringing={callerRinging} />
+      <CallerPhone
+        caller={handoffSpatial.caller}
+        satelliteScale={satelliteScale}
+        opacity={caller}
+        live={callerLive}
+        ringing={callerRinging}
+      />
 
       <g opacity={transferIntensity}>
         <path
@@ -357,21 +388,22 @@ export function HandoffScene({ story, opacity: sceneOpacity }: HandoffSceneProps
 
       <TransferBeacon x={transferMidX} y={transferMidY} intensity={transferPeak * 0.92} reduceMotion={!!reduceMotion} />
 
-      <PillLabel
-        x={transferMidX}
-        y={transferMidY - 34}
-        text="human handoff"
-        color={C.cream}
-        opacity={warmHandoff}
-        prominent
-      />
-
       <HumanAgent
         x={layout.humanX}
         y={layout.humanY}
         scale={human.scale}
+        satelliteScale={satelliteScale}
         ringOpacity={Math.max(human.ring, callerToHuman * 0.85)}
         live={humanLive}
+      />
+
+      <PillLabel
+        x={layout.humanX}
+        y={layout.humanY - 58}
+        text="human handoff"
+        color={C.cream}
+        opacity={warmHandoff}
+        prominent
       />
 
       <CallSummaryCard
@@ -381,6 +413,7 @@ export function HandoffScene({ story, opacity: sceneOpacity }: HandoffSceneProps
         fillProgress={summary.slide}
         scale={summary.scale}
         glow={summary.glow}
+        satelliteScale={satelliteScale}
       />
     </svg>
   );

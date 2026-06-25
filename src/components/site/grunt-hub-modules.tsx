@@ -6,6 +6,7 @@ import { HubTypingSubhead } from "@/components/site/hub-typing-subhead";
 import { StoryBellIcon, STORY_GLYPH } from "@/components/site/story-stage-glyphs";
 import {
   GRUNT_HUB_MODULES,
+  GRUNT_MODULE_RADIUS,
   GRUNT_MODULE_LABELS,
   GRUNT_MODULE_SIZE,
   GRUNT_MODULE_STATUS,
@@ -241,19 +242,23 @@ export function HubGlyphRoute({ scale = 1, color = ROUTE_ACCENT }: { scale?: num
 export function HubOrbIconFlows({
   flows,
   reduceMotion,
+  modules = GRUNT_HUB_MODULES,
+  moduleRadius = GRUNT_MODULE_RADIUS,
 }: {
   flows: { id: GruntHubModuleId; flow: number; arrived: number }[];
   reduceMotion: boolean;
+  modules?: typeof GRUNT_HUB_MODULES;
+  moduleRadius?: number;
 }) {
   if (reduceMotion) return null;
 
   return (
     <g className="grunt-scene__orb-flows">
       {flows.map(({ id, flow, arrived }) => {
-        const mod = GRUNT_HUB_MODULES.find((m) => m.id === id)!;
-        const path = gruntOrbFlowPath(mod);
+        const mod = modules.find((m) => m.id === id)!;
+        const path = gruntOrbFlowPath(mod, moduleRadius);
         const traveling = flow > 0.04 && arrived < 0.92;
-        const pos = gruntOrbIconPosition(mod, flow);
+        const pos = gruntOrbIconPosition(mod, flow, moduleRadius);
         const glyph =
           id === "schedule" ? (
             <HubGlyphCalendar scale={1.45} />
@@ -326,10 +331,18 @@ function SettledModuleIcon({
   );
 }
 
-export function HubPlusArms({ opacity, sync }: { opacity: number; sync: number }) {
+export function HubPlusArms({
+  opacity,
+  sync,
+  moduleRadius = GRUNT_MODULE_RADIUS,
+}: {
+  opacity: number;
+  sync: number;
+  moduleRadius?: number;
+}) {
   const { orbX, orbY } = GRUNT_STAGE;
-  const v = GRUNT_PLUS_ARMS.vertical;
-  const h = GRUNT_PLUS_ARMS.horizontal;
+  const v = { x: orbX, y1: orbY - moduleRadius, y2: orbY + moduleRadius };
+  const h = { y: orbY, x1: orbX - moduleRadius, x2: orbX + moduleRadius };
   const glow = 0.14 + sync * 0.1;
 
   return (
