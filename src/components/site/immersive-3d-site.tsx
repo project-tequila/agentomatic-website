@@ -5,6 +5,7 @@ import { useRef, type ReactNode } from "react";
 import { HeliosVoiceProvider } from "@/lib/helios/helios-provider";
 import { ScrollContainerProvider } from "@/lib/helios/scroll-container-context";
 
+import { ImmersiveOrbHitOverlay } from "./immersive-orb-hit-overlay";
 import { StoryScrollResetListener } from "./story-scroll-reset-listener";
 import { StoryIllustrationBackground } from "./story-illustration-background";
 
@@ -18,6 +19,7 @@ function Immersive3DScroll({ children }: Immersive3DSiteProps) {
   return (
     <div className="site-3d">
       <StoryIllustrationBackground />
+      <ImmersiveOrbHitOverlay />
       <ScrollContainerProvider scrollRef={scrollRef}>
         <StoryScrollResetListener />
         <div ref={scrollRef} className="site-3d__scroll">

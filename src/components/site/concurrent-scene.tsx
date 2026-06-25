@@ -11,6 +11,7 @@ import {
   type ConcurrentNetworkPhone,
 } from "@/lib/story/concurrent-reveal";
 import { STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import { cn } from "@/lib/utils";
 
 import { CallFlowStreams } from "./call-flow-streams";
@@ -86,6 +87,7 @@ function NetworkPhone({
 
 export function ConcurrentScene({ story, opacity: sceneOpacity }: ConcurrentSceneProps) {
   const reduceMotion = useReducedMotion();
+  const spatial = useStorySpatialLayout();
   const [dualPhones, setDualPhones] = useState<Set<string>>(() => new Set());
 
   const toggleDual = useCallback((id: string) => {
@@ -100,7 +102,11 @@ export function ConcurrentScene({ story, opacity: sceneOpacity }: ConcurrentScen
   const progress = featureBandProgress(story, "concurrent");
   if (progress === null || sceneOpacity < 0.02) return null;
 
-  const phones = concurrentVisibleNetworkPhones(progress, !!reduceMotion);
+  const phones = concurrentVisibleNetworkPhones(progress, !!reduceMotion, {
+    radiusScale: spatial.concurrent.radiusScale,
+    ySquash: spatial.concurrent.ySquash,
+    satelliteScale: spatial.concurrent.satelliteScale,
+  });
 
   return (
     <svg

@@ -3,7 +3,7 @@
 import { useReducedMotion } from "framer-motion";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
-import { STORY_STAGE_VISUAL_SCALE } from "@/lib/story/persistent-orb";
+import { STORY_STAGE_VISUAL_SCALE, STORY_SATELLITE_ICON_SCALE } from "@/lib/story/persistent-orb";
 import { cn } from "@/lib/utils";
 
 import { remindersIconSpecs, type StoryIconSpec } from "./story-icon-glyphs";
@@ -14,7 +14,7 @@ type StoryFeatureIconBurstProps = {
   sceneOpacity: number;
 };
 
-const REMINDER_ICON_SIZE = Math.round(22 * STORY_STAGE_VISUAL_SCALE);
+const REMINDER_ICON_SIZE = Math.round(22 * STORY_STAGE_VISUAL_SCALE * STORY_SATELLITE_ICON_SCALE);
 
 function smoothstep(t: number) {
   return t * t * (3 - 2 * t);

@@ -2,7 +2,7 @@ import { interpolate } from "@helios-project/core";
 
 import { gatedBodyTypingReveal } from "./body-typing-reveal";
 
-import { PERSISTENT_ORB } from "./persistent-orb";
+import { PERSISTENT_ORB, STORY_SATELLITE_ICON_SCALE } from "./persistent-orb";
 
 export type CallDirection = "inbound" | "outbound";
 
@@ -156,6 +156,12 @@ function nodeReveal(progress: number, revealAt: number, reduceMotion: boolean) {
   return reduceMotion ? (raw > 0.45 ? 1 : 0) : smoothstep(raw);
 }
 
+export type ConcurrentSpatialOptions = {
+  radiusScale?: number;
+  ySquash?: number;
+  satelliteScale?: number;
+};
+
 /** Layout a network node with perspective depth. */
 export function concurrentNetworkPhoneLayout(
   node: ConcurrentNetworkNode,
@@ -163,14 +169,16 @@ export function concurrentNetworkPhoneLayout(
   orbX = CONCURRENT_STAGE.orbX,
   orbY = CONCURRENT_STAGE.orbY,
   reduceMotion = false,
+  spatial: ConcurrentSpatialOptions = {},
 ): ConcurrentNetworkPhone {
+  const { radiusScale: spatialRadius = 1, ySquash = 0.82, satelliteScale = STORY_SATELLITE_ICON_SCALE } = spatial;
   const reveal = nodeReveal(progress, node.revealAt, reduceMotion);
   const radiusScale = interpolate(progress, [0, 1], [1.02, 0.96], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  const radius = node.radius * radiusScale;
+  const radius = node.radius * radiusScale * spatialRadius;
   const x = orbX + Math.cos(node.angle) * radius;
-  const y = orbY + Math.sin(node.angle) * radius * 0.82;
+  const y = orbY + Math.sin(node.angle) * radius * ySquash;
   const depthScale = 0.52 + node.depth * 0.56;
-  const scale = depthScale * (0.55 + reveal * 0.45);
+  const scale = depthScale * (0.55 + reveal * 0.45) * satelliteScale;
   const opacity = reveal * (0.22 + node.depth * 0.78);
   const highlight = reveal * (0.35 + node.depth * 0.65);
 
@@ -186,8 +194,14 @@ export function concurrentNetworkPhoneLayout(
 }
 
 /** Visible phones sorted back-to-front for paint order. */
-export function concurrentVisibleNetworkPhones(progress: number, reduceMotion = false): ConcurrentNetworkPhone[] {
-  return CONCURRENT_NETWORK_NODES.map((node) => concurrentNetworkPhoneLayout(node, progress, undefined, undefined, reduceMotion))
+export function concurrentVisibleNetworkPhones(
+  progress: number,
+  reduceMotion = false,
+  spatial?: ConcurrentSpatialOptions,
+): ConcurrentNetworkPhone[] {
+  return CONCURRENT_NETWORK_NODES.map((node) =>
+    concurrentNetworkPhoneLayout(node, progress, undefined, undefined, reduceMotion, spatial),
+  )
     .filter((phone) => phone.opacity > 0.02)
     .sort((a, b) => a.zIndex - b.zIndex);
 }

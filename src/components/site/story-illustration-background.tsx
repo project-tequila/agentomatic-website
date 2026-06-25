@@ -32,6 +32,7 @@ export function StoryIllustrationBackground() {
   const atmosphere = illustrationAtmosphere(story);
   const scenes = visibleIllustrationScenes(story);
   const hoursScene = scenes.find((s) => s.id === "hours");
+  const hoursOpacity = hoursScene?.opacity ?? 0;
   const integrationsOpacity = featureBandOpacity(story, "integrations");
   const multilingualOpacity = featureBandOpacity(story, "multilingual");
   const handoffOpacity = featureBandOpacity(story, "handoff");
@@ -61,6 +62,7 @@ export function StoryIllustrationBackground() {
         remindersOpacity > 0.02 && "story-illustration-bg--reminders",
         dashboardOpacity > 0.02 && remindersOpacity < 0.02 && "story-illustration-bg--dashboard",
         gruntOpacity > 0.02 && "story-illustration-bg--grunt",
+        hoursOpacity > 0.02 && "story-illustration-bg--hours",
       )}
       aria-hidden
     >
@@ -68,10 +70,15 @@ export function StoryIllustrationBackground() {
       <div
         className="story-illustration-bg__wash"
         data-tone={atmosphere.wash}
-        style={{ opacity: 0.5 + scene * 0.15 }}
+        style={{ opacity: 0.18 + scene * 0.08 }}
       />
 
-      <div className="story-illustration-bg__stage-anchor">
+      <div
+        className={cn(
+          "story-illustration-bg__stage-anchor",
+          gruntOpacity > 0.02 && "story-illustration-bg__stage-anchor--grunt",
+        )}
+      >
         <div className="story-illustration-bg__stage">
         {scenes.map(({ id, opacity }) => (
           <div key={id} className="story-illustration-bg__scene" style={{ opacity }}>

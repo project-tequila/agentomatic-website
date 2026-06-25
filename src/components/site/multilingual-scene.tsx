@@ -5,19 +5,21 @@ import { useReducedMotion } from "framer-motion";
 import { MultilingualTypingLine } from "@/components/site/multilingual-typing-line";
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import {
-  MULTILINGUAL_CARD,
   MULTILINGUAL_LANGUAGES,
+  MULTILINGUAL_PROVIDER_BADGE,
+  MULTILINGUAL_PROVIDER_BADGE_WIDTH,
+  multilingualAvailabilityScript,
   multilingualBadgeReveal,
   multilingualCardReveal,
   multilingualCycleDots,
   multilingualLanguageSegment,
   multilingualLinkReveal,
   multilingualOrbPath,
-  multilingualSubheadTypingReveal,
   multilingualTickerOffset,
 } from "@/lib/story/multilingual-reveal";
 import { useStoryScrollPaused } from "@/lib/story/use-story-scroll-paused";
 import { STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import { cn } from "@/lib/utils";
 
 type MultilingualSceneProps = {
@@ -35,6 +37,7 @@ const C = {
 
 export function MultilingualScene({ story, opacity: sceneOpacity }: MultilingualSceneProps) {
   const reduceMotion = useReducedMotion();
+  const spatial = useStorySpatialLayout();
   const progress = featureBandProgress(story, "multilingual");
   const scrollPaused = useStoryScrollPaused(progress ?? 0, 120);
   const rm = !!reduceMotion;
@@ -45,16 +48,26 @@ export function MultilingualScene({ story, opacity: sceneOpacity }: Multilingual
   const linkReveal = multilingualLinkReveal(progress);
   const badgeReveal = multilingualBadgeReveal(progress);
   const segment = multilingualLanguageSegment(progress, rm);
-  const subheadTyping = multilingualSubheadTypingReveal(progress, rm);
+  const availabilityPhrase = multilingualAvailabilityScript(segment.lang.id);
   const tickerT = multilingualTickerOffset(progress);
   const dots = multilingualCycleDots(progress, rm);
-  const orbPath = multilingualOrbPath();
-  const { x: cardX, y: cardY, width: cardW, height: cardH } = MULTILINGUAL_CARD;
+  const orbPath = multilingualOrbPath(spatial.multilingual.card);
+  const { x: cardX, y: cardY, width: cardW, height: cardH } = spatial.multilingual.card;
+  const satelliteScale = spatial.multilingual.satelliteScale;
 
   const tickerLabels = MULTILINGUAL_LANGUAGES.map((l) => l.label).join("   ·   ");
   const tickerShift = tickerT * (tickerLabels.length * 4.2);
 
-  const scriptSize = segment.lang.script.length > 10 ? 18 : segment.lang.script.length > 8 ? 20 : segment.lang.script.length > 5 ? 24 : 28;
+  const scriptSize =
+    availabilityPhrase.length > 28
+      ? 13
+      : availabilityPhrase.length > 22
+        ? 15
+        : availabilityPhrase.length > 16
+          ? 17
+          : availabilityPhrase.length > 10
+            ? 19
+            : 22;
   const dotSpan = cardW - 36;
   const dotStep = dots.length > 1 ? dotSpan / (dots.length - 1) : 0;
 
@@ -96,7 +109,11 @@ export function MultilingualScene({ story, opacity: sceneOpacity }: Multilingual
         ) : null}
       </g>
 
-      <g transform={`translate(${cardX} ${cardY})`} opacity={cardReveal} className="multilingual-scene__card-wrap">
+      <g
+        transform={`translate(${cardX + cardW / 2} ${cardY + cardH / 2}) scale(${satelliteScale}) translate(${-cardW / 2} ${-cardH / 2})`}
+        opacity={cardReveal}
+        className="multilingual-scene__card-wrap"
+      >
         <rect
           x={0}
           y={0}
@@ -121,21 +138,37 @@ export function MultilingualScene({ story, opacity: sceneOpacity }: Multilingual
         />
 
         <g opacity={badgeReveal}>
-          <rect x={cardW - 78} y={12} width={62} height={20} rx={6} fill="rgba(140,255,210,0.08)" stroke="rgba(140,255,210,0.28)" strokeWidth={0.8} />
-          <text x={cardW - 70} y={25} fill={C.mint} fontSize="9" fontWeight="700" fontFamily="system-ui, sans-serif">
-            32+ langs
+          <rect
+            x={cardW - MULTILINGUAL_PROVIDER_BADGE_WIDTH - 16}
+            y={12}
+            width={MULTILINGUAL_PROVIDER_BADGE_WIDTH}
+            height={20}
+            rx={6}
+            fill="rgba(140,255,210,0.08)"
+            stroke="rgba(140,255,210,0.28)"
+            strokeWidth={0.8}
+          />
+          <text
+            x={cardW - MULTILINGUAL_PROVIDER_BADGE_WIDTH - 8}
+            y={25}
+            fill={C.mint}
+            fontSize="8"
+            fontWeight="700"
+            fontFamily="system-ui, sans-serif"
+          >
+            {MULTILINGUAL_PROVIDER_BADGE}
           </text>
         </g>
 
         <text x={18} y={28} fill={C.muted} fontSize="8" fontWeight="600" fontFamily="system-ui, sans-serif" letterSpacing="0.14em">
-          DETECTED LANGUAGE
+          {segment.lang.label.toUpperCase()}
         </text>
 
         <rect
           x={14}
-          y={40}
+          y={36}
           width={cardW - 28}
-          height={96}
+          height={104}
           rx={10}
           fill={C.slate}
           stroke={segment.lang.color}
@@ -145,47 +178,19 @@ export function MultilingualScene({ story, opacity: sceneOpacity }: Multilingual
         />
 
         <MultilingualTypingLine
-          text={segment.lang.label}
-          typingReveal={Math.min(1, segment.typingReveal * 1.4)}
-          scrollPaused={scrollPaused}
-          reduceMotion={rm}
-          x={26}
-          y={62}
-          anchor="start"
-          fill={segment.lang.color}
-          fillOpacity={0.92}
-          fontSize={11}
-          fontWeight={700}
-        />
-
-        <MultilingualTypingLine
-          text={segment.lang.script}
+          key={segment.lang.id}
+          text={availabilityPhrase}
           typingReveal={segment.typingReveal}
           scrollPaused={scrollPaused}
           reduceMotion={rm}
           x={26}
-          y={62 + scriptSize + 8}
+          y={58 + scriptSize}
           anchor="start"
           fill={C.cream}
           fillOpacity={0.95}
           fontSize={scriptSize}
           fontWeight={700}
           className={cn(!rm && "multilingual-scene__script")}
-        />
-
-        <MultilingualTypingLine
-          text="responding natively"
-          typingReveal={subheadTyping}
-          scrollPaused={scrollPaused}
-          reduceMotion={rm}
-          x={26}
-          y={118}
-          anchor="start"
-          fill={C.muted}
-          fillOpacity={0.85}
-          fontSize={9}
-          fontWeight={600}
-          letterSpacing="0.06em"
         />
 
         <g transform={`translate(18 ${cardH - 28})`}>

@@ -2,7 +2,7 @@
 
 import { useReducedMotion } from "framer-motion";
 
-import { useDemoCall } from "@/lib/demo-call/demo-call-context";
+import { openDemoCall } from "@/lib/demo-call/open-demo-call";
 import { cn } from "@/lib/utils";
 
 import { FrontdeskVoiceOrb } from "./frontdesk-voice-orb";
@@ -14,10 +14,9 @@ type SiteOrbHitZoneProps = {
 
 export function SiteOrbHitZone({ variant, className }: SiteOrbHitZoneProps) {
   const reduceMotion = useReducedMotion();
-  const { openDemoCall: openFromContext } = useDemoCall();
 
   function handleClick() {
-    openFromContext();
+    openDemoCall();
   }
 
   return (

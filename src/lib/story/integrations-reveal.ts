@@ -33,12 +33,77 @@ export const INTEGRATION_STAGE = {
   orbY: 220,
 } as const;
 
-export const INTEGRATION_NODES = [
-  { id: "phone", x: 102, y: 82 },
-  { id: "whatsapp", x: 618, y: 82 },
-  { id: "email", x: 98, y: 358 },
-  { id: "calendar", x: 622, y: 358 },
+export type IntegrationNode = { id: string; x: number; y: number };
+
+/** Equal-radius ring — every channel the same distance from the orb (matching link length). */
+const INTEGRATION_NODE_ANGLES = [
+  { id: "phone", deg: 200 },
+  { id: "whatsapp", deg: 340 },
+  { id: "email", deg: 160 },
+  { id: "calendar", deg: 20 },
 ] as const;
+
+function integrationNodesAtRadius(radius: number): IntegrationNode[] {
+  const { orbX, orbY } = INTEGRATION_STAGE;
+  return INTEGRATION_NODE_ANGLES.map(({ id, deg }) => {
+    const rad = (deg * Math.PI) / 180;
+    return {
+      id,
+      x: Math.round(orbX + radius * Math.cos(rad)),
+      y: Math.round(orbY + radius * Math.sin(rad)),
+    };
+  });
+}
+
+/** Wide corner layout — desktop; equidistant nodes, bottom pair above copy band. */
+export const INTEGRATION_NODES_DESKTOP: readonly IntegrationNode[] = integrationNodesAtRadius(200);
+
+/** Tighter ring — survives portrait slice crop above the copy band. */
+export const INTEGRATION_NODES_COMPACT: readonly IntegrationNode[] = integrationNodesAtRadius(168);
+
+/** @deprecated use integrationLayoutForWidth */
+export const INTEGRATION_NODES = INTEGRATION_NODES_DESKTOP;
+
+export type IntegrationLayout = {
+  nodes: readonly IntegrationNode[];
+  satelliteScale: number;
+  /** Scales SVG hub circles (base r=48 / ring r=58). */
+  hubScale: number;
+};
+
+function lerpIntegrationNodes(
+  from: readonly IntegrationNode[],
+  to: readonly IntegrationNode[],
+  t: number,
+): IntegrationNode[] {
+  return from.map((node, index) => {
+    const target = to[index];
+    if (!target) return { ...node };
+    return {
+      id: node.id,
+      x: node.x + (target.x - node.x) * t,
+      y: node.y + (target.y - node.y) * t,
+    };
+  });
+}
+
+/** Responsive node positions + icon scale for slice-crop safe zones. */
+export function integrationLayoutForWidth(viewportWidth: number): IntegrationLayout {
+  if (viewportWidth <= 480) {
+    return { nodes: INTEGRATION_NODES_COMPACT, satelliteScale: 0.72, hubScale: 0.88 };
+  }
+
+  if (viewportWidth <= 900) {
+    const t = (900 - viewportWidth) / (900 - 480);
+    return {
+      nodes: lerpIntegrationNodes(INTEGRATION_NODES_DESKTOP, INTEGRATION_NODES_COMPACT, t * 0.88),
+      satelliteScale: 0.62 + (0.72 - 0.62) * (1 - t),
+      hubScale: 0.72 + (0.88 - 0.72) * (1 - t),
+    };
+  }
+
+  return { nodes: INTEGRATION_NODES_DESKTOP, satelliteScale: 0.62, hubScale: 0.72 };
+}
 
 /** Channels finish by ~66% of the band — gap before body line appears. */
 export const INTEGRATIONS_CHANNEL_WINDOW = 0.66;

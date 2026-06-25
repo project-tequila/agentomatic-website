@@ -19,7 +19,7 @@ export function BlogPostListItem({ post }: { post: PostListItem }) {
         <h2 className="site-card__title mt-1.5 group-hover:opacity-80">{post.title}</h2>
         {post.excerpt ? <p className="site-card__body mt-2">{post.excerpt}</p> : null}
       </div>
-      <span className="site-card__meta hidden sm:block">read</span>
+      <span className="site-card__meta shrink-0 self-start sm:self-center">read</span>
     </Link>
   );
 }

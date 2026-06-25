@@ -11,6 +11,16 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
       {
+        source: "/signup",
+        destination: `${APPOINTMENT_BOOKER_URL}/register`,
+        permanent: false,
+      },
+      {
+        source: "/register",
+        destination: `${APPOINTMENT_BOOKER_URL}/register`,
+        permanent: false,
+      },
+      {
         source: "/book",
         destination: "/signin",
         permanent: false,

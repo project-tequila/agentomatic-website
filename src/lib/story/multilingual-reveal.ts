@@ -1,6 +1,25 @@
 import { interpolate } from "@helios-project/core";
 
 import { gatedBodyTypingReveal } from "./body-typing-reveal";
+export {
+  ALL_STT_LANGUAGES,
+  ALL_TTS_LANGUAGES,
+  DEEPGRAM_STT_LANGUAGES,
+  DEEPGRAM_TTS_LANGUAGES,
+  MULTILINGUAL_AVAILABILITY_PHRASE_EN,
+  MULTILINGUAL_AVAILABILITY_SCRIPTS,
+  MULTILINGUAL_DUPLEX_LANGUAGE_CODES,
+  MULTILINGUAL_LANGUAGE_COUNT,
+  MULTILINGUAL_LANGUAGES,
+  MULTILINGUAL_PROVIDER_BADGE,
+  MULTILINGUAL_PROVIDER_BADGE_WIDTH,
+  MULTILINGUAL_PROVIDER_HEADLINE,
+  multilingualAvailabilityScript,
+  SARVAM_STT_LANGUAGES,
+  SARVAM_TTS_LANGUAGES,
+  type MultilingualLanguage,
+} from "./multilingual-languages";
+import { MULTILINGUAL_LANGUAGES } from "./multilingual-languages";
 import { PERSISTENT_ORB } from "./persistent-orb";
 
 export const MULTILINGUAL_STAGE = {
@@ -17,46 +36,6 @@ export const MULTILINGUAL_CARD = {
   width: 228,
   height: 188,
 } as const;
-
-export type MultilingualLanguage = {
-  id: string;
-  label: string;
-  script: string;
-  color: string;
-};
-
-/** Scroll cycle order: English → Indian langs with foreign langs interleaved. */
-export const MULTILINGUAL_LANGUAGES: MultilingualLanguage[] = [
-  { id: "en", label: "English", script: "Hello", color: "#8cffd2" },
-  { id: "hi", label: "हिन्दी", script: "नमस्ते", color: "#ffe066" },
-  { id: "es", label: "Español", script: "Hola", color: "#ffc857" },
-  { id: "bn", label: "বাংলা", script: "নমস্কার", color: "#69db7c" },
-  { id: "fr", label: "Français", script: "Bonjour", color: "#b197fc" },
-  { id: "ur", label: "اردو", script: "السلام", color: "#ffa94d" },
-  { id: "de", label: "Deutsch", script: "Guten Tag", color: "#74c0fc" },
-  { id: "ta", label: "தமிழ்", script: "வணக்கம்", color: "#ff8787" },
-  { id: "pt", label: "Português", script: "Olá", color: "#63e6be" },
-  { id: "te", label: "తెలుగు", script: "నమస్కారం", color: "#66d9e8" },
-  { id: "it", label: "Italiano", script: "Ciao", color: "#ffa8a8" },
-  { id: "mr", label: "मराठी", script: "नमस्कार", color: "#da77f2" },
-  { id: "nl", label: "Nederlands", script: "Hallo", color: "#91a7ff" },
-  { id: "gu", label: "ગુજરાતી", script: "નમસ્તે", color: "#8ce99a" },
-  { id: "pl", label: "Polski", script: "Cześć", color: "#da77f2" },
-  { id: "kn", label: "ಕನ್ನಡ", script: "ನಮಸ್ಕಾರ", color: "#ffc857" },
-  { id: "ru", label: "Русский", script: "Привет", color: "#74c0fc" },
-  { id: "ml", label: "മലയാളം", script: "നമസ്കാരം", color: "#63e6be" },
-  { id: "zh", label: "中文", script: "你好", color: "#ff8787" },
-  { id: "pa", label: "ਪੰਜਾਬੀ", script: "ਸਤ ਸ੍ਰੀ ਅਕਾਲ", color: "#ffe066" },
-  { id: "ja", label: "日本語", script: "こんにちは", color: "#b197fc" },
-  { id: "ko", label: "한국어", script: "안녕하세요", color: "#66d9e8" },
-  { id: "ar", label: "العربية", script: "مرحبا", color: "#f783ac" },
-  { id: "tr", label: "Türkçe", script: "Merhaba", color: "#ff8787" },
-  { id: "vi", label: "Tiếng Việt", script: "Xin chào", color: "#8ce99a" },
-  { id: "id", label: "Bahasa", script: "Halo", color: "#74c0fc" },
-  { id: "sw", label: "Kiswahili", script: "Habari", color: "#ffc857" },
-  { id: "he", label: "עברית", script: "שלום", color: "#91a7ff" },
-  { id: "th", label: "ไทย", script: "สวัสดี", color: "#66d9e8" },
-];
 
 function smoothstep(t: number) {
   return t * t * (3 - 2 * t);
@@ -120,11 +99,11 @@ export function multilingualHeroLanguage(progress: number, reduceMotion = false)
   };
 }
 
-export function multilingualOrbPath() {
+export function multilingualOrbPath(card: { x: number; y: number; width: number; height: number } = MULTILINGUAL_CARD) {
   const sx = MULTILINGUAL_STAGE.orbX + 34;
   const sy = MULTILINGUAL_STAGE.orbY - 6;
-  const ex = MULTILINGUAL_CARD.x - 6;
-  const ey = MULTILINGUAL_CARD.y + 64;
+  const ex = card.x - 6;
+  const ey = card.y + 64;
   const cx = (sx + ex) / 2;
   const cy = sy - 22;
   return `M ${sx} ${sy} Q ${cx} ${cy} ${ex} ${ey}`;

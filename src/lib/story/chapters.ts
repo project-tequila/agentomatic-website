@@ -1,3 +1,5 @@
+import { MULTILINGUAL_AVAILABILITY_PHRASE_EN, MULTILINGUAL_PROVIDER_HEADLINE } from "./multilingual-languages";
+
 /** Act 1 ends here — editorial story + background motion. Act 2 holds stable “ready” state. */
 export const ACT1_END = 0.35;
 
@@ -96,7 +98,7 @@ export const featureChapters: FeatureChapter[] = [
     start: 0.594,
     end: 0.676,
     codename: "polyglot",
-    title: ["32+ languages.", "native fluency."],
+    title: [MULTILINGUAL_PROVIDER_HEADLINE, `${MULTILINGUAL_AVAILABILITY_PHRASE_EN.toLowerCase()}.`],
     body: "they call in their language. your desk answers like it belongs.",
   },
   {

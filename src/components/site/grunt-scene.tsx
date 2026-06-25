@@ -44,7 +44,8 @@ import {
   type GruntHubModuleId,
 } from "@/lib/story/grunt-reveal";
 import { useStoryScrollPaused } from "@/lib/story/use-story-scroll-paused";
-import { STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { gruntStageViewBox, STORY_STAGE_PRESERVE } from "@/lib/story/persistent-orb";
+import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import { STORY_GLYPH } from "@/components/site/story-stage-glyphs";
 
 type GruntSceneProps = {
@@ -56,6 +57,7 @@ const C = STORY_GLYPH;
 
 export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
   const reduceMotion = useReducedMotion();
+  const spatial = useStorySpatialLayout();
   const progress = act1BeatProgress(story, "grunt");
   const scrollPaused = useStoryScrollPaused(progress ?? 0, 120);
   const [hoveredModule, setHoveredModule] = useState<GruntHubModuleId | null>(null);
@@ -75,19 +77,22 @@ export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
   const dataFill = gruntDataFill(progress);
   const routeBranches = gruntRouteBranches(progress, rm);
 
-  const focusedId = gruntFocusedModule(progress);
-  const hoveredMod = hoveredModule ? GRUNT_HUB_MODULES.find((m) => m.id === hoveredModule) : null;
-
   const { orbX, orbY } = GRUNT_STAGE;
+  const hubModules = spatial.grunt.modules;
+  const moduleRadius = spatial.grunt.moduleRadius;
+  const satelliteScale = spatial.grunt.satelliteScale;
 
-  const iconFlows = GRUNT_HUB_MODULES.map((mod) => ({
+  const focusedId = gruntFocusedModule(progress);
+  const hoveredMod = hoveredModule ? hubModules.find((m) => m.id === hoveredModule) : null;
+
+  const iconFlows = hubModules.map((mod) => ({
     id: mod.id,
     flow: gruntModuleFlow(progress, mod.revealAt),
     arrived: gruntModuleIconArrived(progress, mod.revealAt),
   }));
 
   const moduleContent = (id: GruntHubModuleId) => {
-    const mod = GRUNT_HUB_MODULES.find((m) => m.id === id)!;
+    const mod = hubModules.find((m) => m.id === id)!;
     const live = gruntModuleLive(progress, mod.revealAt) && !rm;
     const focused = focusedId === id;
     const hovered = hoveredModule === id;
@@ -130,7 +135,7 @@ export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
 
   return (
     <svg
-      viewBox={storyStageViewBox()}
+      viewBox={gruntStageViewBox()}
       preserveAspectRatio={STORY_STAGE_PRESERVE}
       className="grunt-scene grunt-scene--hub grunt-scene--hub-plus grunt-scene--interactive"
       aria-hidden
@@ -177,14 +182,14 @@ export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
 
       <CircuitGrid opacity={hubReveal * 0.65} />
 
-      <HubPlusArms opacity={plusReveal * hubReveal} sync={sync} />
+      <HubPlusArms opacity={plusReveal * hubReveal} sync={sync} moduleRadius={moduleRadius} />
 
       <ellipse cx={orbX} cy={orbY} rx="118" ry="86" fill="url(#gruntHubCore)" className="grunt-scene__hub-orb-halo" />
       <ellipse cx={orbX} cy={orbY} rx="92" ry="66" fill={C.mint} opacity={0.025 + stress * 0.035 + sync * 0.04} filter="url(#gruntHubGlow)" />
 
-      {GRUNT_HUB_MODULES.map((mod) => {
+      {hubModules.map((mod) => {
         const flow = gruntModuleFlow(progress, mod.revealAt);
-        const path = gruntTendrilPath(mod);
+        const path = gruntTendrilPath(mod, moduleRadius);
         const color = accentColor(mod.accent);
         const live = gruntModuleLive(progress, mod.revealAt) && !rm;
         const focused = focusedId === mod.id;
@@ -203,9 +208,9 @@ export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
         );
       })}
 
-      <HubOrbIconFlows flows={iconFlows} reduceMotion={rm} />
+      <HubOrbIconFlows flows={iconFlows} reduceMotion={rm} modules={hubModules} moduleRadius={moduleRadius} />
 
-      {GRUNT_HUB_MODULES.map((mod) => {
+      {hubModules.map((mod) => {
         const op = gruntModuleReveal(progress, mod.revealAt) * reveal;
         if (op < 0.02) return null;
         const focused = focusedId === mod.id;
@@ -215,7 +220,7 @@ export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
         return (
           <g
             key={mod.id}
-            transform={`translate(${mod.x + enter.x} ${mod.y + enter.y}) scale(${scale})`}
+            transform={`translate(${mod.x + enter.x} ${mod.y + enter.y}) scale(${scale * satelliteScale})`}
             opacity={op}
             className="grunt-scene__hub-module-wrap"
           >

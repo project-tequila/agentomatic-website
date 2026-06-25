@@ -56,7 +56,7 @@ export default function PricingPage() {
           lead="placeholder tiers while we finalize packaging — every plan includes live demo onboarding and script setup."
         />
 
-        <div className="site-grid site-grid--2 mt-10 lg:grid-cols-3">
+        <div className="site-grid site-grid--3 mt-10">
           {tiers.map((tier) => (
             <SiteCard
               key={tier.name}

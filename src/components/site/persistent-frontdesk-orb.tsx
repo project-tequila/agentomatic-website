@@ -6,14 +6,15 @@ import { useHeliosVoice } from "@/lib/helios/helios-provider";
 import { useVideoFrame } from "@/lib/helios/use-video-frame";
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import { handoffOrbShift } from "@/lib/story/handoff-reveal";
+import { usePersistentOrbHitZone } from "@/lib/story/use-persistent-orb-hit-zone";
+import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import {
+  gruntStageViewBox,
   PERSISTENT_ORB,
   STORY_STAGE_PRESERVE,
   storyStageViewBox,
   persistentOrbIntensity,
-  persistentOrbDashboardOverlay,
   persistentOrbModeBlend,
-  persistentOrbOpacity,
   persistentOrbVisible,
   type PersistentOrbMode,
 } from "@/lib/story/persistent-orb";
@@ -64,25 +65,35 @@ function OrbInstance({
 
 export function PersistentFrontdeskOrb({ story }: PersistentFrontdeskOrbProps) {
   const reduceMotion = useReducedMotion();
+  const spatial = useStorySpatialLayout();
   const { helios } = useHeliosVoice();
   const { inputProps } = useVideoFrame(helios);
   const pointerX = inputProps.pointerX ?? 0;
   const pointerY = inputProps.pointerY ?? 0;
 
-  if (!persistentOrbVisible(story)) return null;
+  const hitZone = usePersistentOrbHitZone();
 
-  const layerOpacity = persistentOrbOpacity(story) * persistentOrbDashboardOverlay(story);
+  if (!persistentOrbVisible(story) || !hitZone.visible) return null;
+
   const { mode, blend, nextMode } = persistentOrbModeBlend(story);
   const intensity = persistentOrbIntensity(story);
   const handoffProgress = featureBandProgress(story, "handoff");
-  const orbShiftX = handoffProgress !== null ? handoffOrbShift(handoffProgress) : 0;
+  const handoffSpatial = {
+    caller: spatial.handoff.caller,
+    callerConnectX: spatial.handoff.callerConnectX,
+    humanStart: spatial.handoff.humanStart,
+    humanEnd: spatial.handoff.humanEnd,
+    orbShift: spatial.handoff.orbShift,
+  };
+  const orbShiftX = handoffProgress !== null ? handoffOrbShift(handoffProgress, handoffSpatial) : 0;
 
-  if (layerOpacity < 0.02) return null;
+  const orbViewBox = mode === "grunt" || nextMode === "grunt" ? gruntStageViewBox() : storyStageViewBox();
+  const orbVisualStyle = { opacity: hitZone.opacity };
 
   return (
-    <div className="story-illustration-bg__persistent-orb" style={{ opacity: layerOpacity }}>
+    <div className="story-illustration-bg__persistent-orb" style={orbVisualStyle}>
       <svg
-        viewBox={storyStageViewBox()}
+        viewBox={orbViewBox}
         className="story-illustration-bg__persistent-orb-svg"
         preserveAspectRatio={STORY_STAGE_PRESERVE}
         fill="none"

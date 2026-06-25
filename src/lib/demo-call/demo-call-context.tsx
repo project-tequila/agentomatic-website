@@ -36,6 +36,11 @@ export function DemoCallProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [isOpen, closeDemoCall]);
 
+  useEffect(() => {
+    document.body.classList.toggle("demo-call-strip-open", isOpen);
+    return () => document.body.classList.remove("demo-call-strip-open");
+  }, [isOpen]);
+
   const value = useMemo(
     () => ({ isOpen, scrollReveal, openDemoCall, closeDemoCall, setScrollReveal }),
     [isOpen, scrollReveal, openDemoCall, closeDemoCall],

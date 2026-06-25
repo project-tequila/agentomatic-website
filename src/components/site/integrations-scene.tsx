@@ -5,11 +5,12 @@ import { useReducedMotion } from "framer-motion";
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import {
   INTEGRATION_CHANNELS,
-  INTEGRATION_NODES,
   INTEGRATION_STAGE,
+  type IntegrationNode,
   integrationChannelState,
 } from "@/lib/story/integrations-reveal";
 import { STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import { cn } from "@/lib/utils";
 
 import { IntegrationFlowStreams } from "./integration-flow-streams";
@@ -20,12 +21,18 @@ type IntegrationsSceneProps = {
   opacity: number;
 };
 
-function channelNode(id: string) {
-  return INTEGRATION_NODES.find((node) => node.id === id);
+function channelNode(nodes: readonly IntegrationNode[], id: string) {
+  return nodes.find((node) => node.id === id);
+}
+
+function useIntegrationLayout() {
+  const spatial = useStorySpatialLayout();
+  return spatial.integrations;
 }
 
 export function IntegrationsScene({ story, opacity: sceneOpacity }: IntegrationsSceneProps) {
   const reduceMotion = useReducedMotion();
+  const { nodes, satelliteScale, hubScale } = useIntegrationLayout();
 
   const progress = featureBandProgress(story, "integrations");
   if (progress === null || sceneOpacity < 0.02) return null;
@@ -53,24 +60,27 @@ export function IntegrationsScene({ story, opacity: sceneOpacity }: Integrations
       <IntegrationFlowStreams
         orbX={INTEGRATION_STAGE.orbX}
         orbY={INTEGRATION_STAGE.orbY}
+        nodes={nodes}
         progress={progress}
         reduceMotion={!!reduceMotion}
       />
 
       {INTEGRATION_CHANNELS.map((channel, index) => {
-        const node = channelNode(channel.id);
+        const node = channelNode(nodes, channel.id);
         if (!node) return null;
 
         const state = integrationChannelState(progress, index, !!reduceMotion);
         const side = node.x < INTEGRATION_STAGE.orbX ? -1 : 1;
-        const tx = node.x + state.translateX * side * 0.28;
-        const ty = node.y + state.translateY * 0.28;
+        const tx = node.x + state.translateX * side * 0.22;
+        const ty = node.y + state.translateY * 0.22;
         const animated = state.highlight >= 0.72 && state.opacity > 0.5;
+        const hubR = 48 * hubScale;
+        const ringR = 58 * hubScale;
 
         return (
           <g
             key={channel.id}
-            transform={`translate(${tx} ${ty}) scale(${state.scale})`}
+            transform={`translate(${tx} ${ty}) scale(${state.scale * satelliteScale})`}
             opacity={state.opacity}
             filter={`url(#int-glow-${channel.id})`}
           >
@@ -79,7 +89,7 @@ export function IntegrationsScene({ story, opacity: sceneOpacity }: Integrations
               style={animated ? { animationDelay: `${index * 0.18}s` } : undefined}
             >
               <circle
-                r="58"
+                r={ringR}
                 fill="none"
                 stroke={channel.color}
                 strokeWidth="1.2"
@@ -87,9 +97,9 @@ export function IntegrationsScene({ story, opacity: sceneOpacity }: Integrations
                 className={animated && !reduceMotion ? "integrations-scene__icon-ring" : undefined}
                 style={animated ? { animationDelay: `${index * 0.18}s` } : undefined}
               />
-              <circle r="48" fill="url(#intGlass)" stroke={channel.color} strokeWidth="2" opacity="0.98" />
-              <circle r="48" fill={channel.color} opacity={0.06 + state.highlight * 0.08} />
-              <g opacity={0.82 + state.highlight * 0.18}>
+              <circle r={hubR} fill="url(#intGlass)" stroke={channel.color} strokeWidth="2" opacity="0.98" />
+              <circle r={hubR} fill={channel.color} opacity={0.06 + state.highlight * 0.08} />
+              <g opacity={0.82 + state.highlight * 0.18} transform={`scale(${hubScale})`}>
                 <PremiumChannelGlyph id={channel.id} color={channel.color} uid={channel.id} />
               </g>
             </g>

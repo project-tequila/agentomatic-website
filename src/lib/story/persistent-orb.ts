@@ -10,8 +10,8 @@ export const PERSISTENT_ORB = {
   cy: 220,
 } as const;
 
-/** Fit full scene inside the viewport — no clipping or overflow. */
-export const STORY_STAGE_PRESERVE = "xMidYMid meet" as const;
+/** Edge-to-edge fill — slice crops overflow; CSS scale is 1 for viewport fill. */
+export const STORY_STAGE_PRESERVE = "xMidYMid slice" as const;
 
 /** Bleed for orb waves, glows, and edge labels beyond the 720×440 canvas. */
 export const STORY_STAGE_GLOW_PAD = 56;
@@ -22,7 +22,37 @@ export const STORY_STAGE_GLOW_PAD = 56;
  */
 export const STORY_STAGE_VISUAL_SCALE = 1;
 
-/** Tiny safety margin on meet-fit so edge glow never clips. */
+/** Orb-connected satellite icons (channels, phones, hub modules) — matches --story-satellite-icon-scale in CSS. */
+export const STORY_SATELLITE_ICON_SCALE = 0.765;
+
+/** Persistent frontdesk orb visual scale — matches --story-orb-scale in CSS (25% smaller than base). */
+export const STORY_ORB_SCALE = 0.75;
+
+/** Outermost voice wave radius in SVG user units (FrontdeskVoiceOrb). */
+export const PERSISTENT_ORB_OUTER_WAVE_RADIUS = 104;
+
+export function viewBoxDimensions(viewBox: string) {
+  const parts = viewBox.trim().split(/\s+/).map(Number);
+  return {
+    width: parts[2] ?? STORY_STAGE_VIEW.width,
+    height: parts[3] ?? STORY_STAGE_VIEW.height,
+  };
+}
+
+/** Horizontal hit-zone offset when the orb shifts in SVG space (e.g. handoff), as % of stage width. */
+export function persistentOrbHitShiftPercent(shiftX: number, viewBox: string) {
+  const { width } = viewBoxDimensions(viewBox);
+  return (shiftX / width) * 100 * STORY_ORB_SCALE;
+}
+
+/** Hit target diameter as % of stage width — outer waves plus light tap padding, scaled with the orb. */
+export function persistentOrbHitSizePercent(viewBox: string, padding = 1.1) {
+  const { width } = viewBoxDimensions(viewBox);
+  const diameter = PERSISTENT_ORB_OUTER_WAVE_RADIUS * 2 * padding;
+  return (diameter / width) * 100 * STORY_ORB_SCALE;
+}
+
+/** Slight viewBox bleed so slice-crop keeps glows inside the frame. */
 export const STORY_STAGE_FIT_MARGIN = 1.04;
 
 const STORY_STAGE_BASE_WIDTH = PERSISTENT_ORB.width + STORY_STAGE_GLOW_PAD * 2;
@@ -38,6 +68,21 @@ export const STORY_STAGE_VIEW = {
 
 export function storyStageViewBox() {
   const { minX, minY, width, height } = STORY_STAGE_VIEW;
+  return `${minX} ${minY} ${width} ${height}`;
+}
+
+/** Grunt hub extends beyond the orb canvas — asymmetric viewBox keeps top labels inside the frame. */
+export function gruntStageViewBox() {
+  const { cx, cy } = PERSISTENT_ORB;
+  const padX = STORY_STAGE_GLOW_PAD + 24;
+  const padTop = STORY_STAGE_GLOW_PAD + 116;
+  const padBottom = STORY_STAGE_GLOW_PAD + 72;
+  const halfW = (PERSISTENT_ORB.width + padX * 2) / 2;
+  const minX = Math.round(cx - halfW * STORY_STAGE_FIT_MARGIN);
+  const minY = Math.round(cy - (PERSISTENT_ORB.height / 2 + padTop) * STORY_STAGE_FIT_MARGIN);
+  const maxY = Math.round(cy + (PERSISTENT_ORB.height / 2 + padBottom) * STORY_STAGE_FIT_MARGIN);
+  const width = Math.round(halfW * 2 * STORY_STAGE_FIT_MARGIN);
+  const height = maxY - minY;
   return `${minX} ${minY} ${width} ${height}`;
 }
 

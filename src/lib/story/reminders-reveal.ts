@@ -22,14 +22,26 @@ export const REMINDERS_BELL_PATH_END = {
 /** Calendar + booking anchor — upper right, nudged inward. */
 export const REMINDERS_CALENDAR = { x: 572, y: 188 };
 
-export function remindersCallerToOrbPath(orbX = REMINDERS_STAGE.orbX) {
-  const { x: cx, y: cy } = REMINDERS_CALLER;
-  const startX = cx + 44;
-  return `M ${startX} ${cy} Q ${(startX + orbX) / 2 - 10} ${cy - 34} ${orbX - 42} ${cy}`;
+export type RemindersSpatial = {
+  caller: { x: number; y: number };
+  callerConnectX: number;
+  calendar: { x: number; y: number };
+};
+
+export const REMINDERS_SPATIAL_DESKTOP: RemindersSpatial = {
+  caller: REMINDERS_CALLER,
+  callerConnectX: REMINDERS_BELL_PATH_END.x,
+  calendar: REMINDERS_CALENDAR,
+};
+
+export function remindersCallerToOrbPath(orbX = REMINDERS_STAGE.orbX, spatial: RemindersSpatial = REMINDERS_SPATIAL_DESKTOP) {
+  const cy = spatial.caller.y;
+  const connectX = spatial.callerConnectX;
+  return `M ${connectX} ${cy} Q ${(connectX + orbX) / 2 - 10} ${cy - 34} ${orbX - 42} ${cy}`;
 }
 
-export function remindersOrbToCalendarPath(orbX = REMINDERS_STAGE.orbX) {
-  const { x: cx, y: cy } = REMINDERS_CALENDAR;
+export function remindersOrbToCalendarPath(orbX = REMINDERS_STAGE.orbX, spatial: RemindersSpatial = REMINDERS_SPATIAL_DESKTOP) {
+  const { x: cx, y: cy } = spatial.calendar;
   const sx = orbX + 40;
   const sy = REMINDERS_STAGE.orbY - 6;
   const midX = (sx + cx) / 2;
@@ -38,8 +50,9 @@ export function remindersOrbToCalendarPath(orbX = REMINDERS_STAGE.orbX) {
 }
 
 /** Reminder path — mirror of caller→orb on a lower parallel arc (orb back to caller). */
-export function remindersBellToCallerPath(orbX = REMINDERS_STAGE.orbX) {
-  const { x: endX, y: endY } = REMINDERS_BELL_PATH_END;
+export function remindersBellToCallerPath(orbX = REMINDERS_STAGE.orbX, spatial: RemindersSpatial = REMINDERS_SPATIAL_DESKTOP) {
+  const endX = spatial.callerConnectX;
+  const endY = spatial.caller.y;
   const y = REMINDERS_STAGE.orbY;
   const startX = orbX - 42;
   const midX = (startX + endX) / 2 - 10;

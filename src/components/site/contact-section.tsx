@@ -27,9 +27,9 @@ export function ContactSection() {
   }
 
   return (
-    <section id="contact" className="scroll-mt-24 py-[clamp(2.5rem,6vw,4rem)] md:scroll-mt-28">
+    <section id="contact" className="site-contact-section">
       <div className="site-container">
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-14">
+        <div className="site-contact-section__grid">
           <div>
             <p className="site-kicker">contact</p>
             <h2 className="site-display text-[clamp(1.75rem,calc(3.5vw + 0.5rem),3rem)]">let your visitors speak first.</h2>

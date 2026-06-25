@@ -20,7 +20,7 @@ export function SiteDemoCallRoot({ children }: SiteDemoCallRootProps) {
     <DemoCallProvider>
       {children}
       <DemoCallPanel />
-      <SiteOrbHitZone variant={isHome ? "immersive" : "floating"} />
+      {!isHome ? <SiteOrbHitZone variant="floating" /> : null}
     </DemoCallProvider>
   );
 }
