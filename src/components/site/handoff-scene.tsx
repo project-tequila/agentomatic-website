@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 import type { CSSProperties } from "react";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
@@ -209,7 +209,7 @@ function TransferBeacon({
   if (intensity < 0.08) return null;
 
   return (
-    <g transform={`translate(${x} ${y})`} opacity={intensity} className={reduceMotion ? undefined : "handoff-scene__beacon"}>
+    <g transform={`translate(${x} ${y})`} opacity={intensity} className="handoff-scene__beacon">
       <circle r="52" fill="url(#handoffBeaconGrad)" opacity="0.55" />
       <circle r="28" fill="none" stroke={C.cream} strokeWidth="1.6" opacity="0.55" />
       <circle r="10" fill={C.rose} opacity="0.85" />
@@ -219,7 +219,7 @@ function TransferBeacon({
 }
 
 export function HandoffScene({ story, opacity: sceneOpacity }: HandoffSceneProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const spatialLayout = useStorySpatialLayout();
   const handoffSpatial = {
     caller: spatialLayout.handoff.caller,
@@ -313,7 +313,7 @@ export function HandoffScene({ story, opacity: sceneOpacity }: HandoffSceneProps
           stroke="url(#handoffCallerGrad)"
           strokeWidth="1.6"
           strokeDasharray="5 8"
-          className={reduceMotion ? undefined : "handoff-scene__flow"}
+          className="handoff-scene__flow"
         />
         {!reduceMotion ? (
           <circle r="3" fill={C.mint} opacity="0.85">
@@ -329,7 +329,7 @@ export function HandoffScene({ story, opacity: sceneOpacity }: HandoffSceneProps
           stroke="url(#handoffCallerHumanGrad)"
           strokeWidth="2"
           strokeDasharray="5 8"
-          className={reduceMotion ? undefined : "handoff-scene__flow handoff-scene__flow--human"}
+          className="handoff-scene__flow handoff-scene__flow--human"
         />
         {!reduceMotion ? (
           <>
@@ -368,7 +368,7 @@ export function HandoffScene({ story, opacity: sceneOpacity }: HandoffSceneProps
           strokeWidth="3.6"
           strokeDasharray="8 10"
           strokeLinecap="round"
-          className={reduceMotion ? undefined : "handoff-scene__transfer handoff-scene__transfer--hero"}
+          className="handoff-scene__transfer handoff-scene__transfer--hero"
           filter="url(#handoffPathGlow)"
         />
         {!reduceMotion ? (

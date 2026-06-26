@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState, type CSSProperties } from "react";
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import {
@@ -86,7 +86,7 @@ function NetworkPhone({
 }
 
 export function ConcurrentScene({ story, opacity: sceneOpacity }: ConcurrentSceneProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const spatial = useStorySpatialLayout();
   const [dualPhones, setDualPhones] = useState<Set<string>>(() => new Set());
 

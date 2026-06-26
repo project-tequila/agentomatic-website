@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import {  accentColor,
   CircuitGrid,
@@ -56,7 +56,7 @@ type GruntSceneProps = {
 const C = STORY_GLYPH;
 
 export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const spatial = useStorySpatialLayout();
   const progress = act1BeatProgress(story, "grunt");
   const scrollPaused = useStoryScrollPaused(progress ?? 0, 120);

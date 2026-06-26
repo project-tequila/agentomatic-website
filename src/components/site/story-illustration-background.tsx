@@ -1,7 +1,6 @@
 "use client";
 
 import { interpolate } from "@helios-project/core";
-import { useReducedMotion } from "framer-motion";
 import { useEffect } from "react";
 
 import { useHeliosVoice } from "@/lib/helios/helios-provider";
@@ -24,7 +23,6 @@ import { DashboardScene } from "./dashboard-scene";
 import { StoryIllustration } from "./story-illustrations";
 
 export function StoryIllustrationBackground() {
-  const reduceMotion = useReducedMotion();
   const { helios, setVoiceInput } = useHeliosVoice();
   const { inputProps } = useVideoFrame(helios);
   const story = inputProps.storyProgress ?? 0;

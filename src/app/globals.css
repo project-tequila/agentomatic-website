@@ -3565,6 +3565,11 @@
   transform-origin: 360px 220px;
 }
 
+.persistent-orb__instance {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
 .persistent-orb__instance--hook {
   animation: persistentOrbHook 4s ease-in-out infinite;
 }
@@ -3950,24 +3955,19 @@
 @keyframes concurrentInboundVibrate {
   0%,
   100% {
-    translate: 0 0;
-    rotate: 0deg;
+    transform: translate(0, 0) rotate(0deg);
   }
   15% {
-    translate: -2px -1px;
-    rotate: -1.2deg;
+    transform: translate(-2px, -1px) rotate(-1.2deg);
   }
   30% {
-    translate: 2px 1px;
-    rotate: 1.2deg;
+    transform: translate(2px, 1px) rotate(1.2deg);
   }
   45% {
-    translate: -1.5px 0.5px;
-    rotate: -0.8deg;
+    transform: translate(-1.5px, 0.5px) rotate(-0.8deg);
   }
   60% {
-    translate: 1.5px -0.5px;
-    rotate: 0.8deg;
+    transform: translate(1.5px, -0.5px) rotate(0.8deg);
   }
 }
 
@@ -4012,11 +4012,11 @@
 @keyframes concurrentOutboundDial {
   0%,
   100% {
-    scale: 1;
+    transform: scale(1);
     opacity: 1;
   }
   50% {
-    scale: 1.04;
+    transform: scale(1.04);
     opacity: 0.92;
   }
 }
@@ -4024,11 +4024,11 @@
 @keyframes concurrentOutboundRing {
   0% {
     opacity: 0.4;
-    scale: 0.9;
+    transform: scale(0.9);
   }
   100% {
     opacity: 0;
-    scale: 1.32;
+    transform: scale(1.32);
   }
 }
 
@@ -4099,22 +4099,22 @@
 @keyframes concurrentPhoneRing {
   0% {
     opacity: 0.35;
-    scale: 0.92;
+    transform: scale(0.92);
   }
   100% {
     opacity: 0;
-    scale: 1.28;
+    transform: scale(1.28);
   }
 }
 
 @keyframes concurrentHeroRing {
   0% {
     opacity: 0.5;
-    scale: 0.94;
+    transform: scale(0.94);
   }
   100% {
     opacity: 0;
-    scale: 1.15;
+    transform: scale(1.15);
   }
 }
 
@@ -6518,11 +6518,11 @@
   0%,
   100% {
     filter: drop-shadow(0 0 14px rgba(140, 255, 210, 0.22));
-    scale: 0.96;
+    transform: scale(0.96);
   }
   50% {
     filter: drop-shadow(0 0 24px rgba(116, 192, 252, 0.38));
-    scale: 1;
+    transform: scale(1);
   }
 }
 
@@ -6530,13 +6530,13 @@
   0%,
   100% {
     filter: drop-shadow(0 0 16px rgba(255, 135, 135, 0.28));
-    translate: 0 0;
+    transform: translate(0, 0);
   }
   25% {
-    translate: -1px 0.5px;
+    transform: translate(-1px, 0.5px);
   }
   75% {
-    translate: 1px -0.5px;
+    transform: translate(1px, -0.5px);
   }
   50% {
     filter: drop-shadow(0 0 28px rgba(255, 200, 87, 0.42));

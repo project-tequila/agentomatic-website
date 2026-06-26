@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import {
@@ -203,7 +203,7 @@ function DatabaseReply({ opacity, complete, reduceMotion }: { opacity: number; c
       <rect x={72} y={23} width={52 * complete} height={4} rx={2} fill={C.muted} />
       <rect x={72} y={31} width={40 * complete} height={3} rx={1.5} fill="rgba(245,242,235,0.18)" />
       {complete > 0.65 ? (
-        <g transform="translate(136 21)" className={!reduceMotion ? "dashboard-scene__check--pop" : undefined} opacity={complete}>
+        <g transform="translate(136 21)" className="dashboard-scene__check--pop" opacity={complete}>
           <circle r={7} fill="rgba(140,255,210,0.16)" stroke={C.mint} strokeWidth={1.1} />
           <path d="M-3 0 L-1.2 1.8 L3.2 -2.2" fill="none" stroke={C.mint} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
         </g>
@@ -228,7 +228,7 @@ function PhoneReply({ opacity, complete, reduceMotion }: { opacity: number; comp
         3 outbound
       </text>
       {complete > 0.65 ? (
-        <g transform="translate(136 21)" className={!reduceMotion ? "dashboard-scene__check--pop" : undefined} opacity={complete}>
+        <g transform="translate(136 21)" className="dashboard-scene__check--pop" opacity={complete}>
           <circle r={7} fill="rgba(140,255,210,0.16)" stroke={C.mint} strokeWidth={1.1} />
           <path d="M-3 0 L-1.2 1.8 L3.2 -2.2" fill="none" stroke={C.mint} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
         </g>
@@ -247,14 +247,14 @@ function CalendarReply({ opacity, complete, reduceMotion }: { opacity: number; c
   return (
     <g opacity={opacity} transform="translate(0 36)">
       <rect x={0} y={0} width={174} height={42} rx={10} fill="rgba(18,20,24,0.94)" stroke={C.mint} strokeWidth={1.3} strokeOpacity={0.42} />
-      <g transform="translate(18 21)" className={!reduceMotion && complete > 0.5 ? "dashboard-scene__calendar-block" : undefined}>
+      <g transform="translate(18 21)" className={complete > 0.5 ? "dashboard-scene__calendar-block" : undefined}>
         <ReplyGlyph id="calendar" color={C.amber} x={0} y={0} scale={0.24} />
       </g>
       <text x={36} y={19} fill={C.cream} fontSize={9.5} fontWeight={600} fontFamily="system-ui, sans-serif">
         2–4pm blocked
       </text>
       {complete > 0.6 ? (
-        <g transform="translate(144 21)" className={!reduceMotion ? "dashboard-scene__check--pop" : undefined} opacity={complete}>
+        <g transform="translate(144 21)" className="dashboard-scene__check--pop" opacity={complete}>
           <circle r={7} fill="rgba(140,255,210,0.16)" stroke={C.mint} strokeWidth={1.1} />
           <path d="M-3 0 L-1.2 1.8 L3.2 -2.2" fill="none" stroke={C.mint} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
         </g>
@@ -279,7 +279,7 @@ function ReminderReply({ opacity, complete, reduceMotion }: { opacity: number; c
         no-shows nudged
       </text>
       {complete > 0.55 ? (
-        <g transform="translate(116 21)" className={!reduceMotion ? "dashboard-scene__check--pop" : undefined} opacity={complete}>
+        <g transform="translate(116 21)" className="dashboard-scene__check--pop" opacity={complete}>
           <circle r={7} fill="rgba(140,255,210,0.16)" stroke={C.mint} strokeWidth={1.1} />
           <path d="M-3 0 L-1.2 1.8 L3.2 -2.2" fill="none" stroke={C.mint} strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" />
         </g>
@@ -309,7 +309,7 @@ function AgentReply({
 }
 
 export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const spatial = useStorySpatialLayout();
   const motionOff = !!reduceMotion;
   const progress = featureBandProgress(story, "dashboard");
@@ -435,7 +435,7 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
                   strokeWidth={1.6}
                   strokeDasharray="4 6"
                   opacity={0.55}
-                  className={!motionOff ? "dashboard-scene__flow" : undefined}
+                  className="dashboard-scene__flow"
                 />
                 {!motionOff ? (
                   <circle r={2.4} fill={C.mint} opacity={0.95 * flowOrb}>
@@ -452,7 +452,7 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
                   stroke="url(#dashboardIconGrad)"
                   strokeWidth={1.5}
                   strokeDasharray="4 6"
-                  className={!motionOff ? "dashboard-scene__spur-flow" : undefined}
+                  className="dashboard-scene__spur-flow"
                 />
                 {!motionOff ? (
                   <circle r={2.6} fill={item.color} opacity={0.92 * flowIcon}>
@@ -474,7 +474,7 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
             <g
               key={item.id}
               transform={`translate(${icons.x + icons.w / 2} ${iy}) scale(${satelliteScale})`}
-              className={cn(active > 0.5 && !motionOff && "dashboard-scene__queue-item--live")}
+              className={cn(active > 0.5 && "dashboard-scene__queue-item--live")}
             >
               <ActionIcon icon={item.id} color={item.color} active={active} />
             </g>
@@ -499,7 +499,7 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
             r={3.5}
             fill={C.mint}
             opacity={0.65 + headerLive * 0.35}
-            className={headerLive > 0.35 && !motionOff ? "dashboard-scene__live-dot" : undefined}
+            className={headerLive > 0.35 ? "dashboard-scene__live-dot" : undefined}
           />
           <text x={10} y={3.5} fill={C.cream} fontSize={9.5} fontWeight={600} fontFamily="system-ui, sans-serif" letterSpacing="0.06em" opacity={0.72}>
             front desk
@@ -569,8 +569,8 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
             strokeWidth={enterPulse > 0.2 ? 1.4 : 1}
             strokeOpacity={0.35 + enterPulse * 0.65}
             className={cn(
-              !motionOff && "dashboard-scene__composer-shimmer",
-              enterPulse > 0.15 && !motionOff && "dashboard-scene__composer-enter",
+              "dashboard-scene__composer-shimmer",
+              enterPulse > 0.15 && "dashboard-scene__composer-enter",
             )}
           />
           {composerIndex >= 0 && activeComposerText ? (
@@ -602,8 +602,8 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
             fill={C.mint}
             opacity={0.7 + settle * 0.25 + enterPulse * 0.3}
             className={cn(
-              settle > 0.5 && !motionOff && "dashboard-scene__send-pulse",
-              enterPulse > 0.15 && !motionOff && "dashboard-scene__send-enter",
+              settle > 0.5 && "dashboard-scene__send-pulse",
+              enterPulse > 0.15 && "dashboard-scene__send-enter",
             )}
           />
           <path

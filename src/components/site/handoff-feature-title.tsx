@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import { handoffTaglineGlow, handoffTaglineTypingReveal } from "@/lib/story/handoff-reveal";
@@ -93,7 +93,7 @@ function HandoffTagline({
 }
 
 export function HandoffFeatureTitle({ story }: HandoffFeatureTitleProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const progress = featureBandProgress(story, "handoff");
   const scrollPaused = useStoryScrollPaused(progress ?? 0, 120);
   const motionOff = !!reduceMotion;

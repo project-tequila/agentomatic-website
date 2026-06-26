@@ -89,15 +89,11 @@ export function IntegrationFlowStreams({ orbX, orbY, nodes, progress, reduceMoti
               strokeWidth="1.6"
               strokeDasharray="6 9"
               opacity="0.75"
-              className={reduceMotion ? undefined : "integrations-scene__flow"}
-              style={
-                reduceMotion
-                  ? undefined
-                  : {
-                      animationDelay: `${delay}s`,
-                      animationDuration: `${travelDur}s`,
-                    }
-              }
+              className="integrations-scene__flow"
+              style={{
+                animationDelay: `${delay}s`,
+                animationDuration: `${travelDur}s`,
+              }}
             />
             <path
               d={path}
@@ -106,15 +102,11 @@ export function IntegrationFlowStreams({ orbX, orbY, nodes, progress, reduceMoti
               strokeWidth="0.8"
               strokeDasharray="2 14"
               opacity="0.35"
-              className={reduceMotion ? undefined : "integrations-scene__flow integrations-scene__flow--accent"}
-              style={
-                reduceMotion
-                  ? undefined
-                  : {
-                      animationDelay: `${delay + 0.12}s`,
-                      animationDuration: `${travelDurAccent}s`,
-                    }
-              }
+              className="integrations-scene__flow integrations-scene__flow--accent"
+              style={{
+                animationDelay: `${delay + 0.12}s`,
+                animationDuration: `${travelDurAccent}s`,
+              }}
             />
 
             {!reduceMotion ? (

@@ -1,7 +1,7 @@
 "use client";
 
 import { interpolate } from "@helios-project/core";
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import { PERSISTENT_ORB, STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
@@ -36,7 +36,7 @@ const STARS = [
 ];
 
 export function HoursDayNightCycle({ story, sceneOpacity }: HoursDayNightCycleProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const spatial = useStorySpatialLayout();
   const ORBIT_R = spatial.hours.orbitRadius;
   const progress = featureBandProgress(story, "hours");

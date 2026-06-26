@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import { STORY_STAGE_VISUAL_SCALE, STORY_SATELLITE_ICON_SCALE } from "@/lib/story/persistent-orb";
@@ -76,7 +76,7 @@ function IconBubble({
 }
 
 export function StoryFeatureIconBurst({ story, featureId, sceneOpacity }: StoryFeatureIconBurstProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const progress = featureBandProgress(story, featureId);
   if (progress === null || sceneOpacity < 0.02) return null;
 

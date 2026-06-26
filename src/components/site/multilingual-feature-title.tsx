@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import { MULTILINGUAL_PROVIDER_HEADLINE, multilingualAvailabilityScript, multilingualHeroLanguage } from "@/lib/story/multilingual-reveal";
@@ -11,7 +11,7 @@ type MultilingualFeatureTitleProps = {
 };
 
 export function MultilingualFeatureTitle({ story }: MultilingualFeatureTitleProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const progress = featureBandProgress(story, "multilingual");
   const motionOff = !!reduceMotion;
 

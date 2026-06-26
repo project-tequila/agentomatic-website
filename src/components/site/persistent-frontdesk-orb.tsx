@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { useHeliosVoice } from "@/lib/helios/helios-provider";
 import { useVideoFrame } from "@/lib/helios/use-video-frame";
@@ -64,7 +64,7 @@ function OrbInstance({
 }
 
 export function PersistentFrontdeskOrb({ story }: PersistentFrontdeskOrbProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const spatial = useStorySpatialLayout();
   const { helios } = useHeliosVoice();
   const { inputProps } = useVideoFrame(helios);

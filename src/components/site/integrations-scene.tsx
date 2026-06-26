@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import {
@@ -31,7 +31,7 @@ function useIntegrationLayout() {
 }
 
 export function IntegrationsScene({ story, opacity: sceneOpacity }: IntegrationsSceneProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const { nodes, satelliteScale, hubScale } = useIntegrationLayout();
 
   const progress = featureBandProgress(story, "integrations");
@@ -85,7 +85,7 @@ export function IntegrationsScene({ story, opacity: sceneOpacity }: Integrations
             filter={`url(#int-glow-${channel.id})`}
           >
             <g
-              className={cn(animated && !reduceMotion && "integrations-scene__icon--live")}
+              className={cn(animated && "integrations-scene__icon--live")}
               style={animated ? { animationDelay: `${index * 0.18}s` } : undefined}
             >
               <circle
@@ -94,7 +94,7 @@ export function IntegrationsScene({ story, opacity: sceneOpacity }: Integrations
                 stroke={channel.color}
                 strokeWidth="1.2"
                 opacity={0.18 + state.highlight * 0.35}
-                className={animated && !reduceMotion ? "integrations-scene__icon-ring" : undefined}
+                className={animated ? "integrations-scene__icon-ring" : undefined}
                 style={animated ? { animationDelay: `${index * 0.18}s` } : undefined}
               />
               <circle r={hubR} fill="url(#intGlass)" stroke={channel.color} strokeWidth="2" opacity="0.98" />

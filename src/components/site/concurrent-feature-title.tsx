@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import { concurrentTitleLine1Reveal, concurrentTitleLine2Reveal } from "@/lib/story/concurrent-reveal";
@@ -142,7 +142,7 @@ function ConcurrentFadeLine({
 }
 
 export function ConcurrentFeatureTitle({ story }: ConcurrentFeatureTitleProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const progress = featureBandProgress(story, "concurrent");
   const motionOff = !!reduceMotion;
 

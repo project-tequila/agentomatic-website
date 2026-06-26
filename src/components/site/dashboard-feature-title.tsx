@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import { dashboardTitleDropReveal } from "@/lib/story/dashboard-reveal";
@@ -104,7 +104,7 @@ function DashboardDropLine({
 }
 
 export function DashboardFeatureTitle({ story }: DashboardFeatureTitleProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const progress = featureBandProgress(story, "dashboard");
   const motionOff = !!reduceMotion;
 

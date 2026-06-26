@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { openDemoCall } from "@/lib/demo-call/open-demo-call";
 import { cn } from "@/lib/utils";
@@ -13,7 +13,7 @@ type SiteOrbHitZoneProps = {
 };
 
 export function SiteOrbHitZone({ variant, className }: SiteOrbHitZoneProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
 
   function handleClick() {
     openDemoCall();

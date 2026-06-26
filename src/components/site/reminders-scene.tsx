@@ -1,7 +1,7 @@
 "use client";
 
 import { type CSSProperties } from "react";
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { CALL_THEME } from "@/lib/story/concurrent-reveal";
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
@@ -36,7 +36,7 @@ type RemindersSceneProps = {
 };
 
 export function RemindersScene({ story, opacity: sceneOpacity }: RemindersSceneProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const spatialLayout = useStorySpatialLayout();
   const remindersSpatial = {
     caller: spatialLayout.reminders.caller,
@@ -111,7 +111,7 @@ export function RemindersScene({ story, opacity: sceneOpacity }: RemindersSceneP
           stroke="url(#remindersCallerGrad)"
           strokeWidth="1.8"
           strokeDasharray="5 8"
-          className={reduceMotion ? undefined : "reminders-scene__flow"}
+          className="reminders-scene__flow"
         />
         {!reduceMotion ? (
           <circle r="3" fill={C.mint} opacity="0.85">
@@ -128,7 +128,7 @@ export function RemindersScene({ story, opacity: sceneOpacity }: RemindersSceneP
           stroke="url(#remindersCalendarGrad)"
           strokeWidth="2"
           strokeDasharray="6 9"
-          className={reduceMotion ? undefined : "reminders-scene__flow reminders-scene__flow--calendar"}
+          className="reminders-scene__flow reminders-scene__flow--calendar"
         />
         {!reduceMotion ? (
           <>
@@ -151,7 +151,7 @@ export function RemindersScene({ story, opacity: sceneOpacity }: RemindersSceneP
           stroke="url(#remindersReminderGrad)"
           strokeWidth="1.8"
           strokeDasharray="5 8"
-          className={reduceMotion ? undefined : "reminders-scene__flow reminders-scene__flow--reminder"}
+          className="reminders-scene__flow reminders-scene__flow--reminder"
         />
         {!reduceMotion && reminderActive ? (
           <>

@@ -62,7 +62,7 @@ export function CallFlowStreams({ orbX, orbY, progress, phones, reduceMotion = f
             stroke="rgba(245,242,235,0.05)"
             strokeWidth="0.7"
             strokeDasharray={i % 2 === 0 ? "2 12" : "4 9"}
-            className={reduceMotion ? undefined : "concurrent-scene__network-ring"}
+            className="concurrent-scene__network-ring"
             style={{ animationDelay: `${i * 0.35}s` }}
           />
         ))}
@@ -91,7 +91,7 @@ export function CallFlowStreams({ orbX, orbY, progress, phones, reduceMotion = f
               strokeDasharray="6 10"
               opacity="0.22"
               filter="url(#concurrentFlowFluff)"
-              className={reduceMotion ? undefined : "concurrent-scene__flow concurrent-scene__flow--fluff"}
+              className="concurrent-scene__flow concurrent-scene__flow--fluff"
               style={{ animationDelay: `${i * 0.14}s` }}
             />
             <path
@@ -101,14 +101,10 @@ export function CallFlowStreams({ orbX, orbY, progress, phones, reduceMotion = f
               strokeWidth={strokeW}
               strokeLinecap="round"
               strokeDasharray="5 9"
-              className={
-                reduceMotion
-                  ? undefined
-                  : cn(
-                      "concurrent-scene__flow",
-                      isInbound ? "concurrent-scene__flow--inbound" : "concurrent-scene__flow--outbound",
-                    )
-              }
+              className={cn(
+                "concurrent-scene__flow",
+                isInbound ? "concurrent-scene__flow--inbound" : "concurrent-scene__flow--outbound",
+              )}
               style={{ animationDelay: `${i * 0.14}s` }}
             />
             {!reduceMotion ? (

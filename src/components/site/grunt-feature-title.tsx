@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { act1BeatProgress } from "@/lib/story/act1-band-progress";
 import {
@@ -138,7 +138,7 @@ function GruntHandled({ handledReveal }: { handledReveal: number }) {
 }
 
 export function GruntFeatureTitle({ story }: GruntFeatureTitleProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const progress = act1BeatProgress(story, "grunt");
   const scrollPaused = useStoryScrollPaused(progress ?? 0, 120);
   const motionOff = !!reduceMotion;

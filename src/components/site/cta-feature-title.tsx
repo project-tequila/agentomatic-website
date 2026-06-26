@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { CtaHorizontalTyping } from "@/components/site/cta-horizontal-typing";
 import {
@@ -14,7 +14,7 @@ type CtaFeatureTitleProps = {
 };
 
 export function CtaFeatureTitle({ story }: CtaFeatureTitleProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const progress = ctaChapterProgress(story);
   const motionOff = !!reduceMotion;
 

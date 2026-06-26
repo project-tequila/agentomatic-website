@@ -1,7 +1,9 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useRef } from "react";
+
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { CtaFeatureTitle } from "@/components/site/cta-feature-title";
 import { DashboardFeatureTitle } from "@/components/site/dashboard-feature-title";
@@ -40,7 +42,7 @@ import { cn } from "@/lib/utils";
 
 export function RumikStory() {
   const storyRef = useRef<HTMLElement>(null);
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const { helios } = useHeliosVoice();
   const { inputProps } = useVideoFrame(helios);
   useStoryScroll(storyRef);
@@ -87,7 +89,11 @@ export function RumikStory() {
   });
 
   return (
-    <section ref={storyRef} className={cn("rumik-story", inCta && "rumik-story--cta", feature?.id === "dashboard" && "rumik-story--dashboard")} aria-label="Frontdesk story">
+    <section
+      ref={storyRef}
+      className={cn("rumik-story", inCta && "rumik-story--cta", feature?.id === "dashboard" && "rumik-story--dashboard")}
+      aria-label="Frontdesk story"
+    >
       <DemoCallScrollReveal reveal={panelReveal} />
       <div className="rumik-story__sticky">
         <div className="rumik-story__progress" aria-hidden>

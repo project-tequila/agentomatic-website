@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import {
@@ -63,7 +63,7 @@ function ChannelSep({
 }
 
 export function IntegrationsFeatureTitle({ story }: IntegrationsFeatureTitleProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const progress = featureBandProgress(story, "integrations");
   const motionOff = !!reduceMotion;
 
