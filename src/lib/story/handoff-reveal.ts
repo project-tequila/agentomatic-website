@@ -16,9 +16,9 @@ export const HANDOFF_CALLER = { x: 48, y: PERSISTENT_ORB.cy };
 /** Outbound edge of the realistic caller phone (matches handoff-scene scale). */
 export const HANDOFF_CALLER_CONNECT_X = HANDOFF_CALLER.x + 26;
 
-/** Human enters from above the desk; settles top-left of the orb after swap. */
-export const HANDOFF_HUMAN_START = { x: 478, y: 92 };
-export const HANDOFF_HUMAN_END = { x: 318, y: 108 };
+/** Human enters from above the desk; settles above the orb after swap (desktop cluster). */
+export const HANDOFF_HUMAN_START = { x: 462, y: 104 };
+export const HANDOFF_HUMAN_END = { x: 348, y: 132 };
 
 /** Orb slides right as the human takes the desk. */
 export const HANDOFF_ORB_SHIFT = 128;
@@ -37,6 +37,15 @@ export const HANDOFF_SPATIAL_DESKTOP: HandoffSpatial = {
   humanStart: HANDOFF_HUMAN_START,
   humanEnd: HANDOFF_HUMAN_END,
   orbShift: HANDOFF_ORB_SHIFT,
+};
+
+/** Tighter positions for portrait / slice-crop safe zones. */
+export const HANDOFF_SPATIAL_COMPACT: HandoffSpatial = {
+  caller: { x: 82, y: PERSISTENT_ORB.cy - 4 },
+  callerConnectX: 82 + 26,
+  humanStart: { x: 448, y: 98 },
+  humanEnd: { x: 338, y: 112 },
+  orbShift: 92,
 };
 
 export type HandoffLayout = {
@@ -198,10 +207,10 @@ export function handoffSummaryReveal(progress: number, layout: HandoffLayout) {
   const t = smoothstep(travel);
   const peak = handoffTransferPeak(progress);
 
-  const startX = layout.orbX - 42;
-  const startY = PERSISTENT_ORB.cy - 78;
-  const endX = layout.humanX - 78;
-  const endY = layout.humanY + 38;
+  const startX = layout.orbX - 36;
+  const startY = PERSISTENT_ORB.cy - 68;
+  const endX = layout.humanX - 72;
+  const endY = layout.humanY + 32;
 
   return {
     opacity: opacity * (0.72 + peak * 0.28),

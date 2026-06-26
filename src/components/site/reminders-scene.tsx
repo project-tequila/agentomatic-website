@@ -179,16 +179,18 @@ export function RemindersScene({ story, opacity: sceneOpacity }: RemindersSceneP
         )}
         style={{ "--phone-accent": CALL_THEME.inbound.color } as CSSProperties}
       >
-        <RealisticPhoneSvg
-          accent={CALL_THEME.inbound.color}
-          uid="reminders-caller"
-          variant="frontdesk"
-          callDirection="inbound"
-          minimal
-          highlight={0.92}
-          showRing={callerLive || callerNudge}
-          ringing={callerRinging}
-        />
+        <g className="concurrent-scene__network-phone__motion">
+          <RealisticPhoneSvg
+            accent={CALL_THEME.inbound.color}
+            uid="reminders-caller"
+            variant="frontdesk"
+            callDirection="inbound"
+            minimal
+            highlight={0.92}
+            showRing={callerLive || callerNudge}
+            ringing={callerRinging}
+          />
+        </g>
       </g>
 
       {/* Bell rides the reminder arc continuously — drawn after phone so it stays on the path, not tucked behind */}

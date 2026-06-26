@@ -3181,13 +3181,16 @@
 }
 
 .story-illustration-bg--integrations .story-illustration-bg__stage {
-  --story-visual-y-offset: -3%;
   --story-orb-scale: 0.82;
 }
 
 @media (max-width: 900px) {
   :root {
     --story-satellite-icon-scale: 0.74;
+  }
+
+  .story-illustration-bg--integrations .story-illustration-bg__stage {
+    --story-visual-y-offset: -3%;
   }
 
   .story-illustration-bg--concurrent .story-illustration-bg__stage {
@@ -3250,6 +3253,31 @@
   }
 }
 
+@media (min-width: 901px) {
+  .story-illustration-bg__stage-anchor,
+  .immersive-orb-hit-overlay {
+    inset: 0;
+  }
+
+  .story-illustration-bg--grunt .story-illustration-bg__stage,
+  .story-illustration-bg--integrations .story-illustration-bg__stage,
+  .story-illustration-bg--concurrent .story-illustration-bg__stage,
+  .story-illustration-bg--reminders .story-illustration-bg__stage,
+  .story-illustration-bg--multilingual .story-illustration-bg__stage,
+  .story-illustration-bg--hours .story-illustration-bg__stage,
+  .story-illustration-bg--dashboard .story-illustration-bg__stage {
+    --story-visual-scale: 1;
+    --story-visual-x-offset: 0%;
+    --story-visual-y-offset: 0%;
+  }
+
+  .story-illustration-bg--handoff .story-illustration-bg__stage {
+    --story-visual-scale: 1;
+    --story-visual-x-offset: 0%;
+    --story-visual-y-offset: -4%;
+  }
+}
+
 .story-illustration-bg__scene--multilingual {
   z-index: 3;
 }
@@ -3265,7 +3293,6 @@
 
 .story-illustration-bg--grunt .story-illustration-bg__stage {
   --story-visual-scale: 1;
-  --story-visual-y-offset: -5%;
 }
 
 .story-illustration-bg--grunt .story-illustration-bg__stage-anchor,
@@ -3385,6 +3412,13 @@
   z-index: 2;
 }
 
+@media (min-width: 901px) {
+  .story-illustration-bg--concurrent .story-illustration-bg__stage {
+    --story-visual-scale: 1.22;
+    --story-visual-y-offset: -5%;
+  }
+}
+
 .story-illustration-bg__scene--reminders {
   z-index: 3;
 }
@@ -3395,7 +3429,6 @@
 
 .story-illustration-bg--dashboard .story-illustration-bg__stage {
   --story-visual-scale: 1;
-  --story-visual-y-offset: 5%;
 }
 
 .story-illustration-bg__persistent-orb {
@@ -3658,9 +3691,12 @@
   cursor: pointer;
   pointer-events: all;
   outline: none;
+  transition: filter 0.25s ease;
+}
+
+.concurrent-scene__network-phone__motion {
   transform-box: fill-box;
   transform-origin: center;
-  transition: filter 0.25s ease;
 }
 
 .concurrent-scene__network-phone--depth-far {
@@ -3683,15 +3719,15 @@
   filter: drop-shadow(0 14px 26px rgba(0, 0, 0, 0.52)) drop-shadow(0 0 22px rgba(255, 200, 87, 0.32));
 }
 
-.concurrent-scene__network-phone--live-in {
+.concurrent-scene__network-phone--live-in > .concurrent-scene__network-phone__motion {
   animation: concurrentInboundVibrate 0.32s ease-in-out infinite;
 }
 
-.concurrent-scene__network-phone--ringing-in {
+.concurrent-scene__network-phone--ringing-in > .concurrent-scene__network-phone__motion {
   animation: concurrentInboundVibrate 0.28s ease-in-out infinite;
 }
 
-.concurrent-scene__network-phone--live-out {
+.concurrent-scene__network-phone--live-out > .concurrent-scene__network-phone__motion {
   animation: concurrentOutboundDial 1s ease-in-out infinite;
 }
 
@@ -3872,15 +3908,18 @@
   0%,
   100% {
     opacity: 0.72;
-    transform: rotate(0deg) scale(1);
+    rotate: 0deg;
+    scale: 1;
   }
   33% {
     opacity: 1;
-    transform: rotate(2.5deg) scale(1.025);
+    rotate: 2.5deg;
+    scale: 1.025;
   }
   66% {
     opacity: 0.86;
-    transform: rotate(-2deg) scale(0.985);
+    rotate: -2deg;
+    scale: 0.985;
   }
 }
 
@@ -3888,21 +3927,21 @@
   0%,
   100% {
     opacity: 0.55;
-    transform: scale(1);
+    scale: 1;
   }
   50% {
     opacity: 0.98;
-    transform: scale(1.08);
+    scale: 1.08;
   }
 }
 
 @keyframes persistentOrbCta {
   0%,
   100% {
-    transform: translateY(0);
+    translate: 0 0;
   }
   50% {
-    transform: translateY(-3px);
+    translate: 0 -3px;
   }
 }
 
@@ -3910,11 +3949,11 @@
   0%,
   100% {
     opacity: 0.62;
-    transform: scale(1);
+    scale: 1;
   }
   50% {
     opacity: 1;
-    transform: scale(1.1);
+    scale: 1.1;
   }
 }
 
@@ -3955,19 +3994,24 @@
 @keyframes concurrentInboundVibrate {
   0%,
   100% {
-    transform: translate(0, 0) rotate(0deg);
+    translate: 0 0;
+    rotate: 0deg;
   }
   15% {
-    transform: translate(-2px, -1px) rotate(-1.2deg);
+    translate: -2px -1px;
+    rotate: -1.2deg;
   }
   30% {
-    transform: translate(2px, 1px) rotate(1.2deg);
+    translate: 2px 1px;
+    rotate: 1.2deg;
   }
   45% {
-    transform: translate(-1.5px, 0.5px) rotate(-0.8deg);
+    translate: -1.5px 0.5px;
+    rotate: -0.8deg;
   }
   60% {
-    transform: translate(1.5px, -0.5px) rotate(0.8deg);
+    translate: 1.5px -0.5px;
+    rotate: 0.8deg;
   }
 }
 
@@ -3986,37 +4030,37 @@
 @keyframes concurrentInRingPulse {
   0% {
     opacity: 0.2;
-    transform: scale(0.92);
+    scale: 0.92;
   }
   40% {
     opacity: 0.65;
-    transform: scale(1);
+    scale: 1;
   }
   100% {
     opacity: 0.12;
-    transform: scale(1.12);
+    scale: 1.12;
   }
 }
 
 @keyframes concurrentOutPulse {
   0% {
     opacity: 0.35;
-    transform: scale(0.88);
+    scale: 0.88;
   }
   100% {
     opacity: 0;
-    transform: scale(1.28);
+    scale: 1.28;
   }
 }
 
 @keyframes concurrentOutboundDial {
   0%,
   100% {
-    transform: scale(1);
+    scale: 1;
     opacity: 1;
   }
   50% {
-    transform: scale(1.04);
+    scale: 1.04;
     opacity: 0.92;
   }
 }
@@ -4215,30 +4259,27 @@
   animation-duration: 2.1s;
 }
 
-.handoff-scene__warm-label {
+.handoff-scene__warm-label.handoff-scene__glyph-motion {
   animation: handoffWarmLabelPulse 2.4s ease-in-out infinite;
   transform-origin: center;
   transform-box: fill-box;
 }
 
-.handoff-scene__beacon {
+.handoff-scene__beacon.handoff-scene__glyph-motion {
   animation: handoffBeaconPulse 2.2s ease-in-out infinite;
   transform-origin: center;
   transform-box: fill-box;
 }
 
-.handoff-scene__caller--live {
-  animation: handoffCallerPulse 2.2s ease-in-out infinite;
-}
-
-.handoff-scene__human-ring {
-  animation: handoffHumanRing 2.8s ease-in-out infinite;
+.handoff-scene__glyph-motion {
+  transform-box: fill-box;
   transform-origin: center;
 }
 
-.handoff-scene__human--live {
+.handoff-scene__human--live.handoff-scene__glyph-motion {
   animation: handoffHumanSettle 3.2s ease-in-out infinite;
   transform-origin: center;
+  transform-box: fill-box;
 }
 
 .handoff-scene__summary {
@@ -4315,7 +4356,7 @@
   pointer-events: none;
 }
 
-.reminders-scene__caller-phone--nudge {
+.reminders-scene__caller-phone--nudge > .concurrent-scene__network-phone__motion {
   animation: concurrentInboundVibrate 0.32s ease-in-out infinite;
 }
 
@@ -4668,25 +4709,39 @@
 @keyframes remindersBellRing {
   0%,
   100% {
-    transform: translate(0, 0) rotate(-12deg) scale(1);
+    translate: 0 0;
+    rotate: -12deg;
+    scale: 1;
   }
   15% {
-    transform: translate(1.5px, -1px) rotate(14deg) scale(1.08);
+    translate: 1.5px -1px;
+    rotate: 14deg;
+    scale: 1.08;
   }
   30% {
-    transform: translate(-1.5px, 1px) rotate(-16deg) scale(1.05);
+    translate: -1.5px 1px;
+    rotate: -16deg;
+    scale: 1.05;
   }
   45% {
-    transform: translate(1px, 0.5px) rotate(12deg) scale(1.09);
+    translate: 1px 0.5px;
+    rotate: 12deg;
+    scale: 1.09;
   }
   60% {
-    transform: translate(-1px, -0.5px) rotate(-14deg) scale(1.06);
+    translate: -1px -0.5px;
+    rotate: -14deg;
+    scale: 1.06;
   }
   75% {
-    transform: translate(1.5px, 0) rotate(10deg) scale(1.08);
+    translate: 1.5px 0;
+    rotate: 10deg;
+    scale: 1.08;
   }
   90% {
-    transform: translate(-1px, 1px) rotate(-10deg) scale(1.04);
+    translate: -1px 1px;
+    rotate: -10deg;
+    scale: 1.04;
   }
 }
 
@@ -4694,11 +4749,11 @@
   0%,
   100% {
     opacity: 0.45;
-    transform: scale(0.9);
+    scale: 0.9;
   }
   50% {
     opacity: 1;
-    transform: scale(1.15);
+    scale: 1.15;
   }
 }
 
@@ -6285,9 +6340,9 @@
     transition: none;
   }
 
-  .concurrent-scene__network-phone--live-in,
-  .concurrent-scene__network-phone--ringing-in,
-  .concurrent-scene__network-phone--live-out,
+  .concurrent-scene__network-phone--live-in > .concurrent-scene__network-phone__motion,
+  .concurrent-scene__network-phone--ringing-in > .concurrent-scene__network-phone__motion,
+  .concurrent-scene__network-phone--live-out > .concurrent-scene__network-phone__motion,
   .concurrent-scene__flow--fluff,
   .concurrent-scene__in-ring-arc--live,
   .concurrent-scene__out-pulse,
@@ -6349,8 +6404,9 @@
   .grunt-scene__tendril--live,
   .grunt-scene__route-flow,
   .grunt-scene__follow-loop,
-  .concurrent-scene__network-phone--ringing-in,
-  .concurrent-scene__network-phone--live-out,
+  .concurrent-scene__network-phone--ringing-in > .concurrent-scene__network-phone__motion,
+  .concurrent-scene__network-phone--live-out > .concurrent-scene__network-phone__motion,
+  .reminders-scene__caller-phone--nudge > .concurrent-scene__network-phone__motion,
   .grunt-scene__badge--live,
   .grunt-scene__satellite--live,
   .grunt-scene__storm-ring,
@@ -6518,11 +6574,11 @@
   0%,
   100% {
     filter: drop-shadow(0 0 14px rgba(140, 255, 210, 0.22));
-    transform: scale(0.96);
+    scale: 0.96;
   }
   50% {
     filter: drop-shadow(0 0 24px rgba(116, 192, 252, 0.38));
-    transform: scale(1);
+    scale: 1;
   }
 }
 
@@ -6530,13 +6586,13 @@
   0%,
   100% {
     filter: drop-shadow(0 0 16px rgba(255, 135, 135, 0.28));
-    transform: translate(0, 0);
+    translate: 0 0;
   }
   25% {
-    transform: translate(-1px, 0.5px);
+    translate: -1px 0.5px;
   }
   75% {
-    transform: translate(1px, -0.5px);
+    translate: 1px -0.5px;
   }
   50% {
     filter: drop-shadow(0 0 28px rgba(255, 200, 87, 0.42));

@@ -1,4 +1,5 @@
-import { PERSISTENT_ORB, STORY_SATELLITE_ICON_SCALE } from "./persistent-orb";
+import { HANDOFF_SPATIAL_COMPACT, HANDOFF_SPATIAL_DESKTOP } from "./handoff-reveal";
+import { PERSISTENT_ORB, STORY_ORB_SCALE, STORY_SATELLITE_ICON_SCALE } from "./persistent-orb";
 import { integrationLayoutForWidth, type IntegrationLayout } from "./integrations-reveal";
 import type { GruntHubModule } from "./grunt-reveal";
 import { GRUNT_MODULE_RADIUS } from "./grunt-reveal";
@@ -50,8 +51,10 @@ export type ConcurrentSpatialLayout = {
 
 export function concurrentLayoutForWidth(viewportWidth: number): ConcurrentSpatialLayout {
   const t = storyCompactT(viewportWidth);
+  // Desktop orb is CSS-scaled (--story-orb-scale ≈ 0.75); pull phone orbit inward to match.
+  const desktopRadiusScale = STORY_ORB_SCALE;
   return {
-    radiusScale: lerpValue(1, 0.74, t),
+    radiusScale: lerpValue(desktopRadiusScale, 0.74, t),
     ySquash: lerpValue(0.82, 0.76, t),
     satelliteScale: satelliteScaleForWidth(viewportWidth),
   };
@@ -122,16 +125,17 @@ export type HandoffSpatialLayout = {
 
 export function handoffLayoutForWidth(viewportWidth: number): HandoffSpatialLayout {
   const t = storyCompactT(viewportWidth);
-  const caller = lerpPoint({ x: 48, y: PERSISTENT_ORB.cy }, { x: 82, y: PERSISTENT_ORB.cy - 4 }, t);
-  const humanStart = lerpPoint({ x: 478, y: 92 }, { x: 448, y: 98 }, t);
-  const humanEnd = lerpPoint({ x: 318, y: 108 }, { x: 338, y: 112 }, t);
-  const orbShift = lerpValue(128, 92, t);
+  const desktop = HANDOFF_SPATIAL_DESKTOP;
+  const compact = HANDOFF_SPATIAL_COMPACT;
+  const caller = lerpPoint(desktop.caller, compact.caller, t);
+  const humanStart = lerpPoint(desktop.humanStart, compact.humanStart, t);
+  const humanEnd = lerpPoint(desktop.humanEnd, compact.humanEnd, t);
   return {
     caller,
-    callerConnectX: caller.x + 26,
+    callerConnectX: lerpValue(desktop.callerConnectX, compact.callerConnectX, t),
     humanStart,
     humanEnd,
-    orbShift,
+    orbShift: lerpValue(desktop.orbShift, compact.orbShift, t),
     satelliteScale: satelliteScaleForWidth(viewportWidth),
   };
 }
