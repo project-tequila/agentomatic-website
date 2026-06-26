@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useScrollTypingDisplay } from "@/lib/story/use-scroll-typing-display";
 
 type MultilingualTypingLineProps = {
   text: string;
@@ -37,34 +37,11 @@ export function MultilingualTypingLine({
   className,
   cursorClassName = "multilingual-scene__cursor",
 }: MultilingualTypingLineProps) {
-  const target = reduceMotion ? 1 : typingReveal;
-  const [display, setDisplay] = useState(0);
-  const targetRef = useRef(target);
-  targetRef.current = target;
-
-  useEffect(() => {
-    if (reduceMotion) {
-      setDisplay(1);
-      return;
-    }
-
-    let raf = 0;
-    const tick = () => {
-      setDisplay((current) => {
-        const goal = targetRef.current;
-        if (scrollPaused && current < goal) {
-          return Math.min(goal, current + 0.05);
-        }
-        const delta = goal - current;
-        if (Math.abs(delta) < 0.004) return goal;
-        return current + delta * 0.4;
-      });
-      raf = requestAnimationFrame(tick);
-    };
-
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [scrollPaused, reduceMotion]);
+  const display = useScrollTypingDisplay(typingReveal, scrollPaused, reduceMotion, {
+    pausedStep: 0.05,
+    lerp: 0.4,
+    completeStep: 0.025,
+  });
 
   const len = text.length;
   const charW = fontSize * CHAR_W_SCALE;

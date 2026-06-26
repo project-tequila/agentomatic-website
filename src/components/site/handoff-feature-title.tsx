@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
+import { useScrollTypingDisplay } from "@/lib/story/use-scroll-typing-display";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import { handoffTaglineGlow, handoffTaglineTypingReveal } from "@/lib/story/handoff-reveal";
@@ -25,37 +25,11 @@ function HandoffTagline({
   reduceMotion: boolean;
   glow: number;
 }) {
-  const target = reduceMotion ? 1 : typingReveal;
-  const [display, setDisplay] = useState(reduceMotion ? 1 : 0);
-  const targetRef = useRef(target);
-  targetRef.current = target;
-
-  useEffect(() => {
-    if (reduceMotion) {
-      setDisplay(1);
-      return;
-    }
-
-    let raf = 0;
-    const tick = () => {
-      setDisplay((current) => {
-        const goal = targetRef.current;
-        if (scrollPaused && current < goal) {
-          return Math.min(goal, current + 0.038);
-        }
-        if (scrollPaused && current < 1 && goal >= 0.98) {
-          return Math.min(1, current + 0.024);
-        }
-        const delta = goal - current;
-        if (Math.abs(delta) < 0.004) return goal;
-        return current + delta * 0.4;
-      });
-      raf = requestAnimationFrame(tick);
-    };
-
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [scrollPaused, reduceMotion]);
+  const display = useScrollTypingDisplay(typingReveal, scrollPaused, reduceMotion, {
+    pausedStep: 0.038,
+    lerp: 0.4,
+    completeStep: 0.024,
+  });
 
   const len = TAGLINE.length;
   const typedUnits = display * len;
