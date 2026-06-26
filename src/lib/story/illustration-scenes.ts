@@ -26,7 +26,7 @@ const sceneBands: SceneBand[] = [
   { id: "cta", start: FEATURES_END, end: 1 },
 ];
 
-const BLEND = 0.045;
+const BLEND = 0.018;
 
 export function sceneIllustrationOpacity(story: number, start: number, end: number) {
   const inStart = start - BLEND;

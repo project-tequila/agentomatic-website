@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { MultilingualTypingLine } from "@/components/site/multilingual-typing-line";
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
@@ -36,7 +36,7 @@ const C = {
 };
 
 export function MultilingualScene({ story, opacity: sceneOpacity }: MultilingualSceneProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const spatial = useStorySpatialLayout();
   const progress = featureBandProgress(story, "multilingual");
   const scrollPaused = useStoryScrollPaused(progress ?? 0, 120);

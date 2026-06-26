@@ -219,8 +219,8 @@ export function FrontdeskVoiceOrb({
           opacity={wave.opacity}
           strokeLinecap="round"
           filter={i < 2 ? `url(#frontdeskOrbBlur-${uid})` : undefined}
-          className={reduceMotion ? undefined : "frontdesk-voice-orb__wave"}
-          style={reduceMotion ? undefined : { animationDelay: `${i * 0.28}s`, transformOrigin: `${cx}px ${cy}px` }}
+          className="frontdesk-voice-orb__wave"
+          style={{ animationDelay: `${i * 0.28}s`, transformOrigin: `${cx}px ${cy}px` }}
         />
       ))}
 
@@ -229,7 +229,7 @@ export function FrontdeskVoiceOrb({
         cy={cy}
         r="34"
         fill={palette.halo}
-        className={reduceMotion ? undefined : "frontdesk-voice-orb__halo"}
+        className="frontdesk-voice-orb__halo"
       />
       <circle cx={cx} cy={cy} r="26" fill={`url(#frontdeskOrbCore-${uid})`} stroke="rgba(255,255,255,0.22)" strokeWidth="1.2" />
       <circle cx={cx - 8} cy={cy - 10} r="14" fill={`url(#frontdeskOrbSheen-${uid})`} opacity="0.85" />

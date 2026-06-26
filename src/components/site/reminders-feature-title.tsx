@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useReducedMotion } from "framer-motion";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import { remindersTitleDropReveal } from "@/lib/story/reminders-reveal";
@@ -105,7 +105,7 @@ function RemindersDropLine({
 }
 
 export function RemindersFeatureTitle({ story }: RemindersFeatureTitleProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = usePrefersReducedMotion();
   const progress = featureBandProgress(story, "reminders");
   const motionOff = !!reduceMotion;
 
