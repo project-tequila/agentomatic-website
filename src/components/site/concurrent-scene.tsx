@@ -44,43 +44,48 @@ function NetworkPhone({
     <g
       transform={`translate(${phone.x - 32} ${phone.y - 59}) rotate(${phone.rotate}) scale(${phone.scale})`}
       opacity={phone.opacity}
-      className={cn(
-        "concurrent-scene__network-phone",
-        `concurrent-scene__network-phone--${phone.direction}`,
-        `concurrent-scene__network-phone--depth-${phone.depth >= 0.66 ? "near" : phone.depth >= 0.4 ? "mid" : "far"}`,
-        isPrimary && "concurrent-scene__network-phone--primary",
-        live && (phone.direction === "inbound" ? "concurrent-scene__network-phone--live-in" : "concurrent-scene__network-phone--live-out"),
-        ringing && "concurrent-scene__network-phone--ringing-in",
-        dualActive && "concurrent-scene__network-phone--dual-active",
-      )}
-      style={
-        {
-          "--phone-accent": theme.color,
-          animationDelay: `${phone.revealAt * 1200}ms`,
-        } as CSSProperties
-      }
-      onClick={() => onToggle(phone.id)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onToggle(phone.id);
-        }
-      }}
-      role="button"
-      tabIndex={0}
-      aria-label={`${phone.direction} call phone`}
     >
-      <RealisticPhoneSvg
-        accent={theme.color}
-        highlight={isPrimary ? 0.95 : 0.72 + phone.depth * 0.2}
-        uid={phone.id}
-        showRing={isPrimary || live}
-        variant="frontdesk"
-        callDirection={phone.direction}
-        useAccentVar={dualActive}
-        minimal
-        ringing={ringing}
-      />
+      <g
+        className={cn(
+          "concurrent-scene__network-phone",
+          `concurrent-scene__network-phone--${phone.direction}`,
+          `concurrent-scene__network-phone--depth-${phone.depth >= 0.66 ? "near" : phone.depth >= 0.4 ? "mid" : "far"}`,
+          isPrimary && "concurrent-scene__network-phone--primary",
+          live && (phone.direction === "inbound" ? "concurrent-scene__network-phone--live-in" : "concurrent-scene__network-phone--live-out"),
+          ringing && "concurrent-scene__network-phone--ringing-in",
+          dualActive && "concurrent-scene__network-phone--dual-active",
+        )}
+        style={
+          {
+            "--phone-accent": theme.color,
+            animationDelay: `${phone.revealAt * 1200}ms`,
+          } as CSSProperties
+        }
+        onClick={() => onToggle(phone.id)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggle(phone.id);
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={`${phone.direction} call phone`}
+      >
+        <g className="concurrent-scene__network-phone__motion">
+          <RealisticPhoneSvg
+            accent={theme.color}
+            highlight={isPrimary ? 0.95 : 0.72 + phone.depth * 0.2}
+            uid={phone.id}
+            showRing={isPrimary || live}
+            variant="frontdesk"
+            callDirection={phone.direction}
+            useAccentVar={dualActive}
+            minimal
+            ringing={ringing}
+          />
+        </g>
+      </g>
     </g>
   );
 }

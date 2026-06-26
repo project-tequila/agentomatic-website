@@ -66,27 +66,29 @@ function PillLabel({
   const px = align === "middle" ? x - w / 2 : x;
 
   return (
-    <g opacity={opacity} className={cn(prominent && "handoff-scene__warm-label")}>
-      <rect
-        x={px}
-        y={y - padY}
-        width={w}
-        height={h}
-        rx={prominent ? 10 : 8}
-        fill={prominent ? "rgba(18,20,24,0.94)" : "rgba(18,20,24,0.88)"}
-        stroke={color}
-        strokeWidth={prominent ? 2.2 : 1.4}
-      />
-      <text
-        x={px + (prominent ? 18 : 14)}
-        y={y + (prominent ? 5 : 4)}
-        fill={color}
-        fontSize={fontSize}
-        fontWeight={prominent ? 700 : 600}
-        fontFamily="system-ui, sans-serif"
-      >
-        {text}
-      </text>
+    <g opacity={opacity}>
+      <g className={cn(prominent && "handoff-scene__warm-label", prominent && "handoff-scene__glyph-motion")}>
+        <rect
+          x={px}
+          y={y - padY}
+          width={w}
+          height={h}
+          rx={prominent ? 10 : 8}
+          fill={prominent ? "rgba(18,20,24,0.94)" : "rgba(18,20,24,0.88)"}
+          stroke={color}
+          strokeWidth={prominent ? 2.2 : 1.4}
+        />
+        <text
+          x={px + (prominent ? 18 : 14)}
+          y={y + (prominent ? 5 : 4)}
+          fill={color}
+          fontSize={fontSize}
+          fontWeight={prominent ? 700 : 600}
+          fontFamily="system-ui, sans-serif"
+        >
+          {text}
+        </text>
+      </g>
     </g>
   );
 }
@@ -118,16 +120,18 @@ function CallerPhone({
       )}
       style={{ "--phone-accent": CALL_THEME.inbound.color } as CSSProperties}
     >
-      <RealisticPhoneSvg
-        accent={CALL_THEME.inbound.color}
-        uid="handoff-caller"
-        variant="frontdesk"
-        callDirection="inbound"
-        minimal
-        highlight={0.92}
-        showRing={live}
-        ringing={ringing}
-      />
+      <g className="concurrent-scene__network-phone__motion">
+        <RealisticPhoneSvg
+          accent={CALL_THEME.inbound.color}
+          uid="handoff-caller"
+          variant="frontdesk"
+          callDirection="inbound"
+          minimal
+          highlight={0.92}
+          showRing={live}
+          ringing={ringing}
+        />
+      </g>
     </g>
   );
 }
@@ -149,12 +153,9 @@ function HumanAgent({
 }) {
   return (
     <g transform={`translate(${x} ${y})`}>
-      <StoryHumanAgent
-        scale={scale * satelliteScale}
-        ringOpacity={ringOpacity}
-        live={live}
-        className={cn(live && "handoff-scene__human--live")}
-      />
+      <g className={cn(live && "handoff-scene__human--live", "handoff-scene__glyph-motion")}>
+        <StoryHumanAgent scale={scale * satelliteScale} ringOpacity={ringOpacity} live={live} />
+      </g>
     </g>
   );
 }
@@ -209,11 +210,13 @@ function TransferBeacon({
   if (intensity < 0.08) return null;
 
   return (
-    <g transform={`translate(${x} ${y})`} opacity={intensity} className="handoff-scene__beacon">
-      <circle r="52" fill="url(#handoffBeaconGrad)" opacity="0.55" />
-      <circle r="28" fill="none" stroke={C.cream} strokeWidth="1.6" opacity="0.55" />
-      <circle r="10" fill={C.rose} opacity="0.85" />
-      <circle r="4" fill={C.cream} />
+    <g transform={`translate(${x} ${y})`} opacity={intensity}>
+      <g className="handoff-scene__beacon handoff-scene__glyph-motion">
+        <circle r="52" fill="url(#handoffBeaconGrad)" opacity="0.55" />
+        <circle r="28" fill="none" stroke={C.cream} strokeWidth="1.6" opacity="0.55" />
+        <circle r="10" fill={C.rose} opacity="0.85" />
+        <circle r="4" fill={C.cream} />
+      </g>
     </g>
   );
 }

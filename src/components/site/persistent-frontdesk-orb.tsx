@@ -48,17 +48,19 @@ function OrbInstance({
   if (opacity < 0.02) return null;
 
   return (
-    <g transform={shiftX ? `translate(${shiftX} 0)` : undefined} opacity={opacity} className={cn("persistent-orb__instance", `persistent-orb__instance--${mode}`)}>
-      <FrontdeskVoiceOrb
-        cx={PERSISTENT_ORB.cx}
-        cy={PERSISTENT_ORB.cy}
-        pointerX={pointerX}
-        pointerY={pointerY}
-        reduceMotion={reduceMotion}
-        intensity={intensity}
-        mode={mode}
-        idSuffix={idSuffix}
-      />
+    <g transform={shiftX ? `translate(${shiftX} 0)` : undefined} opacity={opacity}>
+      <g className={cn("persistent-orb__instance", `persistent-orb__instance--${mode}`)}>
+        <FrontdeskVoiceOrb
+          cx={PERSISTENT_ORB.cx}
+          cy={PERSISTENT_ORB.cy}
+          pointerX={pointerX}
+          pointerY={pointerY}
+          reduceMotion={reduceMotion}
+          intensity={intensity}
+          mode={mode}
+          idSuffix={idSuffix}
+        />
+      </g>
     </g>
   );
 }
