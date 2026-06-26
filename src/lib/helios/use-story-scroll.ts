@@ -7,10 +7,9 @@ import { useScrollContainer } from "./scroll-container-context";
 import { storyToSceneProgress } from "../story/chapters";
 
 function storyLocalProgress(scrollEl: HTMLElement, storyEl: HTMLElement) {
-  const scrollRect = scrollEl.getBoundingClientRect();
-  const storyRect = storyEl.getBoundingClientRect();
-  const local = scrollEl.scrollTop + (storyRect.top - scrollRect.top);
   const max = storyEl.offsetHeight - scrollEl.clientHeight;
+  // offsetTop tracks document position; getBoundingClientRect cancels scrollTop during sticky scroll.
+  const local = scrollEl.scrollTop - storyEl.offsetTop;
   const storyProgress = max > 0 ? Math.min(1, Math.max(0, local / max)) : 0;
   return { storyProgress, local, max };
 }

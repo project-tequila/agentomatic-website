@@ -18,9 +18,9 @@ function Immersive3DScroll({ children }: Immersive3DSiteProps) {
 
   return (
     <div className="site-3d">
-      <StoryIllustrationBackground />
-      <ImmersiveOrbHitOverlay />
       <ScrollContainerProvider scrollRef={scrollRef}>
+        <StoryIllustrationBackground />
+        <ImmersiveOrbHitOverlay />
         <StoryScrollResetListener />
         <div ref={scrollRef} className="site-3d__scroll">
           {children}
