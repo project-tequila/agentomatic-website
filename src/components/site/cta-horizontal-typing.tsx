@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-
 import { useStoryScrollPaused } from "@/lib/story/use-story-scroll-paused";
+import { useScrollTypingDisplay } from "@/lib/story/use-scroll-typing-display";
 import { cn } from "@/lib/utils";
 
 type CtaHorizontalTypingProps = {
@@ -25,37 +24,7 @@ export function CtaHorizontalTyping({
   className,
 }: CtaHorizontalTypingProps) {
   const scrollPaused = useStoryScrollPaused(scrollSignal, 120);
-  const target = reduceMotion ? 1 : typingReveal;
-  const [display, setDisplay] = useState(reduceMotion ? 1 : 0);
-  const targetRef = useRef(target);
-  targetRef.current = target;
-
-  useEffect(() => {
-    if (reduceMotion) {
-      setDisplay(1);
-      return;
-    }
-
-    let raf = 0;
-    const tick = () => {
-      setDisplay((current) => {
-        const goal = targetRef.current;
-        if (scrollPaused && current < goal) {
-          return Math.min(goal, current + 0.04);
-        }
-        if (scrollPaused && current < 1 && goal >= 0.98) {
-          return Math.min(1, current + 0.025);
-        }
-        const delta = goal - current;
-        if (Math.abs(delta) < 0.004) return goal;
-        return current + delta * 0.38;
-      });
-      raf = requestAnimationFrame(tick);
-    };
-
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [scrollPaused, reduceMotion]);
+  const display = useScrollTypingDisplay(typingReveal, scrollPaused, reduceMotion);
 
   const len = text.length;
   const typedUnits = display * len;

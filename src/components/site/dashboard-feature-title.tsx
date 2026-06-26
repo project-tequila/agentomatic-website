@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
+import { useScrollTypingDisplay } from "@/lib/story/use-scroll-typing-display";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import { dashboardTitleDropReveal } from "@/lib/story/dashboard-reveal";
@@ -58,31 +58,7 @@ function DashboardDropLine({
   reduceMotion: boolean;
   phaseOffset?: number;
 }) {
-  const target = reduceMotion ? 1 : dropReveal;
-  const [display, setDisplay] = useState(reduceMotion ? 1 : 0);
-  const targetRef = useRef(target);
-  targetRef.current = target;
-
-  useEffect(() => {
-    if (reduceMotion) {
-      setDisplay(1);
-      return;
-    }
-
-    let raf = 0;
-    const tick = () => {
-      setDisplay((current) => {
-        const goal = targetRef.current;
-        const delta = goal - current;
-        if (Math.abs(delta) < 0.004) return goal;
-        return current + delta * 0.34;
-      });
-      raf = requestAnimationFrame(tick);
-    };
-
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [reduceMotion]);
+  const display = useScrollTypingDisplay(dropReveal, false, reduceMotion, { lerp: 0.34 });
 
   const { y, x, rotate, opacity, scaleY, scaleX } = reduceMotion
     ? { y: 0, x: 0, rotate: 0, opacity: display > 0.05 ? 1 : 0, scaleY: 1, scaleX: 1 }
