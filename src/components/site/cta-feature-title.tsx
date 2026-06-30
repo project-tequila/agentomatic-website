@@ -20,10 +20,10 @@ export function CtaFeatureTitle({ story }: CtaFeatureTitleProps) {
 
   if (progress === null) {
     return (
-      <h1 className="rumik-story__title rumik-story__title--cta">
+      <h2 className="rumik-story__title rumik-story__title--cta">
         <span>try it</span>
         <span>live.</span>
-      </h1>
+      </h2>
     );
   }
 
@@ -32,7 +32,7 @@ export function CtaFeatureTitle({ story }: CtaFeatureTitleProps) {
   const line1Done = line1 >= 0.995;
 
   return (
-    <h1 className="rumik-story__title rumik-story__title--cta">
+    <h2 className="rumik-story__title rumik-story__title--cta">
       <span className="rumik-story__title-line">
         <CtaHorizontalTyping
           text="try it"
@@ -53,6 +53,6 @@ export function CtaFeatureTitle({ story }: CtaFeatureTitleProps) {
           blinkWhenComplete
         />
       </span>
-    </h1>
+    </h2>
   );
 }

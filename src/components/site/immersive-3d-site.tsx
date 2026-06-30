@@ -6,6 +6,7 @@ import { HeliosVoiceProvider } from "@/lib/helios/helios-provider";
 import { ScrollContainerProvider } from "@/lib/helios/scroll-container-context";
 
 import { ImmersiveOrbHitOverlay } from "./immersive-orb-hit-overlay";
+import { StoryChapterNav } from "./story-chapter-nav";
 import { StoryScrollResetListener } from "./story-scroll-reset-listener";
 import { StoryIllustrationBackground } from "./story-illustration-background";
 
@@ -21,8 +22,16 @@ function Immersive3DScroll({ children }: Immersive3DSiteProps) {
       <ScrollContainerProvider scrollRef={scrollRef}>
         <StoryIllustrationBackground />
         <ImmersiveOrbHitOverlay />
+        <StoryChapterNav />
         <StoryScrollResetListener />
-        <div ref={scrollRef} className="site-3d__scroll">
+        <div
+          ref={scrollRef}
+          id="main-content"
+          className="site-3d__scroll"
+          role="region"
+          aria-label="Frontdesk story"
+          tabIndex={-1}
+        >
           {children}
         </div>
       </ScrollContainerProvider>

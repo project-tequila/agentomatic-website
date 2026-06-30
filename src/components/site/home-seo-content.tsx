@@ -5,7 +5,7 @@ export function HomeSeoContent() {
 
   return (
     <section className="sr-only" aria-label="agentomatic frontdesk overview">
-      <h1>{hook.title.join(" ")}</h1>
+      <p className="font-semibold">{hook.title.join(" ")}</p>
       <p>{hook.body}</p>
       <p>
         ai front desk for your team — routine calls handled, warm handoff when it matters.

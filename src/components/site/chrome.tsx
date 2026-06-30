@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/about", label: "about" },
+  { href: "/solutions", label: "solutions" },
   { href: "/pricing", label: "pricing" },
   { href: "/blog", label: "blog" },
   { href: "/contact", label: "contact" },
@@ -194,7 +195,7 @@ export function SiteChrome() {
 
           <div className="site-chrome__actions">
             <MotionChromeLink href={BOOKER_ROUTE} className="site-chrome-action-btn site-chrome-sign-in">
-              sign in
+              log in
             </MotionChromeLink>
             <MotionChromeLink href={BOOKER_SIGNUP_ROUTE} className="site-chrome-action-btn site-chrome-sign-up">
               sign up
@@ -264,13 +265,12 @@ export function SiteChrome() {
               delay: menuOpen && !reduceMotion ? 0.28 : 0,
             }}
           >
-            <MotionChromeLink
-              href={BOOKER_ROUTE}
-              className="site-chrome-action-btn site-chrome-action-btn--full site-chrome-sign-in"
-              onClick={() => setMenuOpen(false)}
+            <MotionChromeCta
+              className="site-chrome-action-btn site-chrome-action-btn--full site-chrome-cta"
+              onClick={onTalkToAgent}
             >
-              sign in
-            </MotionChromeLink>
+              {ctaLabel}
+            </MotionChromeCta>
             <MotionChromeLink
               href={BOOKER_SIGNUP_ROUTE}
               className="site-chrome-action-btn site-chrome-action-btn--full site-chrome-sign-up"
@@ -278,12 +278,13 @@ export function SiteChrome() {
             >
               sign up
             </MotionChromeLink>
-            <MotionChromeCta
-              className="site-chrome-action-btn site-chrome-action-btn--full site-chrome-cta"
-              onClick={onTalkToAgent}
+            <MotionChromeLink
+              href={BOOKER_ROUTE}
+              className="site-chrome-action-btn site-chrome-action-btn--full site-chrome-sign-in"
+              onClick={() => setMenuOpen(false)}
             >
-              {ctaLabel}
-            </MotionChromeCta>
+              log in
+            </MotionChromeLink>
           </motion.div>
         </nav>
       </div>

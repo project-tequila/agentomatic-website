@@ -18,7 +18,7 @@ import {
   multilingualTickerOffset,
 } from "@/lib/story/multilingual-reveal";
 import { useStoryScrollPaused } from "@/lib/story/use-story-scroll-paused";
-import { STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { storyStageViewBox } from "@/lib/story/persistent-orb";
 import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import { cn } from "@/lib/utils";
 
@@ -74,7 +74,7 @@ export function MultilingualScene({ story, opacity: sceneOpacity }: Multilingual
   return (
     <svg
       viewBox={storyStageViewBox()}
-      preserveAspectRatio={STORY_STAGE_PRESERVE}
+      preserveAspectRatio={spatial.preserveAspectRatio}
       className="multilingual-scene"
       aria-hidden
       style={{ opacity: sceneOpacity }}

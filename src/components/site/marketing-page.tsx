@@ -36,7 +36,7 @@ type SiteMainProps = {
 
 export function SiteMain({ children, className }: SiteMainProps) {
   return (
-    <main className={cn("site-main", className)}>
+    <main id="main-content" className={cn("site-main", className)} tabIndex={-1}>
       <div className="site-container">{children}</div>
     </main>
   );

@@ -86,10 +86,10 @@ export function DashboardFeatureTitle({ story }: DashboardFeatureTitleProps) {
 
   if (progress === null) {
     return (
-      <h1 className="rumik-story__title rumik-story__title--dashboard">
+      <h2 className="rumik-story__title rumik-story__title--dashboard">
         <span>your ops</span>
         <span>command center.</span>
-      </h1>
+      </h2>
     );
   }
 
@@ -97,9 +97,9 @@ export function DashboardFeatureTitle({ story }: DashboardFeatureTitleProps) {
   const line2Drop = dashboardTitleDropReveal(progress, 1, motionOff);
 
   return (
-    <h1 className="rumik-story__title rumik-story__title--dashboard">
+    <h2 className="rumik-story__title rumik-story__title--dashboard">
       <DashboardDropLine text="your ops" dropReveal={line1Drop} reduceMotion={motionOff} phaseOffset={0} />
       <DashboardDropLine text="command center." dropReveal={line2Drop} reduceMotion={motionOff} phaseOffset={0.14} />
-    </h1>
+    </h2>
   );
 }

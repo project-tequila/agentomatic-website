@@ -17,10 +17,10 @@ export function MultilingualFeatureTitle({ story }: MultilingualFeatureTitleProp
 
   if (progress === null) {
     return (
-      <h1 className="rumik-story__title rumik-story__title--multilingual">
+      <h2 className="rumik-story__title rumik-story__title--multilingual">
         <span>{MULTILINGUAL_PROVIDER_HEADLINE}</span>
         <span className="multilingual-title__line">now available in your language.</span>
-      </h1>
+      </h2>
     );
   }
 
@@ -28,7 +28,7 @@ export function MultilingualFeatureTitle({ story }: MultilingualFeatureTitleProp
   const phrase = multilingualAvailabilityScript(hero.id);
 
   return (
-    <h1 className="rumik-story__title rumik-story__title--multilingual">
+    <h2 className="rumik-story__title rumik-story__title--multilingual">
       <span>{MULTILINGUAL_PROVIDER_HEADLINE}</span>
       <span className="multilingual-title__line">
         <span
@@ -41,6 +41,6 @@ export function MultilingualFeatureTitle({ story }: MultilingualFeatureTitleProp
           {phrase}
         </span>
       </span>
-    </h1>
+    </h2>
   );
 }

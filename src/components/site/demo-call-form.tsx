@@ -141,7 +141,7 @@ export function DemoCallForm({
             type="tel"
             autoComplete="tel-national"
             inputMode="tel"
-            placeholder="Your number"
+            placeholder="555 010 0000"
             value={localNumber}
             onChange={(event) => setLocalNumber(event.target.value)}
             className="call-panel-surface__input"

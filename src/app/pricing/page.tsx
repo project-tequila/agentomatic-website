@@ -19,6 +19,8 @@ type PricingTier = {
   summary: string;
   features: string[];
   highlighted?: boolean;
+  ctaLabel: string;
+  ctaHref: string;
 };
 
 const tiers: PricingTier[] = [
@@ -28,6 +30,8 @@ const tiers: PricingTier[] = [
     period: "/ month",
     summary: "for teams testing voice on a single line.",
     features: ["1 phone number", "500 inbound minutes", "appointment booking", "call summaries"],
+    ctaLabel: "get started",
+    ctaHref: "/contact",
   },
   {
     name: "growth",
@@ -36,6 +40,8 @@ const tiers: PricingTier[] = [
     summary: "for busy front desks and sales teams.",
     features: ["3 phone numbers", "2,500 inbound minutes", "lead qualification", "crm handoff", "priority support"],
     highlighted: true,
+    ctaLabel: "get started",
+    ctaHref: "/contact",
   },
   {
     name: "enterprise",
@@ -43,6 +49,8 @@ const tiers: PricingTier[] = [
     period: "",
     summary: "for multi-location ops and custom integrations.",
     features: ["unlimited lines", "custom minute pools", "sso & audit logs", "dedicated success manager"],
+    ctaLabel: "contact sales",
+    ctaHref: "/contact",
   },
 ];
 
@@ -53,30 +61,36 @@ export default function PricingPage() {
         <SitePageHeader
           kicker="pricing"
           title="plans that scale with your call volume."
-          lead="placeholder tiers while we finalize packaging — every plan includes live demo onboarding and script setup."
+          lead="every plan includes live demo onboarding and script setup."
         />
 
         <div className="site-grid site-grid--3 mt-10">
           {tiers.map((tier) => (
             <SiteCard
               key={tier.name}
-              className={tier.highlighted ? "border-white/20 bg-white/[0.06]" : undefined}
+              className={tier.highlighted ? "site-card--highlighted border-[var(--rumik-border)] bg-[var(--rumik-surface-strong)]" : undefined}
             >
               <p className="site-kicker">{tier.name}</p>
-              <p className="mt-3 font-[family-name:var(--font-marketing-syne)] text-[clamp(2rem,4vw,2.75rem)] font-bold leading-none tracking-[-0.04em] text-white">
+              <p className="mt-3 site-display text-[clamp(2rem,4vw,2.75rem)] !leading-none !tracking-[-0.04em]">
                 {tier.price}
                 {tier.period ? (
-                  <span className="text-[0.95rem] font-normal tracking-normal text-white/45">{tier.period}</span>
+                  <span className="text-[0.95rem] font-normal tracking-normal text-[var(--rumik-muted)]">{tier.period}</span>
                 ) : null}
               </p>
               <p className="site-card__body mt-4">{tier.summary}</p>
               <ul className="mt-6 space-y-2">
                 {tier.features.map((feature) => (
-                  <li key={feature} className="site-card__body !text-[0.88rem] text-white/72">
+                  <li key={feature} className="site-card__body !text-[0.88rem]">
                     {feature}
                   </li>
                 ))}
               </ul>
+              <Link
+                href={tier.ctaHref}
+                className={tier.highlighted ? "site-btn site-btn--full mt-6" : "site-btn site-btn--outline site-btn--full mt-6"}
+              >
+                {tier.ctaLabel}
+              </Link>
             </SiteCard>
           ))}
         </div>

@@ -19,7 +19,7 @@ import {
   remindersReturnFlow,
   remindersSceneComposition,
 } from "@/lib/story/reminders-reveal";
-import { STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { storyStageViewBox } from "@/lib/story/persistent-orb";
 import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import {
   STORY_GLYPH,
@@ -72,7 +72,7 @@ export function RemindersScene({ story, opacity: sceneOpacity }: RemindersSceneP
   return (
     <svg
       viewBox={storyStageViewBox()}
-      preserveAspectRatio={STORY_STAGE_PRESERVE}
+      preserveAspectRatio={spatialLayout.preserveAspectRatio}
       className="reminders-scene"
       aria-hidden
       style={{ opacity: sceneOpacity }}

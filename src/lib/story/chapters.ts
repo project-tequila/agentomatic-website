@@ -16,6 +16,7 @@ export type StoryChapter = {
   kicker: string;
   title: [string, string];
   body?: string;
+  subtitle?: string;
 };
 
 /** Act 1 editorial beats (0 – ACT1_END). */
@@ -27,6 +28,7 @@ export const act1Beats: StoryChapter[] = [
     kicker: "agentomatic frontdesk",
     title: ["your ai", "front desk."],
     body: "for your team — not instead of them.",
+    subtitle: "routine calls handled — warm handoff when it matters.",
   },
   {
     id: "grunt",

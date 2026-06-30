@@ -1,0 +1,29 @@
+{
+  "brand": "agentomatic",
+  "primitive": {
+    "color": {
+      "ink": {
+        "500": { "$value": "#121418", "$type": "color" },
+        "600": { "$value": "#0E1014", "$type": "color" }
+      },
+      "cream": {
+        "500": { "$value": "#F5F2EB", "$type": "color" },
+        "600": { "$value": "#E8E4DC", "$type": "color" }
+      },
+      "orb-teal": {
+        "500": { "$value": "#8CFFD2", "$type": "color" }
+      }
+    }
+  },
+  "semantic": {
+    "color": {
+      "background": { "$value": "{primitive.color.ink.500}", "$type": "color" },
+      "foreground": { "$value": "{primitive.color.cream.500}", "$type": "color" },
+      "primary": { "$value": "{primitive.color.cream.500}", "$type": "color" },
+      "primary-foreground": { "$value": "{primitive.color.ink.500}", "$type": "color" },
+      "accent": { "$value": "{primitive.color.orb-teal.500}", "$type": "color" },
+      "destructive": { "$value": "#E87070", "$type": "color" },
+      "border": { "$value": "rgba(255, 255, 255, 0.12)", "$type": "color" }
+    }
+  }
+}

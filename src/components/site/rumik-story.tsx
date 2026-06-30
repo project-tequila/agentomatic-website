@@ -1,7 +1,8 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useRef } from "react";
+import { ChevronDown } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
@@ -16,6 +17,7 @@ import { IntegrationsFeatureTitle } from "@/components/site/integrations-feature
 import { StoryBodyTyping } from "@/components/site/story-body-typing";
 import { useStoryScroll } from "@/lib/helios/use-story-scroll";
 import { useHeliosVoice } from "@/lib/helios/helios-provider";
+import { useScrollContainer } from "@/lib/helios/scroll-container-context";
 import { useVideoFrame } from "@/lib/helios/use-video-frame";
 import { act1BeatProgress } from "@/lib/story/act1-band-progress";
 import { staticTitleBodyTypingReveal } from "@/lib/story/body-typing-reveal";
@@ -40,8 +42,11 @@ import {
 import { DemoCallScrollReveal } from "@/components/site/site-demo-call-root";
 import { cn } from "@/lib/utils";
 
+const SCROLL_SEEN_KEY = "rumik-scroll-seen";
+
 export function RumikStory() {
   const storyRef = useRef<HTMLElement>(null);
+  const scrollRef = useScrollContainer();
   const reduceMotion = usePrefersReducedMotion();
   const { helios } = useHeliosVoice();
   const { inputProps } = useVideoFrame(helios);
@@ -51,13 +56,17 @@ export function RumikStory() {
   const inCta = story >= FEATURES_END;
   const approachingCta = story >= CTA_REVEAL_START && story < FEATURES_END;
   const motionOff = !!reduceMotion;
+  const [showFirstVisitCue, setShowFirstVisitCue] = useState(false);
 
   const feature = activeFeatureChapter(story);
-  const chapter = inAct1 && !feature ? activeAct1Beat(story) : activeStoryChapter(story);
+  const act1Beat = inAct1 ? activeAct1Beat(story) : null;
+  const chapter = inAct1 && !feature ? act1Beat! : activeStoryChapter(story);
+  const isHookBeat = inAct1 && act1Beat?.id === "hook";
 
   const displayKicker = feature ? `${feature.codename} /` : chapter.kicker;
   const displayTitle: [string, string] = feature ? feature.title : chapter.title;
   const displayBody = feature?.body ?? chapter.body;
+  const displaySubtitle = isHookBeat && "subtitle" in chapter ? chapter.subtitle : undefined;
 
   const chapterKey = inAct1 ? activeAct1Beat(story).id : chapter.id + (feature?.id ?? "");
   const integrationsProgress = feature?.id === "integrations" ? featureBandProgress(story, "integrations") : null;
@@ -88,6 +97,32 @@ export function RumikStory() {
     ctaProgress,
   });
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const seen = sessionStorage.getItem(SCROLL_SEEN_KEY);
+    if (!seen && story < 0.02) setShowFirstVisitCue(true);
+  }, [story]);
+
+  useEffect(() => {
+    const scrollEl = scrollRef.current;
+    if (!scrollEl || !showFirstVisitCue) return;
+
+    const dismiss = () => {
+      sessionStorage.setItem(SCROLL_SEEN_KEY, "1");
+      setShowFirstVisitCue(false);
+    };
+
+    scrollEl.addEventListener("scroll", dismiss, { passive: true, once: true });
+    const timer = window.setTimeout(dismiss, 4000);
+
+    return () => {
+      scrollEl.removeEventListener("scroll", dismiss);
+      window.clearTimeout(timer);
+    };
+  }, [scrollRef, showFirstVisitCue]);
+
+  const TitleTag = isHookBeat && !feature ? "h1" : "h2";
+
   return (
     <section
       ref={storyRef}
@@ -96,7 +131,14 @@ export function RumikStory() {
     >
       <DemoCallScrollReveal reveal={panelReveal} />
       <div className="rumik-story__sticky">
-        <div className="rumik-story__progress" aria-hidden>
+        <div
+          className="rumik-story__progress"
+          role="progressbar"
+          aria-valuenow={Math.round(story * 100)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Story progress"
+        >
           <span className="rumik-story__progress-bar" style={{ width: `${story * 100}%` }} />
           <span className="rumik-story__progress-act" style={{ left: `${ACT1_END * 100}%` }} title="Act 1 ends here" />
           <span className="rumik-story__progress-cta" style={{ left: `${FEATURES_END * 100}%` }} title="Demo call" />
@@ -110,7 +152,7 @@ export function RumikStory() {
                 initial={false}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.45, ease: [0.22, 0.7, 0.18, 1] }}
+                transition={{ duration: 0.35, ease: [0.22, 0.7, 0.18, 1] }}
                 className="rumik-story__chapter"
               >
                 <div className="rumik-story__headline">
@@ -132,11 +174,12 @@ export function RumikStory() {
                   ) : inCta ? (
                     <CtaFeatureTitle story={story} />
                   ) : (
-                    <h1 className="rumik-story__title">
+                    <TitleTag className="rumik-story__title">
                       <span>{displayTitle[0]}</span>
                       <span>{displayTitle[1]}</span>
-                    </h1>
+                    </TitleTag>
                   )}
+                  {displaySubtitle ? <p className="rumik-story__subtitle">{displaySubtitle}</p> : null}
                 </div>
                 <p
                   className={cn(
@@ -165,14 +208,24 @@ export function RumikStory() {
           </div>
 
           <div className="rumik-story__footer">
-            {story < 0.06 ? (
+            {showFirstVisitCue && story < 0.06 ? (
+              <span
+                className={cn(
+                  "rumik-story__scroll-hint rumik-story__scroll-hint--prominent",
+                  !reduceMotion && "rumik-story__scroll-hint--pulse",
+                )}
+              >
+                <ChevronDown className="rumik-story__scroll-chevron" aria-hidden strokeWidth={2} />
+                scroll to explore
+              </span>
+            ) : story < 0.06 ? (
               <span className="rumik-story__scroll-hint">scroll to explore</span>
             ) : inAct1 ? (
               <span className="rumik-story__scroll-hint">keep scrolling</span>
             ) : approachingCta ? (
               <motion.span
                 className="rumik-story__scroll-hint rumik-story__scroll-hint--cta"
-                animate={reduceMotion ? undefined : { opacity: [0.45, 1, 0.45] }}
+                animate={reduceMotion ? undefined : { opacity: [0.55, 1, 0.55] }}
                 transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
               >
                 tap the orb to try ↗
