@@ -1,22 +1,83 @@
 "use client";
 
 import { useState } from "react";
+import { Loader2 } from "lucide-react";
+
+import {
+  CONTACT_EMAIL,
+  CONTACT_PHONE_E164,
+  contactPhoneTelHref,
+  formatContactPhoneDisplay,
+} from "@/lib/site-contact";
+
+type FieldErrors = Record<string, string>;
+
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function validateField(name: string, value: string): string {
+  switch (name) {
+    case "fname":
+    case "lname":
+    case "company":
+    case "sector":
+      return value.trim() ? "" : "This field is required.";
+    case "email":
+      if (!value.trim()) return "Enter your email address.";
+      if (!emailPattern.test(value.trim())) return "Enter a valid email address.";
+      return "";
+    case "phone": {
+      const digits = value.replace(/\D/g, "");
+      if (!digits) return "Enter your phone number.";
+      if (digits.length < 10) return "Enter a valid phone number with at least 10 digits.";
+      return "";
+    }
+    default:
+      return "";
+  }
+}
 
 export function ContactSection() {
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const contactPhoneDisplay = formatContactPhoneDisplay(CONTACT_PHONE_E164);
+
+  function validateForm(fd: FormData): FieldErrors {
+    const next: FieldErrors = {};
+    for (const name of ["fname", "lname", "company", "sector", "email", "phone"] as const) {
+      const msg = validateField(name, String(fd.get(name === "company" ? "organization" : name) ?? ""));
+      if (msg) next[name] = msg;
+    }
+    return next;
+  }
+
+  function onBlur(e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
+    const name = e.target.name === "organization" ? "company" : e.target.name;
+    const msg = validateField(name, e.target.value);
+    setErrors((prev) => {
+      const next = { ...prev };
+      if (msg) next[name] = msg;
+      else delete next[name];
+      return next;
+    });
+  }
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const fname = String(fd.get("fname") ?? "").trim();
-    const lname = String(fd.get("lname") ?? "").trim();
-    const company = String(fd.get("organization") ?? "").trim();
-    const sector = String(fd.get("sector") ?? "").trim();
-    const email = String(fd.get("email") ?? "").trim();
-    const phone = String(fd.get("phone") ?? "").trim();
-    if (!fname || !lname || !company || !sector || !email || !phone) {
-      alert("Please fill in all required fields.");
+    const nextErrors = validateForm(fd);
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      const firstId = Object.keys(nextErrors)[0];
+      const idMap: Record<string, string> = {
+        fname: "contact-fname",
+        lname: "contact-lname",
+        company: "contact-company",
+        sector: "contact-sector",
+        email: "contact-email",
+        phone: "contact-phone",
+      };
+      document.getElementById(idMap[firstId] ?? "")?.focus();
       return;
     }
     setBusy(true);
@@ -38,16 +99,21 @@ export function ContactSection() {
               moment.
             </p>
             <ul className="mt-8 space-y-3">
-              <li className="site-lead !mt-0 !text-[0.82rem]">+91 98765 43210</li>
-              <li className="site-lead !mt-0 !text-[0.82rem]">hello@agentomaticlabs.ai</li>
-              <li className="site-lead !mt-0 !text-[0.82rem]">kolkata, west bengal, india</li>
+              {CONTACT_PHONE_E164 ? (
+                <li className="site-lead !mt-0 !text-[0.82rem]">
+                  <a className="site-link" href={contactPhoneTelHref(CONTACT_PHONE_E164)}>
+                    {contactPhoneDisplay}
+                  </a>
+                </li>
+              ) : null}
+              <li className="site-lead !mt-0 !text-[0.82rem]">{CONTACT_EMAIL}</li>
             </ul>
           </div>
 
           <div className="site-panel p-[clamp(1rem,3vw,1.5rem)]">
             {!sent ? (
-              <form onSubmit={onSubmit} className="space-y-0" suppressHydrationWarning>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <form onSubmit={onSubmit} className="space-y-0" noValidate suppressHydrationWarning>
+                <div className="site-form-grid-2">
                   <div className="site-field">
                     <label htmlFor="contact-fname" className="site-label">
                       first name *
@@ -57,10 +123,18 @@ export function ContactSection() {
                       name="fname"
                       type="text"
                       autoComplete="given-name"
-                      placeholder="pranay"
+                      placeholder="john"
                       className="site-input"
+                      aria-invalid={!!errors.fname}
+                      aria-describedby={errors.fname ? "contact-fname-error" : undefined}
+                      onBlur={onBlur}
                       suppressHydrationWarning
                     />
+                    {errors.fname ? (
+                      <p id="contact-fname-error" className="site-field-error" role="alert">
+                        {errors.fname}
+                      </p>
+                    ) : null}
                   </div>
                   <div className="site-field">
                     <label htmlFor="contact-lname" className="site-label">
@@ -71,10 +145,18 @@ export function ContactSection() {
                       name="lname"
                       type="text"
                       autoComplete="family-name"
-                      placeholder="sharma"
+                      placeholder="doe"
                       className="site-input"
+                      aria-invalid={!!errors.lname}
+                      aria-describedby={errors.lname ? "contact-lname-error" : undefined}
+                      onBlur={onBlur}
                       suppressHydrationWarning
                     />
+                    {errors.lname ? (
+                      <p id="contact-lname-error" className="site-field-error" role="alert">
+                        {errors.lname}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
                 <div className="site-field mt-3">
@@ -86,24 +168,46 @@ export function ContactSection() {
                     name="organization"
                     type="text"
                     autoComplete="organization"
-                    placeholder="your company"
+                    placeholder="acme inc."
                     className="site-input"
+                    aria-invalid={!!errors.company}
+                    aria-describedby={errors.company ? "contact-company-error" : undefined}
+                    onBlur={onBlur}
                     suppressHydrationWarning
                   />
+                  {errors.company ? (
+                    <p id="contact-company-error" className="site-field-error" role="alert">
+                      {errors.company}
+                    </p>
+                  ) : null}
                 </div>
                 <div className="site-field mt-3">
                   <label htmlFor="contact-sector" className="site-label">
                     sector *
                   </label>
-                  <select id="contact-sector" name="sector" defaultValue="" className="site-select" suppressHydrationWarning>
+                  <select
+                    id="contact-sector"
+                    name="sector"
+                    defaultValue=""
+                    className="site-select"
+                    aria-invalid={!!errors.sector}
+                    aria-describedby={errors.sector ? "contact-sector-error" : undefined}
+                    onBlur={onBlur}
+                    suppressHydrationWarning
+                  >
                     <option value="">select sector</option>
                     <option>sales / growth</option>
                     <option>healthcare / clinic</option>
                     <option>legal / professional services</option>
                     <option>other</option>
                   </select>
+                  {errors.sector ? (
+                    <p id="contact-sector-error" className="site-field-error" role="alert">
+                      {errors.sector}
+                    </p>
+                  ) : null}
                 </div>
-                <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="site-form-grid-2 mt-3">
                   <div className="site-field">
                     <label htmlFor="contact-email" className="site-label">
                       email *
@@ -114,10 +218,18 @@ export function ContactSection() {
                       type="email"
                       inputMode="email"
                       autoComplete="email"
-                      placeholder="you@firm.com"
+                      placeholder="you@company.com"
                       className="site-input"
+                      aria-invalid={!!errors.email}
+                      aria-describedby={errors.email ? "contact-email-error" : undefined}
+                      onBlur={onBlur}
                       suppressHydrationWarning
                     />
+                    {errors.email ? (
+                      <p id="contact-email-error" className="site-field-error" role="alert">
+                        {errors.email}
+                      </p>
+                    ) : null}
                   </div>
                   <div className="site-field">
                     <label htmlFor="contact-phone" className="site-label">
@@ -129,10 +241,18 @@ export function ContactSection() {
                       type="tel"
                       inputMode="tel"
                       autoComplete="tel"
-                      placeholder="+91 98765 43210"
+                      placeholder="+1 555 010 0000"
                       className="site-input"
+                      aria-invalid={!!errors.phone}
+                      aria-describedby={errors.phone ? "contact-phone-error" : undefined}
+                      onBlur={onBlur}
                       suppressHydrationWarning
                     />
+                    {errors.phone ? (
+                      <p id="contact-phone-error" className="site-field-error" role="alert">
+                        {errors.phone}
+                      </p>
+                    ) : null}
                   </div>
                 </div>
                 <div className="site-field mt-3">
@@ -149,13 +269,21 @@ export function ContactSection() {
                   />
                 </div>
                 <button type="submit" disabled={busy} className="site-btn site-btn--full mt-4" suppressHydrationWarning>
-                  {busy ? "sending…" : "request voice demo"}
+                  {busy ? (
+                    <>
+                      <Loader2 className="mr-2 inline size-4 animate-spin" aria-hidden />
+                      sending…
+                    </>
+                  ) : (
+                    "request voice demo"
+                  )}
                 </button>
               </form>
             ) : (
-              <p className="site-toast site-toast--success py-4 text-center">
-                request received. we&apos;ll follow up with a voice-agent walkthrough.
-              </p>
+              <div className="site-toast site-toast--success py-6 text-center" role="status">
+                <p className="font-medium">request received.</p>
+                <p className="mt-1 text-sm opacity-80">we&apos;ll follow up with a voice-agent walkthrough.</p>
+              </div>
             )}
           </div>
         </div>

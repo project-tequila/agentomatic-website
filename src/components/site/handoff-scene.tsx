@@ -21,7 +21,7 @@ import {
   handoffTransferPeak,
   handoffWarmHandoffLabel,
 } from "@/lib/story/handoff-reveal";
-import { STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { storyStageViewBox } from "@/lib/story/persistent-orb";
 import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import { StoryHumanAgent } from "@/components/site/story-stage-glyphs";
 import { RealisticPhoneSvg } from "@/components/site/realistic-phone-svg";
@@ -257,7 +257,7 @@ export function HandoffScene({ story, opacity: sceneOpacity }: HandoffSceneProps
   return (
     <svg
       viewBox={storyStageViewBox()}
-      preserveAspectRatio={STORY_STAGE_PRESERVE}
+      preserveAspectRatio={spatialLayout.preserveAspectRatio}
       className="handoff-scene"
       aria-hidden
       style={{ opacity: sceneOpacity }}

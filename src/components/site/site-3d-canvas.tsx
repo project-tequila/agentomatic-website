@@ -1,11 +1,12 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 import { useHeliosVoice } from "@/lib/helios/helios-provider";
 import { useVideoFrame } from "@/lib/helios/use-video-frame";
 import type { VoiceHeliosState } from "@/lib/helios/types";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { ReceptionistScene3DContent } from "./receptionist-scene-3d";
 
@@ -46,22 +47,42 @@ function ScenePointerTracker({ targetRef }: { targetRef: React.RefObject<HTMLDiv
 
 export function Site3DCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = usePrefersReducedMotion();
+  const [ready, setReady] = useState(false);
   const { helios } = useHeliosVoice();
   const { inputProps } = useVideoFrame(helios);
   const label = sceneStatus(inputProps.sceneProgress ?? 0, inputProps.voiceState);
 
+  useEffect(() => {
+    if (reduceMotion) return;
+    const idle = window.requestIdleCallback?.(() => setReady(true), { timeout: 300 });
+    const fallback = window.setTimeout(() => setReady(true), 250);
+    return () => {
+      if (idle !== undefined) window.cancelIdleCallback?.(idle);
+      window.clearTimeout(fallback);
+    };
+  }, [reduceMotion]);
+
   return (
     <div ref={containerRef} className="site-3d__canvas" aria-hidden>
-      <ScenePointerTracker targetRef={containerRef} />
-      <Canvas
-        camera={{ position: [0, 2.1, 8.5], fov: 42 }}
-        dpr={[1, 2]}
-        gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
-      >
-        <Suspense fallback={null}>
-          <ReceptionistScene3DContent />
-        </Suspense>
-      </Canvas>
+      {reduceMotion ? (
+        <div className="site-3d__canvas-poster" />
+      ) : ready ? (
+        <>
+          <ScenePointerTracker targetRef={containerRef} />
+          <Canvas
+            camera={{ position: [0, 2.1, 8.5], fov: 42 }}
+            dpr={[1, 2]}
+            gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
+          >
+            <Suspense fallback={null}>
+              <ReceptionistScene3DContent />
+            </Suspense>
+          </Canvas>
+        </>
+      ) : (
+        <div className="site-3d__canvas-skeleton animate-pulse" />
+      )}
       <div className="site-3d__vignette" />
       <div className="site-3d__horizon" />
       <div className="site-3d__scan" />

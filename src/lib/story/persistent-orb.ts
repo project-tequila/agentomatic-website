@@ -13,6 +13,17 @@ export const PERSISTENT_ORB = {
 /** Edge-to-edge fill — slice crops overflow; CSS scale is 1 for viewport fill. */
 export const STORY_STAGE_PRESERVE = "xMidYMid slice" as const;
 
+/** Show full art on narrow viewports — no edge crop. */
+export const STORY_STAGE_PRESERVE_MEET = "xMidYMid meet" as const;
+
+export const STORY_PRESERVE_TABLET_MAX = 900;
+
+export type StoryPreserveAspectRatio = typeof STORY_STAGE_PRESERVE | typeof STORY_STAGE_PRESERVE_MEET;
+
+export function storyPreserveForWidth(viewportWidth: number): StoryPreserveAspectRatio {
+  return viewportWidth <= STORY_PRESERVE_TABLET_MAX ? STORY_STAGE_PRESERVE_MEET : STORY_STAGE_PRESERVE;
+}
+
 /** Bleed for orb waves, glows, and edge labels beyond the 720×440 canvas. */
 export const STORY_STAGE_GLOW_PAD = 56;
 

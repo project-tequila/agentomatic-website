@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { SitePageShell } from "@/components/site/site-page-shell";
 import { HarveyAgentHero } from "@/components/site/harvey-agent-hero";
 import { pageMetadata } from "@/lib/seo";
 
@@ -11,5 +12,9 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default function AgentsPage() {
-  return <HarveyAgentHero />;
+  return (
+    <SitePageShell>
+      <HarveyAgentHero hideNav />
+    </SitePageShell>
+  );
 }

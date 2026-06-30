@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 
+import { CONTACT_EMAIL, CONTACT_PHONE_E164 } from "@/lib/site-contact";
+
 export const DEFAULT_SITE_URL = "https://agentomatic.com";
 
 export const SITE_NAME = "agentomatic";
+
+export { CONTACT_EMAIL } from "@/lib/site-contact";
 
 export const DEFAULT_TITLE = "agentomatic — ai frontdesk";
 
@@ -110,8 +114,10 @@ export function organizationJsonLd() {
     "@type": "Organization",
     name: SITE_NAME,
     url: siteUrl,
+    email: CONTACT_EMAIL,
     description: DEFAULT_DESCRIPTION,
     logo: `${siteUrl}/icon`,
+    ...(CONTACT_PHONE_E164 ? { telephone: CONTACT_PHONE_E164 } : {}),
   };
 }
 

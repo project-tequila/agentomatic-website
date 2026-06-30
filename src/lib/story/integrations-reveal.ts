@@ -59,7 +59,7 @@ function integrationNodesAtRadius(radius: number): IntegrationNode[] {
 export const INTEGRATION_NODES_DESKTOP: readonly IntegrationNode[] = integrationNodesAtRadius(200);
 
 /** Tighter ring — survives portrait slice crop above the copy band. */
-export const INTEGRATION_NODES_COMPACT: readonly IntegrationNode[] = integrationNodesAtRadius(168);
+export const INTEGRATION_NODES_COMPACT: readonly IntegrationNode[] = integrationNodesAtRadius(152);
 
 /** @deprecated use integrationLayoutForWidth */
 export const INTEGRATION_NODES = INTEGRATION_NODES_DESKTOP;

@@ -41,6 +41,10 @@ function GruntPhraseTyping({
   const incomplete = display < 0.995;
   const showCursor = !reduceMotion && incomplete && display > 0.02;
 
+  if (reduceMotion || display < 0.12 || display > 0.88) {
+    return <span className="grunt-title__phrase">{PHRASE}</span>;
+  }
+
   return (
     <span className="grunt-title__phrase grunt-title__phrase--typing">
       {PHRASE.slice(0, fullCount).split("").map((ch, i) => (
@@ -118,12 +122,12 @@ export function GruntFeatureTitle({ story }: GruntFeatureTitleProps) {
 
   if (progress === null) {
     return (
-      <h1 className="rumik-story__title rumik-story__title--grunt">
+      <h2 className="rumik-story__title rumik-story__title--grunt">
         <span className="grunt-title__phrase-wrap">
           <span className="grunt-title__phrase">{PHRASE}</span>
         </span>
         <span className="grunt-title__handled grunt-title__handled--static">handled</span>
-      </h1>
+      </h2>
     );
   }
 
@@ -132,7 +136,7 @@ export function GruntFeatureTitle({ story }: GruntFeatureTitleProps) {
   const handledReveal = gruntTitleHandledReveal(progress, motionOff);
 
   return (
-    <h1 className="rumik-story__title rumik-story__title--grunt">
+    <h2 className="rumik-story__title rumik-story__title--grunt">
       <span className="grunt-title__phrase-wrap">
         <GruntPhraseTyping
           typingReveal={typingReveal}
@@ -142,6 +146,6 @@ export function GruntFeatureTitle({ story }: GruntFeatureTitleProps) {
         <GruntMarkerStrike strikeReveal={strikeReveal} />
       </span>
       <GruntHandled handledReveal={handledReveal} />
-    </h1>
+    </h2>
   );
 }

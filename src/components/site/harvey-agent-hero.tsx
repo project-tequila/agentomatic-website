@@ -61,10 +61,10 @@ const SUMMARY =
 const THINK_MS = 1400;
 const DONE_MS = 1100;
 
-export function HarveyAgentHero() {
+export function HarveyAgentHero({ hideNav = false }: { hideNav?: boolean }) {
   return (
     <div className="harvey">
-      <HarveyNav />
+      {!hideNav ? <HarveyNav /> : null}
 
       <main className="harvey-container">
         <section className="harvey-hero">

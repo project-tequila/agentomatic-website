@@ -186,7 +186,7 @@ export function VoiceExperience() {
               name="phone"
               type="tel"
               autoComplete="tel"
-              placeholder="+1 your number"
+              placeholder="+1 555 010 0000"
               value={phone}
               onChange={(ev) => setPhone(ev.target.value)}
               className="min-w-0 flex-1 bg-transparent text-sm text-white outline-none placeholder:text-white/35"

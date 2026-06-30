@@ -1,0 +1,18 @@
+/**
+ * agentomatic design tokens — synced from docs/brand-guidelines.md
+ * Do not edit by hand; run: node ../.agents/skills/brand/scripts/sync-brand-to-tokens.cjs
+ */
+
+:root {
+  --brand-ink: #121418;
+  --brand-ink-deep: #0e1014;
+  --brand-cream: #f5f2eb;
+  --brand-cream-muted: rgba(245, 242, 235, 0.66);
+  --brand-orb-teal: #8cffd2;
+  --brand-orb-blue: #9cc7ff;
+  --brand-error: #e87070;
+  --brand-warning: #f5c842;
+  --brand-surface-light: #ffffff;
+  --font-heading: var(--font-sans), ui-monospace, monospace;
+  --font-body: var(--font-marketing-dm), ui-sans-serif, system-ui, sans-serif;
+}

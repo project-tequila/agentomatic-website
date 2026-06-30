@@ -87,10 +87,10 @@ export function RemindersFeatureTitle({ story }: RemindersFeatureTitleProps) {
 
   if (progress === null) {
     return (
-      <h1 className="rumik-story__title rumik-story__title--reminders">
+      <h2 className="rumik-story__title rumik-story__title--reminders">
         <span>smart</span>
         <span>reminders.</span>
-      </h1>
+      </h2>
     );
   }
 
@@ -98,9 +98,9 @@ export function RemindersFeatureTitle({ story }: RemindersFeatureTitleProps) {
   const remindersDrop = remindersTitleDropReveal(progress, 1, motionOff);
 
   return (
-    <h1 className="rumik-story__title rumik-story__title--reminders">
+    <h2 className="rumik-story__title rumik-story__title--reminders">
       <RemindersDropLine text="smart" dropReveal={smartDrop} reduceMotion={motionOff} phaseOffset={0} />
       <RemindersDropLine text="reminders." dropReveal={remindersDrop} reduceMotion={motionOff} phaseOffset={0.14} />
-    </h1>
+    </h2>
   );
 }

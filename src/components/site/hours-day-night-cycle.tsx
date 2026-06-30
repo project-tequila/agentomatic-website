@@ -4,7 +4,7 @@ import { interpolate } from "@helios-project/core";
 import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
-import { PERSISTENT_ORB, STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { PERSISTENT_ORB, storyStageViewBox } from "@/lib/story/persistent-orb";
 import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 
 type HoursDayNightCycleProps = {
@@ -57,7 +57,7 @@ export function HoursDayNightCycle({ story, sceneOpacity }: HoursDayNightCyclePr
     <div className="hours-day-cycle-wrap" style={{ opacity: sceneOpacity }} aria-hidden>
       <div className="hours-day-cycle__sky" style={{ opacity: nightSky }} />
 
-      <svg viewBox={storyStageViewBox()} className="hours-day-cycle" preserveAspectRatio={STORY_STAGE_PRESERVE}>
+      <svg viewBox={storyStageViewBox()} className="hours-day-cycle" preserveAspectRatio={spatial.preserveAspectRatio}>
         <defs>
           <radialGradient id="hoursDayGlow" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#ffc857" stopOpacity="0.45" />

@@ -69,7 +69,7 @@ export function IntegrationsFeatureTitle({ story }: IntegrationsFeatureTitleProp
 
   if (progress === null) {
     return (
-      <h1 className="rumik-story__title rumik-story__title--integrations">
+      <h2 className="rumik-story__title rumik-story__title--integrations">
         <span className="integrations-channels">
           <span className="integrations-channels__row">
             <span>phone · whatsapp</span>
@@ -78,14 +78,14 @@ export function IntegrationsFeatureTitle({ story }: IntegrationsFeatureTitleProp
             <span>· email · calendar.</span>
           </span>
         </span>
-      </h1>
+      </h2>
     );
   }
 
   const calendar = integrationChannelState(progress, 3, motionOff);
 
   return (
-    <h1 className="rumik-story__title rumik-story__title--integrations">
+    <h2 className="rumik-story__title rumik-story__title--integrations">
       <span className="integrations-channels">
         <span className="integrations-channels__row">
           <ChannelWord index={0} progress={progress} reduceMotion={motionOff} />
@@ -102,6 +102,6 @@ export function IntegrationsFeatureTitle({ story }: IntegrationsFeatureTitleProp
           </span>
         </span>
       </span>
-    </h1>
+    </h2>
   );
 }

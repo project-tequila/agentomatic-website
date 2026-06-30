@@ -1,5 +1,11 @@
 import { HANDOFF_SPATIAL_COMPACT, HANDOFF_SPATIAL_DESKTOP } from "./handoff-reveal";
-import { PERSISTENT_ORB, STORY_ORB_SCALE, STORY_SATELLITE_ICON_SCALE } from "./persistent-orb";
+import {
+  PERSISTENT_ORB,
+  STORY_ORB_SCALE,
+  STORY_SATELLITE_ICON_SCALE,
+  storyPreserveForWidth,
+  type StoryPreserveAspectRatio,
+} from "./persistent-orb";
 import { integrationLayoutForWidth, type IntegrationLayout } from "./integrations-reveal";
 import type { GruntHubModule } from "./grunt-reveal";
 import { GRUNT_MODULE_RADIUS } from "./grunt-reveal";
@@ -86,7 +92,7 @@ export function gruntLayoutForWidth(viewportWidth: number): GruntSpatialLayout {
 }
 
 const MULTILINGUAL_CARD_DESKTOP = { x: 458, y: 148, width: 228, height: 188 } as const;
-const MULTILINGUAL_CARD_COMPACT = { x: 392, y: 132, width: 200, height: 172 } as const;
+const MULTILINGUAL_CARD_COMPACT = { x: 408, y: 138, width: 192, height: 164 } as const;
 
 export type MultilingualSpatialLayout = {
   card: { x: number; y: number; width: number; height: number };
@@ -149,8 +155,8 @@ export type RemindersSpatialLayout = {
 
 export function remindersLayoutForWidth(viewportWidth: number): RemindersSpatialLayout {
   const t = storyCompactT(viewportWidth);
-  const caller = lerpPoint({ x: 48, y: PERSISTENT_ORB.cy }, { x: 82, y: PERSISTENT_ORB.cy - 2 }, t);
-  const calendar = lerpPoint({ x: 572, y: 188 }, { x: 518, y: 168 }, t);
+  const caller = lerpPoint({ x: 48, y: PERSISTENT_ORB.cy }, { x: 96, y: PERSISTENT_ORB.cy - 4 }, t);
+  const calendar = lerpPoint({ x: 572, y: 188 }, { x: 532, y: 172 }, t);
   return {
     caller,
     callerConnectX: caller.x + 44,
@@ -161,9 +167,9 @@ export function remindersLayoutForWidth(viewportWidth: number): RemindersSpatial
 
 /** Thread + rail sit below site chrome safe zone (slice-crop + y-offset). */
 const DASHBOARD_THREAD_DESKTOP: StoryRect = { x: 48, y: 54, w: 296, h: 206 };
-const DASHBOARD_THREAD_COMPACT: StoryRect = { x: 62, y: 46, w: 268, h: 188 };
+const DASHBOARD_THREAD_COMPACT: StoryRect = { x: 72, y: 48, w: 252, h: 178 };
 const DASHBOARD_ICONS_DESKTOP: StoryRect = { x: 620, y: 58, w: 52, h: 204 };
-const DASHBOARD_ICONS_COMPACT: StoryRect = { x: 558, y: 50, w: 48, h: 188 };
+const DASHBOARD_ICONS_COMPACT: StoryRect = { x: 548, y: 54, w: 44, h: 172 };
 
 export type DashboardSpatialLayout = {
   thread: StoryRect;
@@ -196,6 +202,7 @@ export function hoursLayoutForWidth(viewportWidth: number): HoursSpatialLayout {
 
 export type StorySpatialLayout = {
   viewportWidth: number;
+  preserveAspectRatio: StoryPreserveAspectRatio;
   satelliteScale: number;
   integrations: IntegrationLayout;
   concurrent: ConcurrentSpatialLayout;
@@ -211,6 +218,7 @@ export function storySpatialLayoutForWidth(viewportWidth: number): StorySpatialL
   const satelliteScale = satelliteScaleForWidth(viewportWidth);
   return {
     viewportWidth,
+    preserveAspectRatio: storyPreserveForWidth(viewportWidth),
     satelliteScale,
     integrations: integrationLayoutForWidth(viewportWidth),
     concurrent: concurrentLayoutForWidth(viewportWidth),

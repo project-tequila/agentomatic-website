@@ -19,6 +19,9 @@ export function SiteFooter() {
           <Link className="site-footer__link" href="/about">
             about
           </Link>
+          <Link className="site-footer__link" href="/solutions">
+            solutions
+          </Link>
           <Link className="site-footer__link" href="/pricing">
             pricing
           </Link>

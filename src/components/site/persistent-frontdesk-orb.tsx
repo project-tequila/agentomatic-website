@@ -11,7 +11,6 @@ import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import {
   gruntStageViewBox,
   PERSISTENT_ORB,
-  STORY_STAGE_PRESERVE,
   storyStageViewBox,
   persistentOrbIntensity,
   persistentOrbModeBlend,
@@ -97,7 +96,7 @@ export function PersistentFrontdeskOrb({ story }: PersistentFrontdeskOrbProps) {
       <svg
         viewBox={orbViewBox}
         className="story-illustration-bg__persistent-orb-svg"
-        preserveAspectRatio={STORY_STAGE_PRESERVE}
+        preserveAspectRatio={spatial.preserveAspectRatio}
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden

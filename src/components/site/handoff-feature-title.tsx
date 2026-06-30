@@ -74,10 +74,10 @@ export function HandoffFeatureTitle({ story }: HandoffFeatureTitleProps) {
 
   if (progress === null) {
     return (
-      <h1 className="rumik-story__title rumik-story__title--handoff">
+      <h2 className="rumik-story__title rumik-story__title--handoff">
         <span className="handoff-title__line">Human Support,</span>
         <span className="handoff-title__line">{TAGLINE}</span>
-      </h1>
+      </h2>
     );
   }
 
@@ -85,7 +85,7 @@ export function HandoffFeatureTitle({ story }: HandoffFeatureTitleProps) {
   const glow = handoffTaglineGlow(progress);
 
   return (
-    <h1 className="rumik-story__title rumik-story__title--handoff">
+    <h2 className="rumik-story__title rumik-story__title--handoff">
       <span className="handoff-title__line">Human Support,</span>
       <span className="handoff-title__line">
         <HandoffTagline
@@ -95,6 +95,6 @@ export function HandoffFeatureTitle({ story }: HandoffFeatureTitleProps) {
           glow={glow}
         />
       </span>
-    </h1>
+    </h2>
   );
 }

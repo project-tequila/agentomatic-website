@@ -9,7 +9,7 @@ import {
   type IntegrationNode,
   integrationChannelState,
 } from "@/lib/story/integrations-reveal";
-import { STORY_STAGE_PRESERVE, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { storyStageViewBox } from "@/lib/story/persistent-orb";
 import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import { cn } from "@/lib/utils";
 
@@ -25,14 +25,11 @@ function channelNode(nodes: readonly IntegrationNode[], id: string) {
   return nodes.find((node) => node.id === id);
 }
 
-function useIntegrationLayout() {
-  const spatial = useStorySpatialLayout();
-  return spatial.integrations;
-}
 
 export function IntegrationsScene({ story, opacity: sceneOpacity }: IntegrationsSceneProps) {
   const reduceMotion = usePrefersReducedMotion();
-  const { nodes, satelliteScale, hubScale } = useIntegrationLayout();
+  const spatial = useStorySpatialLayout();
+  const { nodes, satelliteScale, hubScale } = spatial.integrations;
 
   const progress = featureBandProgress(story, "integrations");
   if (progress === null || sceneOpacity < 0.02) return null;
@@ -40,7 +37,7 @@ export function IntegrationsScene({ story, opacity: sceneOpacity }: Integrations
   return (
     <svg
       viewBox={storyStageViewBox()}
-      preserveAspectRatio={STORY_STAGE_PRESERVE}
+      preserveAspectRatio={spatial.preserveAspectRatio}
       className="integrations-scene"
       aria-hidden
       style={{ opacity: sceneOpacity }}

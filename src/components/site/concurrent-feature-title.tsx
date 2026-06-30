@@ -100,10 +100,10 @@ export function ConcurrentFeatureTitle({ story }: ConcurrentFeatureTitleProps) {
 
   if (progress === null) {
     return (
-      <h1 className="rumik-story__title rumik-story__title--concurrent">
+      <h2 className="rumik-story__title rumik-story__title--concurrent">
         <span>no busy tone.</span>
         <span>ever.</span>
-      </h1>
+      </h2>
     );
   }
 
@@ -111,9 +111,9 @@ export function ConcurrentFeatureTitle({ story }: ConcurrentFeatureTitleProps) {
   const line2 = concurrentTitleLine2Reveal(progress, motionOff);
 
   return (
-    <h1 className="rumik-story__title rumik-story__title--concurrent">
+    <h2 className="rumik-story__title rumik-story__title--concurrent">
       <ConcurrentFadeLine text="no busy tone." fadeReveal={line1} reduceMotion={motionOff} />
       <ConcurrentDropLine text="ever." dropReveal={line2} reduceMotion={motionOff} />
-    </h1>
+    </h2>
   );
 }
