@@ -7,9 +7,8 @@ import { storySpatialLayoutForWidth, type StorySpatialLayout } from "./story-lay
 const DEFAULT_WIDTH = 1200;
 
 export function useStorySpatialLayout(): StorySpatialLayout {
-  const [layout, setLayout] = useState(() =>
-    storySpatialLayoutForWidth(typeof window !== "undefined" ? window.innerWidth : DEFAULT_WIDTH),
-  );
+  // Match SSR (DEFAULT_WIDTH) on first client render to avoid preserveAspectRatio hydration mismatch.
+  const [layout, setLayout] = useState(() => storySpatialLayoutForWidth(DEFAULT_WIDTH));
 
   useEffect(() => {
     const sync = () => setLayout(storySpatialLayoutForWidth(window.innerWidth));

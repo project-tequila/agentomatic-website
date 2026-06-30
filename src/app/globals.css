@@ -2852,7 +2852,7 @@
         var(--story-visual-y-shift)
     );
     --story-visual-x-offset: 0%;
-    --story-visual-y-offset: -6%;
+    --story-visual-y-offset: -2%;
     --story-copy-max-width: none;
     --story-copy-band-height: clamp(32dvh, 38dvh, 42dvh);
     --story-scroll-height: calc(9 * 100dvh);
@@ -2872,9 +2872,9 @@
     --story-feature-index-margin-top: clamp(0.75rem, 2dvh, 1.1rem);
     --story-card-width: min(17rem, calc(100% - 2.5rem));
     --story-card-padding: clamp(0.9rem, 2.8vw, 1.1rem);
-    --story-visual-scale: 1.04;
-    --story-orb-scale: 0.92;
-    --story-satellite-icon-scale: 0.74;
+    --story-visual-scale: 2.0125;
+    --story-orb-scale: 0.98;
+    --story-satellite-icon-scale: 0.82;
   }
 
   .story-illustration-bg__stage-anchor {
@@ -2895,15 +2895,15 @@
 
   .site-orb-hit--immersive {
     top: var(--story-stage-y);
-    min-width: calc(min(14rem, 32vw) * var(--story-orb-scale, 1));
-    min-height: calc(min(14rem, 32vw) * var(--story-orb-scale, 1));
-    max-width: calc(min(26rem, 50vw) * var(--story-orb-scale, 1));
-    max-height: calc(min(26rem, 50vw) * var(--story-orb-scale, 1));
+    min-width: calc(min(15rem, 34vw) * var(--story-orb-scale, 1));
+    min-height: calc(min(15rem, 34vw) * var(--story-orb-scale, 1));
+    max-width: calc(min(28rem, 54vw) * var(--story-orb-scale, 1));
+    max-height: calc(min(28rem, 54vw) * var(--story-orb-scale, 1));
   }
 
   .story-illustration-bg--grunt .story-illustration-bg__stage {
-    --story-visual-scale: 1.02;
-    --story-visual-y-offset: -4%;
+    --story-visual-scale: 2.0125;
+    --story-visual-y-offset: -1%;
   }
 
   .story-illustration-bg--grunt .story-illustration-bg__stage-anchor,
@@ -2939,8 +2939,8 @@
   }
 
   .story-illustration-bg--dashboard .story-illustration-bg__stage {
-    --story-visual-scale: 1.04;
-    --story-visual-y-offset: 3%;
+    --story-visual-scale: 2.0125;
+    --story-visual-y-offset: 0%;
   }
 
   .rumik-story__copy {
@@ -2990,9 +2990,9 @@
     --story-title-min-height: clamp(4.2rem, 16vw, 5.6rem);
     --story-body-font-size: clamp(0.9rem, 2.4vw, 1.02rem);
     --story-kicker-font-size: clamp(0.82rem, 2.2vw, 0.92rem);
-    --story-visual-scale: 1.04;
-    --story-orb-scale: 0.88;
-    --story-satellite-icon-scale: 0.74;
+    --story-visual-scale: 2.0125;
+    --story-orb-scale: 0.94;
+    --story-satellite-icon-scale: 0.82;
   }
 
 }
@@ -3019,11 +3019,11 @@
     --story-feature-index-margin-top: clamp(0.65rem, 1.8dvh, 1rem);
     --story-card-width: min(16.5rem, calc(100% - 2rem));
     --story-card-padding: clamp(0.8rem, 3vw, 1rem);
-    --story-visual-scale: 1.06;
-    --story-visual-y-offset: -4%;
-    --story-orb-scale: 0.96;
-    --story-satellite-icon-scale: 0.72;
-    --story-orb-hit-size-base: min(28rem, 58vw);
+    --story-visual-scale: 2.0125;
+    --story-visual-y-offset: -2%;
+    --story-orb-scale: 1.05;
+    --story-satellite-icon-scale: 0.82;
+    --story-orb-hit-size-base: min(32rem, 64vw);
   }
 
   .site-main {
@@ -3059,13 +3059,13 @@
   }
 
   .story-illustration-bg--dashboard .story-illustration-bg__stage {
-    --story-visual-scale: 1.06;
-    --story-visual-y-offset: 2%;
+    --story-visual-scale: 2.0125;
+    --story-visual-y-offset: 0%;
   }
 
   .story-illustration-bg--grunt .story-illustration-bg__stage {
-    --story-visual-scale: 1.04;
-    --story-visual-y-offset: -3%;
+    --story-visual-scale: 2.0125;
+    --story-visual-y-offset: -1%;
   }
 
   .rumik-story__title {
@@ -3325,70 +3325,71 @@
 
 @media (max-width: 900px) {
   :root {
-    --story-satellite-icon-scale: 0.74;
+    --story-satellite-icon-scale: 0.82;
+  }
+
+  .story-illustration-bg--integrations .story-illustration-bg__stage {
+    --story-visual-y-offset: -2%;
+  }
+
+  .story-illustration-bg--concurrent .story-illustration-bg__stage {
+    --story-visual-y-offset: -2%;
+  }
+
+  .story-illustration-bg--handoff .story-illustration-bg__stage {
+    --story-visual-y-offset: -2%;
+  }
+
+  .story-illustration-bg--reminders .story-illustration-bg__stage {
+    --story-visual-y-offset: -2%;
+  }
+
+  .story-illustration-bg--multilingual .story-illustration-bg__stage {
+    --story-visual-y-offset: -1%;
+  }
+
+  .story-illustration-bg--hours .story-illustration-bg__stage {
+    --story-visual-y-offset: -1%;
   }
 
   .story-illustration-bg--integrations .story-illustration-bg__stage {
     --story-visual-y-offset: -3%;
-  }
-
-  .story-illustration-bg--concurrent .story-illustration-bg__stage {
-    --story-visual-y-offset: -5%;
-  }
-
-  .story-illustration-bg--handoff .story-illustration-bg__stage {
-    --story-visual-y-offset: -6%;
-  }
-
-  .story-illustration-bg--reminders .story-illustration-bg__stage {
-    --story-visual-y-offset: -6%;
-  }
-
-  .story-illustration-bg--multilingual .story-illustration-bg__stage {
-    --story-visual-y-offset: -5%;
-  }
-
-  .story-illustration-bg--hours .story-illustration-bg__stage {
-    --story-visual-y-offset: -4%;
-  }
-
-  .story-illustration-bg--integrations .story-illustration-bg__stage {
-    --story-visual-y-offset: -7%;
   }
 }
 
 @media (max-width: 480px) {
   :root {
-    --story-satellite-icon-scale: 0.72;
+    --story-satellite-icon-scale: 0.82;
   }
 
   .story-illustration-bg--concurrent .story-illustration-bg__stage {
-    --story-visual-scale: 1.06;
-    --story-visual-y-offset: -4%;
+    --story-visual-scale: 2.0125;
+    --story-visual-y-offset: -1%;
   }
 
   .story-illustration-bg--handoff .story-illustration-bg__stage {
-    --story-visual-scale: 1.05;
-    --story-visual-y-offset: -4%;
+    --story-visual-scale: 2.0125;
+    --story-visual-y-offset: -2%;
   }
 
   .story-illustration-bg--reminders .story-illustration-bg__stage {
-    --story-visual-scale: 1.05;
-    --story-visual-y-offset: -4%;
+    --story-visual-scale: 2.0125;
+    --story-visual-y-offset: -2%;
   }
 
   .story-illustration-bg--multilingual .story-illustration-bg__stage {
-    --story-visual-scale: 1.06;
-    --story-visual-y-offset: -3%;
+    --story-visual-scale: 2.0125;
+    --story-visual-y-offset: -1%;
   }
 
   .story-illustration-bg--hours .story-illustration-bg__stage {
-    --story-visual-scale: 1.04;
-    --story-visual-y-offset: -3%;
+    --story-visual-scale: 2.0125;
+    --story-visual-y-offset: -1%;
   }
 
   .story-illustration-bg--integrations .story-illustration-bg__stage {
-    --story-visual-y-offset: -9%;
+    --story-visual-scale: 2.0125;
+    --story-visual-y-offset: -2%;
   }
 }
 

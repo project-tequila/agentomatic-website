@@ -1,7 +1,6 @@
 "use client";
 
-import { interpolate } from "@helios-project/core";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { useHeliosVoice } from "@/lib/helios/helios-provider";
 import { useVideoFrame } from "@/lib/helios/use-video-frame";
@@ -9,6 +8,10 @@ import { act1BeatOpacity } from "@/lib/story/act1-band-progress";
 import { featureBandOpacity } from "@/lib/story/feature-band-progress";
 import { illustrationAtmosphere, visibleIllustrationScenes } from "@/lib/story/illustration-scenes";
 import { storyToSceneProgress } from "@/lib/story/chapters";
+import {
+  useStoryVisualScale,
+  type StoryVisualScaleScene,
+} from "@/lib/story/use-story-visual-scale";
 import { cn } from "@/lib/utils";
 
 import { HoursDayNightCycle } from "./hours-day-night-cycle";
@@ -38,6 +41,23 @@ export function StoryIllustrationBackground() {
   const dashboardOpacity = featureBandOpacity(story, "dashboard");
   const concurrentOpacity = featureBandOpacity(story, "concurrent");
   const gruntOpacity = act1BeatOpacity(story, "grunt");
+  const showDashboardScene = dashboardOpacity > 0.02 && remindersOpacity < 0.02;
+
+  const rootRef = useRef<HTMLDivElement>(null);
+  const stageAnchorRef = useRef<HTMLDivElement>(null);
+
+  const activeVisualScene: StoryVisualScaleScene =
+    gruntOpacity > 0.02
+      ? "grunt"
+      : integrationsOpacity > 0.02
+        ? "integrations"
+        : handoffOpacity > 0.02
+          ? "handoff"
+          : remindersOpacity > 0.02
+            ? "reminders"
+            : "default";
+
+  useStoryVisualScale(stageAnchorRef, rootRef, activeVisualScene);
 
   useEffect(() => {
     const onMove = (event: PointerEvent) => {
@@ -51,6 +71,7 @@ export function StoryIllustrationBackground() {
 
   return (
     <div
+      ref={rootRef}
       className={cn(
         "story-illustration-bg editorial-bg",
         concurrentOpacity > 0.02 && "story-illustration-bg--concurrent",
@@ -58,7 +79,7 @@ export function StoryIllustrationBackground() {
         multilingualOpacity > 0.02 && "story-illustration-bg--multilingual",
         handoffOpacity > 0.02 && "story-illustration-bg--handoff",
         remindersOpacity > 0.02 && "story-illustration-bg--reminders",
-        dashboardOpacity > 0.02 && remindersOpacity < 0.02 && "story-illustration-bg--dashboard",
+        showDashboardScene && "story-illustration-bg--dashboard",
         gruntOpacity > 0.02 && "story-illustration-bg--grunt",
         hoursOpacity > 0.02 && "story-illustration-bg--hours",
       )}
@@ -72,70 +93,98 @@ export function StoryIllustrationBackground() {
       />
 
       <div
+        ref={stageAnchorRef}
         className={cn(
           "story-illustration-bg__stage-anchor",
           gruntOpacity > 0.02 && "story-illustration-bg__stage-anchor--grunt",
         )}
       >
         <div className="story-illustration-bg__stage">
-        {scenes.map(({ id, opacity }) => (
-          <div key={id} className="story-illustration-bg__scene" style={{ opacity }}>
-            {id !== "hours" && id !== "integrations" && id !== "multilingual" && id !== "concurrent" && id !== "grunt" && id !== "hook" && id !== "handoff" && id !== "reminders" && id !== "dashboard" && id !== "cta" ? (
-              <StoryIllustration id={id} className="story-illustration-bg__art" />
-            ) : null}
-          </div>
-        ))}
+          {scenes.map(({ id, opacity }) => (
+            <div key={id} className="story-illustration-bg__scene" style={{ opacity }}>
+              {id !== "hours" &&
+              id !== "integrations" &&
+              id !== "multilingual" &&
+              id !== "concurrent" &&
+              id !== "grunt" &&
+              id !== "hook" &&
+              id !== "handoff" &&
+              id !== "reminders" &&
+              id !== "dashboard" &&
+              id !== "cta" ? (
+                <StoryIllustration id={id} className="story-illustration-bg__art" />
+              ) : null}
+            </div>
+          ))}
 
-        {hoursScene && hoursScene.opacity > 0.02 ? (
-          <HoursDayNightCycle story={story} sceneOpacity={hoursScene.opacity} />
-        ) : null}
+          {hoursScene && hoursScene.opacity > 0.02 ? (
+            <HoursDayNightCycle story={story} sceneOpacity={hoursScene.opacity} />
+          ) : null}
 
-        {gruntOpacity > 0.02 ? (
-          <div className="story-illustration-bg__scene story-illustration-bg__scene--grunt" style={{ opacity: gruntOpacity }}>
-            <GruntScene story={story} opacity={gruntOpacity} />
-          </div>
-        ) : null}
+          {gruntOpacity > 0.02 ? (
+            <div
+              className="story-illustration-bg__scene story-illustration-bg__scene--grunt"
+              style={{ opacity: gruntOpacity }}
+            >
+              <GruntScene story={story} opacity={gruntOpacity} />
+            </div>
+          ) : null}
 
-        {concurrentOpacity > 0.02 ? (
-          <div
-            className="story-illustration-bg__scene story-illustration-bg__scene--concurrent"
-            style={{ opacity: concurrentOpacity }}
-          >
-            <ConcurrentScene story={story} opacity={concurrentOpacity} />
-          </div>
-        ) : null}
+          {concurrentOpacity > 0.02 ? (
+            <div
+              className="story-illustration-bg__scene story-illustration-bg__scene--concurrent"
+              style={{ opacity: concurrentOpacity }}
+            >
+              <ConcurrentScene story={story} opacity={concurrentOpacity} />
+            </div>
+          ) : null}
 
-        {integrationsOpacity > 0.02 ? (
-          <div className="story-illustration-bg__scene story-illustration-bg__scene--integrations" style={{ opacity: integrationsOpacity }}>
-            <IntegrationsScene story={story} opacity={integrationsOpacity} />
-          </div>
-        ) : null}
+          {integrationsOpacity > 0.02 ? (
+            <div
+              className="story-illustration-bg__scene story-illustration-bg__scene--integrations"
+              style={{ opacity: integrationsOpacity }}
+            >
+              <IntegrationsScene story={story} opacity={integrationsOpacity} />
+            </div>
+          ) : null}
 
-        {multilingualOpacity > 0.02 ? (
-          <div className="story-illustration-bg__scene story-illustration-bg__scene--multilingual" style={{ opacity: multilingualOpacity }}>
-            <MultilingualScene story={story} opacity={multilingualOpacity} />
-          </div>
-        ) : null}
+          {multilingualOpacity > 0.02 ? (
+            <div
+              className="story-illustration-bg__scene story-illustration-bg__scene--multilingual"
+              style={{ opacity: multilingualOpacity }}
+            >
+              <MultilingualScene story={story} opacity={multilingualOpacity} />
+            </div>
+          ) : null}
 
-        {handoffOpacity > 0.02 ? (
-          <div className="story-illustration-bg__scene story-illustration-bg__scene--handoff" style={{ opacity: handoffOpacity }}>
-            <HandoffScene story={story} opacity={handoffOpacity} />
-          </div>
-        ) : null}
+          {handoffOpacity > 0.02 ? (
+            <div
+              className="story-illustration-bg__scene story-illustration-bg__scene--handoff"
+              style={{ opacity: handoffOpacity }}
+            >
+              <HandoffScene story={story} opacity={handoffOpacity} />
+            </div>
+          ) : null}
 
-        {remindersOpacity > 0.02 ? (
-          <div className="story-illustration-bg__scene story-illustration-bg__scene--reminders" style={{ opacity: remindersOpacity }}>
-            <RemindersScene story={story} opacity={remindersOpacity} />
-          </div>
-        ) : null}
+          {remindersOpacity > 0.02 ? (
+            <div
+              className="story-illustration-bg__scene story-illustration-bg__scene--reminders"
+              style={{ opacity: remindersOpacity }}
+            >
+              <RemindersScene story={story} opacity={remindersOpacity} />
+            </div>
+          ) : null}
 
-        {dashboardOpacity > 0.02 && remindersOpacity < 0.02 ? (
-          <div className="story-illustration-bg__scene story-illustration-bg__scene--dashboard" style={{ opacity: dashboardOpacity }}>
-            <DashboardScene story={story} opacity={dashboardOpacity} />
-          </div>
-        ) : null}
+          {showDashboardScene ? (
+            <div
+              className="story-illustration-bg__scene story-illustration-bg__scene--dashboard"
+              style={{ opacity: dashboardOpacity }}
+            >
+              <DashboardScene story={story} opacity={dashboardOpacity} />
+            </div>
+          ) : null}
 
-        <PersistentFrontdeskOrb story={story} />
+          <PersistentFrontdeskOrb story={story} />
         </div>
       </div>
 

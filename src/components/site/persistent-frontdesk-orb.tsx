@@ -12,6 +12,7 @@ import {
   gruntStageViewBox,
   PERSISTENT_ORB,
   storyStageViewBox,
+  storyStageViewBoxForWidth,
   persistentOrbIntensity,
   persistentOrbModeBlend,
   persistentOrbVisible,
@@ -88,7 +89,10 @@ export function PersistentFrontdeskOrb({ story }: PersistentFrontdeskOrbProps) {
   };
   const orbShiftX = handoffProgress !== null ? handoffOrbShift(handoffProgress, handoffSpatial) : 0;
 
-  const orbViewBox = mode === "grunt" || nextMode === "grunt" ? gruntStageViewBox() : storyStageViewBox();
+  const orbViewBox =
+    mode === "grunt" || nextMode === "grunt"
+      ? gruntStageViewBox()
+      : storyStageViewBoxForWidth(spatial.viewportWidth);
   const orbVisualStyle = { opacity: hitZone.opacity };
 
   return (
@@ -97,6 +101,7 @@ export function PersistentFrontdeskOrb({ story }: PersistentFrontdeskOrbProps) {
         viewBox={orbViewBox}
         className="story-illustration-bg__persistent-orb-svg"
         preserveAspectRatio={spatial.preserveAspectRatio}
+        suppressHydrationWarning
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         aria-hidden

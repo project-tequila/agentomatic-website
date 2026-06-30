@@ -10,7 +10,7 @@ import {
   concurrentVisibleNetworkPhones,
   type ConcurrentNetworkPhone,
 } from "@/lib/story/concurrent-reveal";
-import { storyStageViewBox } from "@/lib/story/persistent-orb";
+import { storyStageViewBoxForWidth } from "@/lib/story/persistent-orb";
 import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import { cn } from "@/lib/utils";
 
@@ -115,8 +115,9 @@ export function ConcurrentScene({ story, opacity: sceneOpacity }: ConcurrentScen
 
   return (
     <svg
-      viewBox={storyStageViewBox()}
+      viewBox={storyStageViewBoxForWidth(spatial.viewportWidth)}
       preserveAspectRatio={spatial.preserveAspectRatio}
+      suppressHydrationWarning
       className="concurrent-scene"
       aria-hidden
       style={{ opacity: sceneOpacity }}

@@ -14,7 +14,7 @@ import {
   persistentOrbModeBlend,
   persistentOrbOpacity,
   persistentOrbVisible,
-  storyStageViewBox,
+  storyStageViewBoxForWidth,
 } from "@/lib/story/persistent-orb";
 import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 
@@ -43,7 +43,10 @@ export function usePersistentOrbHitZone() {
     orbShift: spatial.handoff.orbShift,
   };
   const orbShiftX = handoffProgress !== null ? handoffOrbShift(handoffProgress, handoffSpatial) : 0;
-  const orbViewBox = mode === "grunt" || nextMode === "grunt" ? gruntStageViewBox() : storyStageViewBox();
+  const orbViewBox =
+    mode === "grunt" || nextMode === "grunt"
+      ? gruntStageViewBox()
+      : storyStageViewBoxForWidth(spatial.viewportWidth);
 
   const style = {
     opacity: layerOpacity,

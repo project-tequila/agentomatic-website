@@ -137,6 +137,7 @@ export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
     <svg
       viewBox={gruntStageViewBox()}
       preserveAspectRatio={spatial.preserveAspectRatio}
+      suppressHydrationWarning
       className="grunt-scene grunt-scene--hub grunt-scene--hub-plus grunt-scene--interactive"
       aria-hidden
       style={{ opacity: sceneOpacity }}

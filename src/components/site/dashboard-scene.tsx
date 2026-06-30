@@ -42,7 +42,7 @@ import {
 } from "@/lib/story/dashboard-reveal";
 import { DashboardActionGlyph } from "@/components/site/dashboard-action-glyphs";
 import { PremiumChannelGlyph } from "@/components/site/integration-channel-glyphs";
-import { storyStageViewBox } from "@/lib/story/persistent-orb";
+import { storyStageViewBoxForWidth } from "@/lib/story/persistent-orb";
 import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import { STORY_GLYPH } from "@/components/site/story-stage-glyphs";
 import { cn } from "@/lib/utils";
@@ -351,8 +351,9 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
 
   return (
     <svg
-      viewBox={storyStageViewBox()}
+      viewBox={storyStageViewBoxForWidth(spatial.viewportWidth)}
       preserveAspectRatio={spatial.preserveAspectRatio}
+      suppressHydrationWarning
       className="dashboard-scene"
       aria-hidden
       style={{ opacity: sceneOpacity * composition }}

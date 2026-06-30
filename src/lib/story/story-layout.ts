@@ -45,7 +45,7 @@ export function lerpRect(from: StoryRect, to: StoryRect, t: number): StoryRect {
 export function satelliteScaleForWidth(viewportWidth: number): number {
   const t = storyCompactT(viewportWidth);
   if (t === 0) return STORY_SATELLITE_ICON_SCALE;
-  if (t === 1) return 0.72;
+  if (t === 1) return 0.82;
   return STORY_SATELLITE_ICON_SCALE - t * 0.045;
 }
 
@@ -60,7 +60,7 @@ export function concurrentLayoutForWidth(viewportWidth: number): ConcurrentSpati
   // Desktop orb is CSS-scaled (--story-orb-scale ≈ 0.75); pull phone orbit inward to match.
   const desktopRadiusScale = STORY_ORB_SCALE;
   return {
-    radiusScale: lerpValue(desktopRadiusScale, 0.74, t),
+    radiusScale: lerpValue(desktopRadiusScale, 0.84, t),
     ySquash: lerpValue(0.82, 0.76, t),
     satelliteScale: satelliteScaleForWidth(viewportWidth),
   };
@@ -81,13 +81,18 @@ export type GruntSpatialLayout = {
   satelliteScale: number;
 };
 
+/** Hub module card boost on mobile/tablet only (scheduling, routing, etc.). */
+export const GRUNT_HUB_CARD_SCALE_COMPACT = 1.25;
+
 export function gruntLayoutForWidth(viewportWidth: number): GruntSpatialLayout {
   const t = storyCompactT(viewportWidth);
   const moduleRadius = lerpValue(GRUNT_MODULE_RADIUS, 118, t);
+  const compactCardBoost =
+    viewportWidth <= STORY_BREAKPOINT_TABLET ? GRUNT_HUB_CARD_SCALE_COMPACT : 1;
   return {
     moduleRadius,
     modules: gruntModulesForRadius(moduleRadius),
-    satelliteScale: satelliteScaleForWidth(viewportWidth),
+    satelliteScale: satelliteScaleForWidth(viewportWidth) * compactCardBoost,
   };
 }
 
