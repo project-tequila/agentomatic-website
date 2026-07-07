@@ -21,7 +21,7 @@ import { useScrollContainer } from "@/lib/helios/scroll-container-context";
 import { useVideoFrame } from "@/lib/helios/use-video-frame";
 import { act1BeatProgress } from "@/lib/story/act1-band-progress";
 import { staticTitleBodyTypingReveal } from "@/lib/story/body-typing-reveal";
-import { featureBandProgress } from "@/lib/story/feature-band-progress";
+import { featureBandProgress, featureBandOpacity } from "@/lib/story/feature-band-progress";
 import { concurrentBodyTypingReveal } from "@/lib/story/concurrent-reveal";
 import { integrationsBodyReveal } from "@/lib/story/integrations-reveal";
 import { handoffBodyReveal } from "@/lib/story/handoff-reveal";
@@ -40,6 +40,7 @@ import {
   isAct1,
 } from "@/lib/story/chapters";
 import { DemoCallScrollReveal } from "@/components/site/site-demo-call-root";
+import { CommandCenterConsole } from "@/components/site/command-center-console";
 import { cn } from "@/lib/utils";
 
 const SCROLL_SEEN_KEY = "rumik-scroll-seen";
@@ -76,6 +77,10 @@ export function RumikStory() {
   const concurrentProgress = feature?.id === "concurrent" ? featureBandProgress(story, "concurrent") : null;
   const hoursProgress = feature?.id === "hours" ? featureBandProgress(story, "hours") : null;
   const dashboardProgress = feature?.id === "dashboard" ? featureBandProgress(story, "dashboard") : null;
+  const dashboardOpacity = featureBandOpacity(story, "dashboard");
+  const dashboardBand = featureBandProgress(story, "dashboard");
+  const dashboardScenarioIndex =
+    dashboardBand !== null ? Math.min(3, Math.floor(dashboardBand * 4)) : 0;
   const gruntProgress = inAct1 && activeAct1Beat(story).id === "grunt" ? act1BeatProgress(story, "grunt") : null;
   const hookProgress = inAct1 && activeAct1Beat(story).id === "hook" ? act1BeatProgress(story, "hook") : null;
   const ctaProgress = inCta ? ctaChapterProgress(story) : null;
@@ -131,6 +136,15 @@ export function RumikStory() {
     >
       <DemoCallScrollReveal reveal={panelReveal} />
       <div className="rumik-story__sticky">
+        {dashboardOpacity > 0.02 ? (
+          <div className="rumik-story__command-console" style={{ opacity: dashboardOpacity }}>
+            <CommandCenterConsole
+              active={dashboardOpacity > 0.12}
+              opacity={1}
+              scenarioIndex={dashboardScenarioIndex}
+            />
+          </div>
+        ) : null}
         <div
           className="rumik-story__progress"
           role="progressbar"
