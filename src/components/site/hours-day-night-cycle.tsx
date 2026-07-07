@@ -88,28 +88,31 @@ export function HoursDayNightCycle({ story, sceneOpacity }: HoursDayNightCyclePr
           />
         ))}
 
-        <circle cx={CX} cy={CY} r={ORBIT_R + 6} fill="url(#hoursDayGlow)" opacity={dayGlow * 0.65} />
+        <g transform={`translate(${CX} ${CY})`}>
+          <circle r={ORBIT_R + 6} fill="url(#hoursDayGlow)" opacity={dayGlow * 0.65} />
 
-        <circle
-          cx={CX}
-          cy={CY}
-          r={ORBIT_R}
-          fill="none"
-          stroke="url(#hoursOrbit)"
-          strokeWidth="1.5"
-          strokeDasharray="5 7"
-          opacity={0.55}
-          className={reduceMotion ? undefined : "hours-day-cycle__orbit"}
-        />
+          <g className={reduceMotion ? undefined : "hours-day-cycle__orbit"}>
+            <circle
+              r={ORBIT_R}
+              fill="none"
+              stroke="url(#hoursOrbit)"
+              strokeWidth="1.5"
+              strokeDasharray="5 7"
+              opacity={0.55}
+            />
 
-        {[0, 1, 2, 3].map((tick) => {
-          const tickAngle = (tick / 4) * Math.PI * 2 - Math.PI / 2;
-          const x1 = CX + Math.cos(tickAngle) * (ORBIT_R - 8);
-          const y1 = CY + Math.sin(tickAngle) * (ORBIT_R - 8);
-          const x2 = CX + Math.cos(tickAngle) * (ORBIT_R + 8);
-          const y2 = CY + Math.sin(tickAngle) * (ORBIT_R + 8);
-          return <line key={tick} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(245,242,235,0.35)" strokeWidth="1.2" />;
-        })}
+            {[0, 1, 2, 3].map((tick) => {
+              const tickAngle = (tick / 4) * Math.PI * 2 - Math.PI / 2;
+              const x1 = Math.cos(tickAngle) * (ORBIT_R - 8);
+              const y1 = Math.sin(tickAngle) * (ORBIT_R - 8);
+              const x2 = Math.cos(tickAngle) * (ORBIT_R + 8);
+              const y2 = Math.sin(tickAngle) * (ORBIT_R + 8);
+              return (
+                <line key={tick} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(245,242,235,0.35)" strokeWidth="1.2" />
+              );
+            })}
+          </g>
+        </g>
 
         <g transform={`translate(${orbX} ${orbY})`}>
           <g opacity={sunWeight}>

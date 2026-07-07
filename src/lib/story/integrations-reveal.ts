@@ -87,21 +87,8 @@ function lerpIntegrationNodes(
   });
 }
 
-/** Responsive node positions + icon scale for slice-crop safe zones. */
-export function integrationLayoutForWidth(viewportWidth: number): IntegrationLayout {
-  if (viewportWidth <= 480) {
-    return { nodes: INTEGRATION_NODES_COMPACT, satelliteScale: 0.82, hubScale: 0.92 };
-  }
-
-  if (viewportWidth <= 900) {
-    const t = (900 - viewportWidth) / (900 - 480);
-    return {
-      nodes: lerpIntegrationNodes(INTEGRATION_NODES_DESKTOP, INTEGRATION_NODES_COMPACT, t * 0.62),
-      satelliteScale: 0.62 + (0.82 - 0.62) * (1 - t),
-      hubScale: 0.72 + (0.92 - 0.72) * (1 - t),
-    };
-  }
-
+/** Same ring geometry on all viewports — channels orbit the centered orb like desktop. */
+export function integrationLayoutForWidth(_viewportWidth: number): IntegrationLayout {
   return { nodes: INTEGRATION_NODES_DESKTOP, satelliteScale: 0.62, hubScale: 0.72 };
 }
 

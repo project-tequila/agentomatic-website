@@ -20,8 +20,9 @@ export const STORY_PRESERVE_TABLET_MAX = 900;
 
 export type StoryPreserveAspectRatio = typeof STORY_STAGE_PRESERVE | typeof STORY_STAGE_PRESERVE_MEET;
 
-export function storyPreserveForWidth(viewportWidth: number): StoryPreserveAspectRatio {
-  return viewportWidth <= STORY_PRESERVE_TABLET_MAX ? STORY_STAGE_PRESERVE_MEET : STORY_STAGE_PRESERVE;
+/** Slice on all viewports — orb stays centered; satellites orbit in the same ratio as desktop. */
+export function storyPreserveForWidth(_viewportWidth: number): StoryPreserveAspectRatio {
+  return STORY_STAGE_PRESERVE;
 }
 
 /** Bleed for orb waves, glows, and edge labels beyond the 720×440 canvas. */
@@ -41,6 +42,13 @@ export const STORY_ORB_SCALE = 0.75;
 
 /** Outermost voice wave radius in SVG user units (FrontdeskVoiceOrb). */
 export const PERSISTENT_ORB_OUTER_WAVE_RADIUS = 104;
+
+/** Max wave ripple amplitude beyond the outer radius (FrontdeskVoiceOrb). */
+export const PERSISTENT_ORB_WAVE_AMPLITUDE = 12;
+
+/** Hours chapter dashed orbit — fully encloses outer waves with comfortable inset. */
+export const PERSISTENT_ORB_HOURS_ORBIT_RADIUS =
+  PERSISTENT_ORB_OUTER_WAVE_RADIUS + PERSISTENT_ORB_WAVE_AMPLITUDE + 36;
 
 export function viewBoxDimensions(viewBox: string) {
   const parts = viewBox.trim().split(/\s+/).map(Number);
@@ -106,19 +114,12 @@ export function storyStageViewBox() {
   return `${minX} ${minY} ${width} ${height}`;
 }
 
-/** Responsive viewBox — compact on mobile/tablet for larger meet-fit orb. */
-export function storyStageViewBoxForWidth(viewportWidth: number) {
-  if (viewportWidth <= STORY_PRESERVE_TABLET_MAX) {
-    const { minX, minY, width, height } = STORY_STAGE_COMPACT_VIEW;
-    return `${minX} ${minY} ${width} ${height}`;
-  }
+/** Same viewBox on all viewports — keeps orb + satellite proportions aligned with desktop. */
+export function storyStageViewBoxForWidth(_viewportWidth: number) {
   return storyStageViewBox();
 }
 
-export function storyStageViewDimensionsForWidth(viewportWidth: number) {
-  if (viewportWidth <= STORY_PRESERVE_TABLET_MAX) {
-    return { width: STORY_STAGE_COMPACT_VIEW.width, height: STORY_STAGE_COMPACT_VIEW.height };
-  }
+export function storyStageViewDimensionsForWidth(_viewportWidth: number) {
   return { width: STORY_STAGE_VIEW.width, height: STORY_STAGE_VIEW.height };
 }
 
