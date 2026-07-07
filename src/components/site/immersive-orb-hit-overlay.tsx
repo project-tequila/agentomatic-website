@@ -12,9 +12,7 @@ export function ImmersiveOrbHitOverlay() {
 
   return (
     <div className="immersive-orb-hit-overlay" style={hitZone.style}>
-      <div className="immersive-orb-hit-overlay__stage">
-        <SiteOrbHitZone variant="immersive" />
-      </div>
+      <SiteOrbHitZone variant="immersive" />
     </div>
   );
 }

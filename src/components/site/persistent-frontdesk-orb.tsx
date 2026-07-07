@@ -4,14 +4,10 @@ import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion"
 
 import { useHeliosVoice } from "@/lib/helios/helios-provider";
 import { useVideoFrame } from "@/lib/helios/use-video-frame";
-import { featureBandProgress } from "@/lib/story/feature-band-progress";
-import { handoffOrbShift } from "@/lib/story/handoff-reveal";
 import { usePersistentOrbHitZone } from "@/lib/story/use-persistent-orb-hit-zone";
 import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import {
-  gruntStageViewBox,
   PERSISTENT_ORB,
-  storyStageViewBox,
   storyStageViewBoxForWidth,
   persistentOrbIntensity,
   persistentOrbModeBlend,
@@ -21,9 +17,11 @@ import {
 import { cn } from "@/lib/utils";
 
 import { FrontdeskVoiceOrb } from "./frontdesk-voice-orb";
+import { HoursDayNightCycle } from "./hours-day-night-cycle";
 
 type PersistentFrontdeskOrbProps = {
   story: number;
+  hoursSceneOpacity?: number;
 };
 
 function OrbInstance({
@@ -34,7 +32,6 @@ function OrbInstance({
   intensity,
   reduceMotion,
   idSuffix,
-  shiftX = 0,
 }: {
   mode: PersistentOrbMode;
   opacity: number;
@@ -43,12 +40,11 @@ function OrbInstance({
   intensity: number;
   reduceMotion: boolean;
   idSuffix: string;
-  shiftX?: number;
 }) {
   if (opacity < 0.02) return null;
 
   return (
-    <g transform={shiftX ? `translate(${shiftX} 0)` : undefined} opacity={opacity}>
+    <g opacity={opacity}>
       <g className={cn("persistent-orb__instance", `persistent-orb__instance--${mode}`)}>
         <FrontdeskVoiceOrb
           cx={PERSISTENT_ORB.cx}
@@ -65,7 +61,7 @@ function OrbInstance({
   );
 }
 
-export function PersistentFrontdeskOrb({ story }: PersistentFrontdeskOrbProps) {
+export function PersistentFrontdeskOrb({ story, hoursSceneOpacity = 0 }: PersistentFrontdeskOrbProps) {
   const reduceMotion = usePrefersReducedMotion();
   const spatial = useStorySpatialLayout();
   const { helios } = useHeliosVoice();
@@ -79,56 +75,50 @@ export function PersistentFrontdeskOrb({ story }: PersistentFrontdeskOrbProps) {
 
   const { mode, blend, nextMode } = persistentOrbModeBlend(story);
   const intensity = persistentOrbIntensity(story);
-  const handoffProgress = featureBandProgress(story, "handoff");
-  const handoffSpatial = {
-    caller: spatial.handoff.caller,
-    callerConnectX: spatial.handoff.callerConnectX,
-    humanStart: spatial.handoff.humanStart,
-    humanEnd: spatial.handoff.humanEnd,
-    orbShift: spatial.handoff.orbShift,
-  };
-  const orbShiftX = handoffProgress !== null ? handoffOrbShift(handoffProgress, handoffSpatial) : 0;
-
-  const orbViewBox =
-    mode === "grunt" || nextMode === "grunt"
-      ? gruntStageViewBox()
-      : storyStageViewBoxForWidth(spatial.viewportWidth);
+  const orbViewBox = storyStageViewBoxForWidth(spatial.viewportWidth);
   const orbVisualStyle = { opacity: hitZone.opacity };
 
   return (
-    <div className="story-illustration-bg__persistent-orb" style={orbVisualStyle}>
-      <svg
-        viewBox={orbViewBox}
-        className="story-illustration-bg__persistent-orb-svg"
-        preserveAspectRatio={spatial.preserveAspectRatio}
-        suppressHydrationWarning
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden
-      >
-        <OrbInstance
-          mode={mode}
-          opacity={1 - blend}
-          pointerX={pointerX}
-          pointerY={pointerY}
-          intensity={intensity}
-          reduceMotion={!!reduceMotion}
-          idSuffix="a"
-          shiftX={orbShiftX}
-        />
-        {blend > 0.02 ? (
+    <div
+      className="story-illustration-bg__persistent-orb"
+      data-orb-mode={mode}
+      style={orbVisualStyle}
+    >
+      <div className="story-illustration-bg__persistent-orb-pin" aria-hidden>
+        {hoursSceneOpacity > 0.02 ? (
+          <HoursDayNightCycle story={story} sceneOpacity={hoursSceneOpacity} />
+        ) : null}
+        <svg
+          viewBox={orbViewBox}
+          className="story-illustration-bg__persistent-orb-svg"
+          preserveAspectRatio={spatial.preserveAspectRatio}
+          suppressHydrationWarning
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden
+        >
           <OrbInstance
-            mode={nextMode}
-            opacity={blend}
+            mode={mode}
+            opacity={1 - blend}
             pointerX={pointerX}
             pointerY={pointerY}
             intensity={intensity}
             reduceMotion={!!reduceMotion}
-            idSuffix="b"
-            shiftX={orbShiftX}
+            idSuffix="a"
           />
-        ) : null}
-      </svg>
+          {blend > 0.02 ? (
+            <OrbInstance
+              mode={nextMode}
+              opacity={blend}
+              pointerX={pointerX}
+              pointerY={pointerY}
+              intensity={intensity}
+              reduceMotion={!!reduceMotion}
+              idSuffix="b"
+            />
+          ) : null}
+        </svg>
+      </div>
     </div>
   );
 }

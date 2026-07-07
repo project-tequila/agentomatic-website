@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { DemoCallProvider, useDemoCall } from "@/lib/demo-call/demo-call-context";
 
 import { DemoCallPanel } from "./demo-call-panel";
+import { SiteMagneticEnhancer } from "./site-magnetic-enhancer";
 import { SiteOrbHitZone } from "./site-orb-hit-zone";
 
 type SiteDemoCallRootProps = {
@@ -18,6 +19,7 @@ export function SiteDemoCallRoot({ children }: SiteDemoCallRootProps) {
 
   return (
     <DemoCallProvider>
+      <SiteMagneticEnhancer />
       {children}
       <DemoCallPanel />
       {!isHome ? <SiteOrbHitZone variant="floating" /> : null}

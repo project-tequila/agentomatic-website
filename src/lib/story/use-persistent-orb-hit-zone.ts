@@ -4,14 +4,9 @@ import type { CSSProperties } from "react";
 
 import { useHeliosVoice } from "@/lib/helios/helios-provider";
 import { useVideoFrame } from "@/lib/helios/use-video-frame";
-import { featureBandProgress } from "@/lib/story/feature-band-progress";
-import { handoffOrbShift } from "@/lib/story/handoff-reveal";
 import {
-  gruntStageViewBox,
   persistentOrbDashboardOverlay,
-  persistentOrbHitShiftPercent,
   persistentOrbHitSizePercent,
-  persistentOrbModeBlend,
   persistentOrbOpacity,
   persistentOrbVisible,
   storyStageViewBoxForWidth,
@@ -33,24 +28,10 @@ export function usePersistentOrbHitZone() {
     return { visible: false as const, style: undefined, opacity: 0 };
   }
 
-  const { mode, nextMode } = persistentOrbModeBlend(story);
-  const handoffProgress = featureBandProgress(story, "handoff");
-  const handoffSpatial = {
-    caller: spatial.handoff.caller,
-    callerConnectX: spatial.handoff.callerConnectX,
-    humanStart: spatial.handoff.humanStart,
-    humanEnd: spatial.handoff.humanEnd,
-    orbShift: spatial.handoff.orbShift,
-  };
-  const orbShiftX = handoffProgress !== null ? handoffOrbShift(handoffProgress, handoffSpatial) : 0;
-  const orbViewBox =
-    mode === "grunt" || nextMode === "grunt"
-      ? gruntStageViewBox()
-      : storyStageViewBoxForWidth(spatial.viewportWidth);
+  const orbViewBox = storyStageViewBoxForWidth(spatial.viewportWidth);
 
   const style = {
     opacity: layerOpacity,
-    "--story-orb-hit-shift-x": `${persistentOrbHitShiftPercent(orbShiftX, orbViewBox)}%`,
     "--story-orb-hit-size-pct": `${persistentOrbHitSizePercent(orbViewBox)}%`,
   } as CSSProperties;
 

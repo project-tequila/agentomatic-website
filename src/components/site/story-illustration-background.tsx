@@ -8,13 +8,9 @@ import { act1BeatOpacity } from "@/lib/story/act1-band-progress";
 import { featureBandOpacity } from "@/lib/story/feature-band-progress";
 import { illustrationAtmosphere, visibleIllustrationScenes } from "@/lib/story/illustration-scenes";
 import { storyToSceneProgress } from "@/lib/story/chapters";
-import {
-  useStoryVisualScale,
-  type StoryVisualScaleScene,
-} from "@/lib/story/use-story-visual-scale";
+import { persistentOrbMode } from "@/lib/story/persistent-orb";
 import { cn } from "@/lib/utils";
 
-import { HoursDayNightCycle } from "./hours-day-night-cycle";
 import { ConcurrentScene } from "./concurrent-scene";
 import { GruntScene } from "./grunt-scene";
 import { HandoffScene } from "./handoff-scene";
@@ -22,7 +18,6 @@ import { IntegrationsScene } from "./integrations-scene";
 import { MultilingualScene } from "./multilingual-scene";
 import { PersistentFrontdeskOrb } from "./persistent-frontdesk-orb";
 import { RemindersScene } from "./reminders-scene";
-import { DashboardScene } from "./dashboard-scene";
 import { StoryIllustration } from "./story-illustrations";
 
 export function StoryIllustrationBackground() {
@@ -41,23 +36,11 @@ export function StoryIllustrationBackground() {
   const dashboardOpacity = featureBandOpacity(story, "dashboard");
   const concurrentOpacity = featureBandOpacity(story, "concurrent");
   const gruntOpacity = act1BeatOpacity(story, "grunt");
-  const showDashboardScene = dashboardOpacity > 0.02 && remindersOpacity < 0.02;
+  const showDashboardScene = dashboardOpacity > 0.02;
+  const orbMode = persistentOrbMode(story);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const stageAnchorRef = useRef<HTMLDivElement>(null);
-
-  const activeVisualScene: StoryVisualScaleScene =
-    gruntOpacity > 0.02
-      ? "grunt"
-      : integrationsOpacity > 0.02
-        ? "integrations"
-        : handoffOpacity > 0.02
-          ? "handoff"
-          : remindersOpacity > 0.02
-            ? "reminders"
-            : "default";
-
-  useStoryVisualScale(stageAnchorRef, rootRef, activeVisualScene);
 
   useEffect(() => {
     const onMove = (event: PointerEvent) => {
@@ -82,6 +65,7 @@ export function StoryIllustrationBackground() {
         showDashboardScene && "story-illustration-bg--dashboard",
         gruntOpacity > 0.02 && "story-illustration-bg--grunt",
         hoursOpacity > 0.02 && "story-illustration-bg--hours",
+        `story-illustration-bg--orb-${orbMode}`,
       )}
       aria-hidden
     >
@@ -116,10 +100,6 @@ export function StoryIllustrationBackground() {
               ) : null}
             </div>
           ))}
-
-          {hoursScene && hoursScene.opacity > 0.02 ? (
-            <HoursDayNightCycle story={story} sceneOpacity={hoursScene.opacity} />
-          ) : null}
 
           {gruntOpacity > 0.02 ? (
             <div
@@ -175,18 +155,13 @@ export function StoryIllustrationBackground() {
             </div>
           ) : null}
 
-          {showDashboardScene ? (
-            <div
-              className="story-illustration-bg__scene story-illustration-bg__scene--dashboard"
-              style={{ opacity: dashboardOpacity }}
-            >
-              <DashboardScene story={story} opacity={dashboardOpacity} />
-            </div>
-          ) : null}
-
-          <PersistentFrontdeskOrb story={story} />
         </div>
       </div>
+
+      <PersistentFrontdeskOrb
+        story={story}
+        hoursSceneOpacity={hoursScene?.opacity ?? 0}
+      />
 
       <div className="story-illustration-bg__fade-edges" aria-hidden />
       <div className="story-illustration-bg__fade-bottom" aria-hidden />
