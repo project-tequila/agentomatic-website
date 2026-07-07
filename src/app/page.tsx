@@ -6,7 +6,6 @@ import { Immersive3DSite } from "@/components/site/immersive-3d-site";
 import { RumikStory } from "@/components/site/rumik-story";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SitePageShell } from "@/components/site/site-page-shell";
-import { TrustStatsBand } from "@/components/site/trust-stats-band";
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -21,7 +20,6 @@ export default function Home() {
       <HomeSeoContent />
       <Immersive3DSite>
         <RumikStory />
-        <TrustStatsBand />
         <ContactSection />
         <SiteFooter />
       </Immersive3DSite>
