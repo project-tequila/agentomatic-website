@@ -1,7 +1,7 @@
 "use client";
 
 import type { IllustrationSceneId } from "@/lib/story/illustration-scenes";
-import { storyStageViewBox } from "@/lib/story/persistent-orb";
+import { storyStageViewBoxForWidth } from "@/lib/story/persistent-orb";
 import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 
 import type { ComponentType, ReactNode } from "react";
@@ -26,8 +26,9 @@ function Frame({ children, className }: { children?: React.ReactNode; className?
   const spatial = useStorySpatialLayout();
   return (
     <svg
-      viewBox={storyStageViewBox()}
+      viewBox={storyStageViewBoxForWidth(spatial.viewportWidth)}
       preserveAspectRatio={spatial.preserveAspectRatio}
+      suppressHydrationWarning
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}

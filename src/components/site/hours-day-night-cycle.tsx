@@ -4,7 +4,7 @@ import { interpolate } from "@helios-project/core";
 import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
-import { PERSISTENT_ORB, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { PERSISTENT_ORB, storyStageViewBoxForWidth } from "@/lib/story/persistent-orb";
 import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 
 type HoursDayNightCycleProps = {
@@ -57,7 +57,12 @@ export function HoursDayNightCycle({ story, sceneOpacity }: HoursDayNightCyclePr
     <div className="hours-day-cycle-wrap" style={{ opacity: sceneOpacity }} aria-hidden>
       <div className="hours-day-cycle__sky" style={{ opacity: nightSky }} />
 
-      <svg viewBox={storyStageViewBox()} className="hours-day-cycle" preserveAspectRatio={spatial.preserveAspectRatio}>
+      <svg
+        viewBox={storyStageViewBoxForWidth(spatial.viewportWidth)}
+        className="hours-day-cycle"
+        preserveAspectRatio={spatial.preserveAspectRatio}
+        suppressHydrationWarning
+      >
         <defs>
           <radialGradient id="hoursDayGlow" cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#ffc857" stopOpacity="0.45" />
@@ -83,28 +88,31 @@ export function HoursDayNightCycle({ story, sceneOpacity }: HoursDayNightCyclePr
           />
         ))}
 
-        <circle cx={CX} cy={CY} r={ORBIT_R + 6} fill="url(#hoursDayGlow)" opacity={dayGlow * 0.65} />
+        <g transform={`translate(${CX} ${CY})`}>
+          <circle r={ORBIT_R + 6} fill="url(#hoursDayGlow)" opacity={dayGlow * 0.65} />
 
-        <circle
-          cx={CX}
-          cy={CY}
-          r={ORBIT_R}
-          fill="none"
-          stroke="url(#hoursOrbit)"
-          strokeWidth="1.5"
-          strokeDasharray="5 7"
-          opacity={0.55}
-          className={reduceMotion ? undefined : "hours-day-cycle__orbit"}
-        />
+          <g className={reduceMotion ? undefined : "hours-day-cycle__orbit"}>
+            <circle
+              r={ORBIT_R}
+              fill="none"
+              stroke="url(#hoursOrbit)"
+              strokeWidth="1.5"
+              strokeDasharray="5 7"
+              opacity={0.55}
+            />
 
-        {[0, 1, 2, 3].map((tick) => {
-          const tickAngle = (tick / 4) * Math.PI * 2 - Math.PI / 2;
-          const x1 = CX + Math.cos(tickAngle) * (ORBIT_R - 8);
-          const y1 = CY + Math.sin(tickAngle) * (ORBIT_R - 8);
-          const x2 = CX + Math.cos(tickAngle) * (ORBIT_R + 8);
-          const y2 = CY + Math.sin(tickAngle) * (ORBIT_R + 8);
-          return <line key={tick} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(245,242,235,0.35)" strokeWidth="1.2" />;
-        })}
+            {[0, 1, 2, 3].map((tick) => {
+              const tickAngle = (tick / 4) * Math.PI * 2 - Math.PI / 2;
+              const x1 = Math.cos(tickAngle) * (ORBIT_R - 8);
+              const y1 = Math.sin(tickAngle) * (ORBIT_R - 8);
+              const x2 = Math.cos(tickAngle) * (ORBIT_R + 8);
+              const y2 = Math.sin(tickAngle) * (ORBIT_R + 8);
+              return (
+                <line key={tick} x1={x1} y1={y1} x2={x2} y2={y2} stroke="rgba(245,242,235,0.35)" strokeWidth="1.2" />
+              );
+            })}
+          </g>
+        </g>
 
         <g transform={`translate(${orbX} ${orbY})`}>
           <g opacity={sunWeight}>

@@ -1,6 +1,7 @@
-import { HANDOFF_SPATIAL_COMPACT, HANDOFF_SPATIAL_DESKTOP } from "./handoff-reveal";
+import { HANDOFF_SPATIAL_DESKTOP } from "./handoff-reveal";
 import {
   PERSISTENT_ORB,
+  PERSISTENT_ORB_HOURS_ORBIT_RADIUS,
   STORY_ORB_SCALE,
   STORY_SATELLITE_ICON_SCALE,
   storyPreserveForWidth,
@@ -41,12 +42,9 @@ export function lerpRect(from: StoryRect, to: StoryRect, t: number): StoryRect {
   };
 }
 
-/** Orb-connected satellite scale — matches --story-satellite-icon-scale in CSS. */
-export function satelliteScaleForWidth(viewportWidth: number): number {
-  const t = storyCompactT(viewportWidth);
-  if (t === 0) return STORY_SATELLITE_ICON_SCALE;
-  if (t === 1) return 0.72;
-  return STORY_SATELLITE_ICON_SCALE - t * 0.045;
+/** Orb-connected satellite scale — same ratio on mobile and desktop. */
+export function satelliteScaleForWidth(_viewportWidth: number): number {
+  return STORY_SATELLITE_ICON_SCALE;
 }
 
 export type ConcurrentSpatialLayout = {
@@ -55,14 +53,11 @@ export type ConcurrentSpatialLayout = {
   satelliteScale: number;
 };
 
-export function concurrentLayoutForWidth(viewportWidth: number): ConcurrentSpatialLayout {
-  const t = storyCompactT(viewportWidth);
-  // Desktop orb is CSS-scaled (--story-orb-scale ≈ 0.75); pull phone orbit inward to match.
-  const desktopRadiusScale = STORY_ORB_SCALE;
+export function concurrentLayoutForWidth(_viewportWidth: number): ConcurrentSpatialLayout {
   return {
-    radiusScale: lerpValue(desktopRadiusScale, 0.74, t),
-    ySquash: lerpValue(0.82, 0.76, t),
-    satelliteScale: satelliteScaleForWidth(viewportWidth),
+    radiusScale: STORY_ORB_SCALE,
+    ySquash: 0.82,
+    satelliteScale: STORY_SATELLITE_ICON_SCALE,
   };
 }
 
@@ -81,13 +76,14 @@ export type GruntSpatialLayout = {
   satelliteScale: number;
 };
 
-export function gruntLayoutForWidth(viewportWidth: number): GruntSpatialLayout {
-  const t = storyCompactT(viewportWidth);
-  const moduleRadius = lerpValue(GRUNT_MODULE_RADIUS, 118, t);
+/** Hub module card boost on mobile/tablet only (scheduling, routing, etc.). */
+export const GRUNT_HUB_CARD_SCALE_COMPACT = 1.25;
+
+export function gruntLayoutForWidth(_viewportWidth: number): GruntSpatialLayout {
   return {
-    moduleRadius,
-    modules: gruntModulesForRadius(moduleRadius),
-    satelliteScale: satelliteScaleForWidth(viewportWidth),
+    moduleRadius: GRUNT_MODULE_RADIUS,
+    modules: gruntModulesForRadius(GRUNT_MODULE_RADIUS),
+    satelliteScale: STORY_SATELLITE_ICON_SCALE,
   };
 }
 
@@ -99,24 +95,15 @@ export type MultilingualSpatialLayout = {
   satelliteScale: number;
 };
 
-export function multilingualLayoutForWidth(viewportWidth: number): MultilingualSpatialLayout {
-  const t = storyCompactT(viewportWidth);
-  const from = {
-    x: MULTILINGUAL_CARD_DESKTOP.x,
-    y: MULTILINGUAL_CARD_DESKTOP.y,
-    w: MULTILINGUAL_CARD_DESKTOP.width,
-    h: MULTILINGUAL_CARD_DESKTOP.height,
-  };
-  const to = {
-    x: MULTILINGUAL_CARD_COMPACT.x,
-    y: MULTILINGUAL_CARD_COMPACT.y,
-    w: MULTILINGUAL_CARD_COMPACT.width,
-    h: MULTILINGUAL_CARD_COMPACT.height,
-  };
-  const rect = lerpRect(from, to, t);
+export function multilingualLayoutForWidth(_viewportWidth: number): MultilingualSpatialLayout {
   return {
-    card: { x: rect.x, y: rect.y, width: rect.w, height: rect.h },
-    satelliteScale: satelliteScaleForWidth(viewportWidth),
+    card: {
+      x: MULTILINGUAL_CARD_DESKTOP.x,
+      y: MULTILINGUAL_CARD_DESKTOP.y,
+      width: MULTILINGUAL_CARD_DESKTOP.width,
+      height: MULTILINGUAL_CARD_DESKTOP.height,
+    },
+    satelliteScale: STORY_SATELLITE_ICON_SCALE,
   };
 }
 
@@ -129,20 +116,15 @@ export type HandoffSpatialLayout = {
   satelliteScale: number;
 };
 
-export function handoffLayoutForWidth(viewportWidth: number): HandoffSpatialLayout {
-  const t = storyCompactT(viewportWidth);
+export function handoffLayoutForWidth(_viewportWidth: number): HandoffSpatialLayout {
   const desktop = HANDOFF_SPATIAL_DESKTOP;
-  const compact = HANDOFF_SPATIAL_COMPACT;
-  const caller = lerpPoint(desktop.caller, compact.caller, t);
-  const humanStart = lerpPoint(desktop.humanStart, compact.humanStart, t);
-  const humanEnd = lerpPoint(desktop.humanEnd, compact.humanEnd, t);
   return {
-    caller,
-    callerConnectX: lerpValue(desktop.callerConnectX, compact.callerConnectX, t),
-    humanStart,
-    humanEnd,
-    orbShift: lerpValue(desktop.orbShift, compact.orbShift, t),
-    satelliteScale: satelliteScaleForWidth(viewportWidth),
+    caller: desktop.caller,
+    callerConnectX: desktop.callerConnectX,
+    humanStart: desktop.humanStart,
+    humanEnd: desktop.humanEnd,
+    orbShift: desktop.orbShift,
+    satelliteScale: STORY_SATELLITE_ICON_SCALE,
   };
 }
 
@@ -153,15 +135,12 @@ export type RemindersSpatialLayout = {
   satelliteScale: number;
 };
 
-export function remindersLayoutForWidth(viewportWidth: number): RemindersSpatialLayout {
-  const t = storyCompactT(viewportWidth);
-  const caller = lerpPoint({ x: 48, y: PERSISTENT_ORB.cy }, { x: 96, y: PERSISTENT_ORB.cy - 4 }, t);
-  const calendar = lerpPoint({ x: 572, y: 188 }, { x: 532, y: 172 }, t);
+export function remindersLayoutForWidth(_viewportWidth: number): RemindersSpatialLayout {
   return {
-    caller,
-    callerConnectX: caller.x + 44,
-    calendar,
-    satelliteScale: satelliteScaleForWidth(viewportWidth),
+    caller: { x: 48, y: PERSISTENT_ORB.cy },
+    callerConnectX: 48 + 44,
+    calendar: { x: 572, y: 188 },
+    satelliteScale: STORY_SATELLITE_ICON_SCALE,
   };
 }
 
@@ -177,12 +156,11 @@ export type DashboardSpatialLayout = {
   satelliteScale: number;
 };
 
-export function dashboardLayoutForWidth(viewportWidth: number): DashboardSpatialLayout {
-  const t = storyCompactT(viewportWidth);
+export function dashboardLayoutForWidth(_viewportWidth: number): DashboardSpatialLayout {
   return {
-    thread: lerpRect(DASHBOARD_THREAD_DESKTOP, DASHBOARD_THREAD_COMPACT, t),
-    actionIcons: lerpRect(DASHBOARD_ICONS_DESKTOP, DASHBOARD_ICONS_COMPACT, t),
-    satelliteScale: satelliteScaleForWidth(viewportWidth),
+    thread: DASHBOARD_THREAD_DESKTOP,
+    actionIcons: DASHBOARD_ICONS_DESKTOP,
+    satelliteScale: STORY_SATELLITE_ICON_SCALE,
   };
 }
 
@@ -191,12 +169,10 @@ export type HoursSpatialLayout = {
   satelliteScale: number;
 };
 
-export function hoursLayoutForWidth(viewportWidth: number): HoursSpatialLayout {
-  const t = storyCompactT(viewportWidth);
-  const baseOrbit = 132 * STORY_SATELLITE_ICON_SCALE;
+export function hoursLayoutForWidth(_viewportWidth: number): HoursSpatialLayout {
   return {
-    orbitRadius: lerpValue(baseOrbit, baseOrbit * 0.88, t),
-    satelliteScale: satelliteScaleForWidth(viewportWidth),
+    orbitRadius: PERSISTENT_ORB_HOURS_ORBIT_RADIUS,
+    satelliteScale: STORY_SATELLITE_ICON_SCALE,
   };
 }
 

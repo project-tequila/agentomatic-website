@@ -59,7 +59,7 @@ function integrationNodesAtRadius(radius: number): IntegrationNode[] {
 export const INTEGRATION_NODES_DESKTOP: readonly IntegrationNode[] = integrationNodesAtRadius(200);
 
 /** Tighter ring — survives portrait slice crop above the copy band. */
-export const INTEGRATION_NODES_COMPACT: readonly IntegrationNode[] = integrationNodesAtRadius(152);
+export const INTEGRATION_NODES_COMPACT: readonly IntegrationNode[] = integrationNodesAtRadius(178);
 
 /** @deprecated use integrationLayoutForWidth */
 export const INTEGRATION_NODES = INTEGRATION_NODES_DESKTOP;
@@ -87,21 +87,8 @@ function lerpIntegrationNodes(
   });
 }
 
-/** Responsive node positions + icon scale for slice-crop safe zones. */
-export function integrationLayoutForWidth(viewportWidth: number): IntegrationLayout {
-  if (viewportWidth <= 480) {
-    return { nodes: INTEGRATION_NODES_COMPACT, satelliteScale: 0.72, hubScale: 0.88 };
-  }
-
-  if (viewportWidth <= 900) {
-    const t = (900 - viewportWidth) / (900 - 480);
-    return {
-      nodes: lerpIntegrationNodes(INTEGRATION_NODES_DESKTOP, INTEGRATION_NODES_COMPACT, t * 0.88),
-      satelliteScale: 0.62 + (0.72 - 0.62) * (1 - t),
-      hubScale: 0.72 + (0.88 - 0.72) * (1 - t),
-    };
-  }
-
+/** Same ring geometry on all viewports — channels orbit the centered orb like desktop. */
+export function integrationLayoutForWidth(_viewportWidth: number): IntegrationLayout {
   return { nodes: INTEGRATION_NODES_DESKTOP, satelliteScale: 0.62, hubScale: 0.72 };
 }
 

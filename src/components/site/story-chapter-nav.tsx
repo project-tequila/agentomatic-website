@@ -13,6 +13,7 @@ const chapters = [
   { id: "features", label: "Features", progress: ACT1_END + (FEATURES_END - ACT1_END) * 0.5 },
   { id: "integrations", label: "Integrations", progress: 0.513 },
   { id: "handoff", label: "Handoff", progress: 0.676 },
+  { id: "dashboard", label: "Command center", progress: 0.88 },
   { id: "demo", label: "Demo", progress: FEATURES_END },
 ] as const;
 

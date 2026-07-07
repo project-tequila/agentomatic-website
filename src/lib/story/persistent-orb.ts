@@ -20,8 +20,9 @@ export const STORY_PRESERVE_TABLET_MAX = 900;
 
 export type StoryPreserveAspectRatio = typeof STORY_STAGE_PRESERVE | typeof STORY_STAGE_PRESERVE_MEET;
 
-export function storyPreserveForWidth(viewportWidth: number): StoryPreserveAspectRatio {
-  return viewportWidth <= STORY_PRESERVE_TABLET_MAX ? STORY_STAGE_PRESERVE_MEET : STORY_STAGE_PRESERVE;
+/** Slice on all viewports — orb stays centered; satellites orbit in the same ratio as desktop. */
+export function storyPreserveForWidth(_viewportWidth: number): StoryPreserveAspectRatio {
+  return STORY_STAGE_PRESERVE;
 }
 
 /** Bleed for orb waves, glows, and edge labels beyond the 720×440 canvas. */
@@ -41,6 +42,13 @@ export const STORY_ORB_SCALE = 0.75;
 
 /** Outermost voice wave radius in SVG user units (FrontdeskVoiceOrb). */
 export const PERSISTENT_ORB_OUTER_WAVE_RADIUS = 104;
+
+/** Max wave ripple amplitude beyond the outer radius (FrontdeskVoiceOrb). */
+export const PERSISTENT_ORB_WAVE_AMPLITUDE = 12;
+
+/** Hours chapter dashed orbit — fully encloses outer waves with comfortable inset. */
+export const PERSISTENT_ORB_HOURS_ORBIT_RADIUS =
+  PERSISTENT_ORB_OUTER_WAVE_RADIUS + PERSISTENT_ORB_WAVE_AMPLITUDE + 36;
 
 export function viewBoxDimensions(viewBox: string) {
   const parts = viewBox.trim().split(/\s+/).map(Number);
@@ -77,9 +85,62 @@ export const STORY_STAGE_VIEW = {
   minY: Math.round(PERSISTENT_ORB.cy - (STORY_STAGE_BASE_HEIGHT * STORY_STAGE_FIT_MARGIN) / 2),
 } as const;
 
+/** Hard cap for computed mobile fill scale — orb-centered zoom with safety margins. */
+export const STORY_VISUAL_SCALE_MAX = 2.0125;
+
+/** Tighter padding on mobile/tablet — larger orb at same meet-fit width. */
+const STORY_STAGE_COMPACT_GLOW_PAD = 32;
+const STORY_STAGE_COMPACT_FIT_MARGIN = 1;
+
+function storyStageViewForPadding(glowPad: number, fitMargin: number) {
+  const baseWidth = PERSISTENT_ORB.width + glowPad * 2;
+  const baseHeight = PERSISTENT_ORB.height + glowPad * 2;
+  return {
+    width: Math.round(baseWidth * fitMargin),
+    height: Math.round(baseHeight * fitMargin),
+    minX: Math.round(PERSISTENT_ORB.cx - (baseWidth * fitMargin) / 2),
+    minY: Math.round(PERSISTENT_ORB.cy - (baseHeight * fitMargin) / 2),
+  };
+}
+
+const STORY_STAGE_COMPACT_VIEW = storyStageViewForPadding(
+  STORY_STAGE_COMPACT_GLOW_PAD,
+  STORY_STAGE_COMPACT_FIT_MARGIN,
+);
+
+/** Desktop / wide viewBox string. */
 export function storyStageViewBox() {
   const { minX, minY, width, height } = STORY_STAGE_VIEW;
   return `${minX} ${minY} ${width} ${height}`;
+}
+
+/** Same viewBox on all viewports — keeps orb + satellite proportions aligned with desktop. */
+export function storyStageViewBoxForWidth(_viewportWidth: number) {
+  return storyStageViewBox();
+}
+
+export function storyStageViewDimensionsForWidth(_viewportWidth: number) {
+  return { width: STORY_STAGE_VIEW.width, height: STORY_STAGE_VIEW.height };
+}
+
+/**
+ * Max CSS --story-visual-scale for meet-fit SVG inside the stage anchor box.
+ * Uses vertical slack on width-limited portrait stages.
+ */
+export function storyMeetFillScale(
+  stageWidth: number,
+  stageHeight: number,
+  viewBoxWidth: number = STORY_STAGE_VIEW.width,
+  viewBoxHeight: number = STORY_STAGE_VIEW.height,
+  safety = 0.96,
+): number {
+  if (stageWidth <= 0 || stageHeight <= 0) return 1;
+  const meet = Math.min(stageWidth / viewBoxWidth, stageHeight / viewBoxHeight);
+  const fitW = viewBoxWidth * meet;
+  const fitH = viewBoxHeight * meet;
+  const widthLimited = fitW >= stageWidth - 0.5;
+  const rawFill = widthLimited ? stageHeight / fitH : stageWidth / fitW;
+  return Math.max(1, Math.min(rawFill * safety, STORY_VISUAL_SCALE_MAX));
 }
 
 /** Grunt hub extends beyond the orb canvas — asymmetric viewBox keeps top labels inside the frame. */

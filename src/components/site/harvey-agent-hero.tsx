@@ -4,14 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MULTILINGUAL_LANGUAGE_COUNT } from "@/lib/story/multilingual-reveal";
 import {
-  Check,
-  PhoneCall,
   CalendarCheck,
-  Sparkles,
   ClipboardList,
+  PhoneCall,
+  Sparkles,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
+import { LiveAgentConsole } from "@/components/site/live-agent-console";
 import { cn } from "@/lib/utils";
 
 const HARVEY_NAV_LINKS = [
@@ -21,14 +20,7 @@ const HARVEY_NAV_LINKS = [
   { href: "/contact", label: "contact" },
 ] as const;
 
-type Step = {
-  title: string;
-  think: string;
-  detail: string;
-  icon: LucideIcon;
-};
-
-const STEPS: Step[] = [
+const FRONTDESK_STEPS = [
   {
     title: "incoming call",
     think: "answering on the first ring…",
@@ -53,13 +45,10 @@ const STEPS: Step[] = [
     detail: "booked · confirmation sent to the caller",
     icon: ClipboardList,
   },
-];
+] as const;
 
-const SUMMARY =
+const FRONTDESK_SUMMARY =
   "Booked a Friday 2:30pm deep clean, confirmed the address, and texted a confirmation. Handed a clean summary to your team.";
-
-const THINK_MS = 1400;
-const DONE_MS = 1100;
 
 export function HarveyAgentHero({ hideNav = false }: { hideNav?: boolean }) {
   return (
@@ -104,7 +93,16 @@ export function HarveyAgentHero({ hideNav = false }: { hideNav?: boolean }) {
             </div>
           </div>
 
-          <AgentConsole />
+          <LiveAgentConsole
+            id="how"
+            variant="harvey"
+            agentLabel="frontdesk agent"
+            statusLabel="live call"
+            goalPrefix="goal:"
+            goalText="answer the call, book the request, and hand off a summary."
+            steps={[...FRONTDESK_STEPS]}
+            summary={FRONTDESK_SUMMARY}
+          />
         </section>
 
         <section className="harvey-stats" aria-label="results">
@@ -271,153 +269,5 @@ function HarveyNav() {
         </nav>
       </div>
     </>
-  );
-}
-
-type Phase = "thinking" | "done";
-
-function AgentConsole() {
-  const [index, setIndex] = useState(0);
-  const [phase, setPhase] = useState<Phase>("thinking");
-  const [showSummary, setShowSummary] = useState(false);
-  const [typed, setTyped] = useState("");
-
-  useEffect(() => {
-    const reduce =
-      typeof window !== "undefined" &&
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    let typeInterval: ReturnType<typeof setInterval> | undefined;
-    const wait = (ms: number) => new Promise<void>((r) => timers.push(setTimeout(r, ms)));
-
-    let cancelled = false;
-
-    const typeSummary = () =>
-      new Promise<void>((resolve) => {
-        let i = 0;
-        const tick = reduce ? SUMMARY.length : 1;
-        typeInterval = setInterval(() => {
-          i = Math.min(SUMMARY.length, i + tick);
-          setTyped(SUMMARY.slice(0, i));
-          if (i >= SUMMARY.length) {
-            if (typeInterval) clearInterval(typeInterval);
-            resolve();
-          }
-        }, 22);
-      });
-
-    const loop = async () => {
-      while (!cancelled) {
-        setShowSummary(false);
-        setTyped("");
-        for (let i = 0; i < STEPS.length; i += 1) {
-          if (cancelled) return;
-          setIndex(i);
-          setPhase("thinking");
-          await wait(reduce ? 500 : THINK_MS);
-          if (cancelled) return;
-          setPhase("done");
-          await wait(reduce ? 350 : DONE_MS);
-        }
-        if (cancelled) return;
-        setShowSummary(true);
-        await typeSummary();
-        await wait(3200);
-      }
-    };
-
-    loop();
-
-    return () => {
-      cancelled = true;
-      timers.forEach(clearTimeout);
-      if (typeInterval) clearInterval(typeInterval);
-    };
-  }, []);
-
-  return (
-    <div className="harvey-console" id="how" aria-label="agent working">
-      <div className="harvey-console__bar">
-        <div className="harvey-console__id">
-          <span className="harvey-console__avatar" aria-hidden>
-            <Sparkles size={14} strokeWidth={2} />
-          </span>
-          frontdesk agent
-        </div>
-        <span className="harvey-status">
-          <span className="harvey-status__dot" aria-hidden />
-          live call
-        </span>
-      </div>
-
-      <div className="harvey-console__body">
-        <p className="harvey-console__goal">
-          <strong>goal:</strong> answer the call, book the request, and hand off
-          a summary.
-        </p>
-
-        <div className="harvey-steps">
-          {STEPS.map((step, i) => {
-            const state =
-              i < index || (i === index && phase === "done")
-                ? "done"
-                : i === index
-                  ? "active"
-                  : "idle";
-            const Icon = step.icon;
-            return (
-              <div
-                key={step.title}
-                className={`harvey-step${state === "active" ? " harvey-step--active" : ""}${
-                  state === "done" ? " harvey-step--done" : ""
-                }`}
-              >
-                <span className="harvey-step__icon" aria-hidden>
-                  {state === "done" ? (
-                    <Check size={13} strokeWidth={2.5} />
-                  ) : state === "active" ? (
-                    <span className="harvey-spinner" />
-                  ) : (
-                    <Icon size={13} strokeWidth={2} />
-                  )}
-                </span>
-                <div className="harvey-step__main">
-                  <div className="harvey-step__title">{step.title}</div>
-                  <div className="harvey-step__detail">
-                    {state === "active" ? (
-                      <span className="harvey-step__think">
-                        {step.think}
-                        <span className="harvey-caret" aria-hidden>
-                          .
-                        </span>
-                      </span>
-                    ) : state === "done" ? (
-                      step.detail
-                    ) : (
-                      ""
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {showSummary ? (
-          <div className="harvey-console__output">
-            <div className="harvey-console__output-label">work product</div>
-            <p className="harvey-console__output-text">
-              {typed}
-              {typed.length < SUMMARY.length ? (
-                <span className="harvey-caret" aria-hidden>
-                  .
-                </span>
-              ) : null}
-            </p>
-          </div>
-        ) : null}
-      </div>
-    </div>
   );
 }
