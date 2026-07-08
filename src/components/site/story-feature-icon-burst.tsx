@@ -3,7 +3,9 @@
 import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
-import { STORY_STAGE_VISUAL_SCALE, STORY_SATELLITE_ICON_SCALE } from "@/lib/story/persistent-orb";
+import { STORY_SATELLITE_ICON_SCALE } from "@/lib/story/persistent-orb";
+import { storyRevealSpread } from "@/lib/story/story-scale";
+import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import { cn } from "@/lib/utils";
 
 import { remindersIconSpecs, type StoryIconSpec } from "./story-icon-glyphs";
@@ -13,8 +15,6 @@ type StoryFeatureIconBurstProps = {
   featureId: "reminders";
   sceneOpacity: number;
 };
-
-const REMINDER_ICON_SIZE = Math.round(22 * STORY_STAGE_VISUAL_SCALE * STORY_SATELLITE_ICON_SCALE);
 
 function smoothstep(t: number) {
   return t * t * (3 - 2 * t);
@@ -26,18 +26,21 @@ function reminderPopTransform(
   total: number,
   side: "left" | "right",
   reduceMotion: boolean,
+  viewportWidth: number,
+  iconScale: number,
 ) {
   const slot = 1 / (total + 0.5);
   const start = index * slot + 0.06;
   const end = start + slot * 0.72;
   const raw = Math.min(1, Math.max(0, (progress - start) / (end - start)));
   const t = reduceMotion ? (raw > 0.5 ? 1 : 0) : smoothstep(raw);
-  const fromX = side === "left" ? -88 : 88;
-  const fromY = 28;
+  const spread = storyRevealSpread(1, viewportWidth);
+  const fromX = (side === "left" ? -88 : 88) * spread;
+  const fromY = 28 * spread;
 
   return {
     opacity: t,
-    transform: `translate3d(${fromX * (1 - t)}px, ${fromY * (1 - t)}px, 0) scale(${0.35 + t * 0.65})`,
+    transform: `translate3d(${fromX * (1 - t)}px, ${fromY * (1 - t)}px, 0) scale(${(0.35 + t * 0.65) * iconScale})`,
     highlight: t,
   };
 }
@@ -45,9 +48,11 @@ function reminderPopTransform(
 function IconBubble({
   spec,
   style,
+  iconSize,
 }: {
   spec: StoryIconSpec;
   style: { opacity: number; transform: string; highlight: number };
+  iconSize: number;
 }) {
   const { Icon, color, glow, isBrand } = spec;
 
@@ -67,9 +72,9 @@ function IconBubble({
     >
       <span className="story-feature-icon__ring" aria-hidden />
       {isBrand ? (
-        <Icon size={REMINDER_ICON_SIZE} className="story-feature-icon__glyph" />
+        <Icon size={iconSize} className="story-feature-icon__glyph" />
       ) : (
-        <Icon size={REMINDER_ICON_SIZE} strokeWidth={1.75} className="story-feature-icon__glyph" />
+        <Icon size={iconSize} strokeWidth={1.75} className="story-feature-icon__glyph" />
       )}
     </div>
   );
@@ -77,14 +82,26 @@ function IconBubble({
 
 export function StoryFeatureIconBurst({ story, featureId, sceneOpacity }: StoryFeatureIconBurstProps) {
   const reduceMotion = usePrefersReducedMotion();
+  const spatial = useStorySpatialLayout();
   const progress = featureBandProgress(story, featureId);
   if (progress === null || sceneOpacity < 0.02) return null;
+
+  const iconScale = spatial.satelliteScale / STORY_SATELLITE_ICON_SCALE;
+  const iconSize = Math.round(22 * iconScale * STORY_SATELLITE_ICON_SCALE);
 
   return (
     <div className="story-feature-icon-burst" style={{ opacity: sceneOpacity }} aria-hidden>
       {remindersIconSpecs.map((spec, index) => {
-        const style = reminderPopTransform(progress, index, remindersIconSpecs.length, spec.side, !!reduceMotion);
-        return <IconBubble key={spec.id} spec={spec} style={style} />;
+        const style = reminderPopTransform(
+          progress,
+          index,
+          remindersIconSpecs.length,
+          spec.side,
+          !!reduceMotion,
+          spatial.viewportWidth,
+          iconScale,
+        );
+        return <IconBubble key={spec.id} spec={spec} style={style} iconSize={iconSize} />;
       })}
     </div>
   );

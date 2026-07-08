@@ -2,6 +2,7 @@
 
 import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
+import { useSvgGroupMagnetic } from "@/lib/motion/use-svg-group-magnetic";
 import { featureBandProgress } from "@/lib/story/feature-band-progress";
 import {
   INTEGRATION_CHANNELS,
@@ -21,15 +22,22 @@ type IntegrationsSceneProps = {
   opacity: number;
 };
 
+const CHANNEL_IDS = INTEGRATION_CHANNELS.map((ch) => ch.id);
+
 function channelNode(nodes: readonly IntegrationNode[], id: string) {
   return nodes.find((node) => node.id === id);
 }
-
 
 export function IntegrationsScene({ story, opacity: sceneOpacity }: IntegrationsSceneProps) {
   const reduceMotion = usePrefersReducedMotion();
   const spatial = useStorySpatialLayout();
   const { nodes, satelliteScale, hubScale } = spatial.integrations;
+  const { offsets, setGroupRef } = useSvgGroupMagnetic(CHANNEL_IDS, {
+    strength: 0.42,
+    maxDisplacement: 14,
+    radiusFactor: 1.2,
+    disabled: !!reduceMotion,
+  });
 
   const progress = featureBandProgress(story, "integrations");
   if (progress === null || sceneOpacity < 0.02) return null;
@@ -61,14 +69,16 @@ export function IntegrationsScene({ story, opacity: sceneOpacity }: Integrations
         nodes={nodes}
         progress={progress}
         reduceMotion={!!reduceMotion}
+        viewportWidth={spatial.viewportWidth}
       />
 
       {INTEGRATION_CHANNELS.map((channel, index) => {
         const node = channelNode(nodes, channel.id);
         if (!node) return null;
 
-        const state = integrationChannelState(progress, index, !!reduceMotion);
+        const state = integrationChannelState(progress, index, !!reduceMotion, spatial.viewportWidth);
         const side = node.x < INTEGRATION_STAGE.orbX ? -1 : 1;
+        const mag = offsets[channel.id] ?? { x: 0, y: 0 };
         const tx = node.x + state.translateX * side * 0.22;
         const ty = node.y + state.translateY * 0.22;
         const animated = state.highlight >= 0.72 && state.opacity > 0.5;
@@ -82,23 +92,30 @@ export function IntegrationsScene({ story, opacity: sceneOpacity }: Integrations
             opacity={state.opacity}
             filter={`url(#int-glow-${channel.id})`}
           >
+            {/* Magnetic pull in local hub space so layout scale stays responsive. */}
             <g
-              className={cn(animated && "integrations-scene__icon--live")}
-              style={animated ? { animationDelay: `${index * 0.18}s` } : undefined}
+              ref={(el) => setGroupRef(channel.id, el)}
+              transform={`translate(${mag.x} ${mag.y})`}
+              className="integrations-scene__channel-hub"
             >
-              <circle
-                r={ringR}
-                fill="none"
-                stroke={channel.color}
-                strokeWidth="1.2"
-                opacity={0.18 + state.highlight * 0.35}
-                className={animated ? "integrations-scene__icon-ring" : undefined}
+              <g
+                className={cn(animated && "integrations-scene__icon--live")}
                 style={animated ? { animationDelay: `${index * 0.18}s` } : undefined}
-              />
-              <circle r={hubR} fill="url(#intGlass)" stroke={channel.color} strokeWidth="2" opacity="0.98" />
-              <circle r={hubR} fill={channel.color} opacity={0.06 + state.highlight * 0.08} />
-              <g opacity={0.82 + state.highlight * 0.18} transform={`scale(${hubScale})`}>
-                <PremiumChannelGlyph id={channel.id} color={channel.color} uid={channel.id} />
+              >
+                <circle
+                  r={ringR}
+                  fill="none"
+                  stroke={channel.color}
+                  strokeWidth="1.2"
+                  opacity={0.18 + state.highlight * 0.35}
+                  className={animated ? "integrations-scene__icon-ring" : undefined}
+                  style={animated ? { animationDelay: `${index * 0.18}s` } : undefined}
+                />
+                <circle r={hubR} fill="url(#intGlass)" stroke={channel.color} strokeWidth="2" opacity="0.98" />
+                <circle r={hubR} fill={channel.color} opacity={0.06 + state.highlight * 0.08} />
+                <g opacity={0.82 + state.highlight * 0.18} transform={`scale(${hubScale})`}>
+                  <PremiumChannelGlyph id={channel.id} color={channel.color} uid={channel.id} />
+                </g>
               </g>
             </g>
           </g>

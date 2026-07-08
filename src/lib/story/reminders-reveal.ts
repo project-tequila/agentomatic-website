@@ -34,6 +34,13 @@ export const REMINDERS_SPATIAL_DESKTOP: RemindersSpatial = {
   calendar: REMINDERS_CALENDAR,
 };
 
+/** Tighter positions for portrait / meet-fit safe zones. */
+export const REMINDERS_SPATIAL_COMPACT: RemindersSpatial = {
+  caller: { x: 82, y: PERSISTENT_ORB.cy },
+  callerConnectX: 82 + 44,
+  calendar: { x: 528, y: 182 },
+};
+
 export function remindersCallerToOrbPath(orbX = REMINDERS_STAGE.orbX, spatial: RemindersSpatial = REMINDERS_SPATIAL_DESKTOP) {
   const cy = spatial.caller.y;
   const connectX = spatial.callerConnectX;

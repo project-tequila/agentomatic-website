@@ -44,6 +44,7 @@ const ENHANCED_ATTR = "data-magnetic-enhanced";
 
 function surfaceModeFor(el: HTMLElement): SurfaceMode {
   if (el.classList.contains("story-illustration-bg__persistent-orb-pin")) return "orb-pin";
+  if (el.classList.contains("site-orb-hit--immersive")) return "orb-pin";
   if (el.classList.contains("site-orb-hit")) return "surface";
   return "inner";
 }
@@ -78,7 +79,8 @@ function applyTransform(entry: Entry) {
   const lift = el.matches(":hover") ? hoverLiftY : 0;
 
   if (mode === "orb-pin") {
-    el.style.transform = `translate(calc(-50% + ${currentX}px), calc(-50% + ${currentY}px))`;
+    el.style.setProperty("--magnetic-x", `${currentX}px`);
+    el.style.setProperty("--magnetic-y", `${currentY}px`);
     return;
   }
 
@@ -100,7 +102,8 @@ function resetTransform(entry: Entry) {
   entry.targetY = 0;
 
   if (entry.mode === "orb-pin") {
-    entry.el.style.transform = "translate(-50%, -50%)";
+    entry.el.style.setProperty("--magnetic-x", "0px");
+    entry.el.style.setProperty("--magnetic-y", "0px");
     return;
   }
 

@@ -2,6 +2,7 @@ import { interpolate } from "@helios-project/core";
 
 import { gatedBodyTypingReveal } from "./body-typing-reveal";
 import { PERSISTENT_ORB } from "./persistent-orb";
+import { storyRevealSpread } from "./story-scale";
 
 export const GRUNT_STAGE = {
   width: PERSISTENT_ORB.width,
@@ -112,10 +113,10 @@ export function gruntModuleLive(progress: number, revealAt: number) {
   return f > 0.2 && progress < revealAt + 0.78;
 }
 
-export function gruntModuleEnterOffset(progress: number, module: GruntHubModule) {
+export function gruntModuleEnterOffset(progress: number, module: GruntHubModule, viewportWidth = 1200) {
   const t = 1 - gruntModuleReveal(progress, module.revealAt);
   const ease = t * t;
-  const spread = 32;
+  const spread = 32 * storyRevealSpread(1, viewportWidth);
   switch (module.id) {
     case "schedule":
       return { x: 0, y: -spread * ease };

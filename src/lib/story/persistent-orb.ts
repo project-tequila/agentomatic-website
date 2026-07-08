@@ -1,6 +1,7 @@
 import { interpolate } from "@helios-project/core";
 
 import { ACT1_END, FEATURES_END, act1Beats, featureChapters } from "./chapters";
+import { storyCompactT } from "./story-scale";
 
 /** Canonical orb anchor — fixed across the full story scroll. */
 export const PERSISTENT_ORB = {
@@ -20,9 +21,9 @@ export const STORY_PRESERVE_TABLET_MAX = 900;
 
 export type StoryPreserveAspectRatio = typeof STORY_STAGE_PRESERVE | typeof STORY_STAGE_PRESERVE_MEET;
 
-/** Slice on all viewports — orb stays centered; satellites orbit in the same ratio as desktop. */
-export function storyPreserveForWidth(_viewportWidth: number): StoryPreserveAspectRatio {
-  return STORY_STAGE_PRESERVE;
+/** Meet on narrow viewports (no edge crop); slice on desktop for edge-to-edge fill. */
+export function storyPreserveForWidth(viewportWidth: number): StoryPreserveAspectRatio {
+  return viewportWidth <= STORY_PRESERVE_TABLET_MAX ? STORY_STAGE_PRESERVE_MEET : STORY_STAGE_PRESERVE;
 }
 
 /** Bleed for orb waves, glows, and edge labels beyond the 720×440 canvas. */
@@ -108,19 +109,37 @@ const STORY_STAGE_COMPACT_VIEW = storyStageViewForPadding(
   STORY_STAGE_COMPACT_FIT_MARGIN,
 );
 
+function storyStageViewForWidth(viewportWidth: number) {
+  const t = storyCompactT(viewportWidth);
+  if (t <= 0) return STORY_STAGE_VIEW;
+  if (t >= 1) return STORY_STAGE_COMPACT_VIEW;
+  return {
+    width: Math.round(lerpView(STORY_STAGE_VIEW.width, STORY_STAGE_COMPACT_VIEW.width, t)),
+    height: Math.round(lerpView(STORY_STAGE_VIEW.height, STORY_STAGE_COMPACT_VIEW.height, t)),
+    minX: Math.round(lerpView(STORY_STAGE_VIEW.minX, STORY_STAGE_COMPACT_VIEW.minX, t)),
+    minY: Math.round(lerpView(STORY_STAGE_VIEW.minY, STORY_STAGE_COMPACT_VIEW.minY, t)),
+  };
+}
+
+function lerpView(from: number, to: number, t: number) {
+  return from + (to - from) * t;
+}
+
 /** Desktop / wide viewBox string. */
 export function storyStageViewBox() {
   const { minX, minY, width, height } = STORY_STAGE_VIEW;
   return `${minX} ${minY} ${width} ${height}`;
 }
 
-/** Same viewBox on all viewports — keeps orb + satellite proportions aligned with desktop. */
-export function storyStageViewBoxForWidth(_viewportWidth: number) {
-  return storyStageViewBox();
+/** ViewBox interpolated between desktop bleed and compact tight frame. */
+export function storyStageViewBoxForWidth(viewportWidth: number) {
+  const { minX, minY, width, height } = storyStageViewForWidth(viewportWidth);
+  return `${minX} ${minY} ${width} ${height}`;
 }
 
-export function storyStageViewDimensionsForWidth(_viewportWidth: number) {
-  return { width: STORY_STAGE_VIEW.width, height: STORY_STAGE_VIEW.height };
+export function storyStageViewDimensionsForWidth(viewportWidth: number) {
+  const { width, height } = storyStageViewForWidth(viewportWidth);
+  return { width, height };
 }
 
 /**

@@ -10,7 +10,7 @@ import {
   concurrentVisibleNetworkPhones,
   type ConcurrentNetworkPhone,
 } from "@/lib/story/concurrent-reveal";
-import { storyStageViewBoxForWidth } from "@/lib/story/persistent-orb";
+import { STORY_SATELLITE_ICON_SCALE, storyStageViewBoxForWidth } from "@/lib/story/persistent-orb";
 import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import { cn } from "@/lib/utils";
 
@@ -29,11 +29,13 @@ function NetworkPhone({
   dualActive,
   reduceMotion,
   onToggle,
+  anchorScale,
 }: {
   phone: ConcurrentNetworkPhone;
   dualActive: boolean;
   reduceMotion: boolean;
   onToggle: (id: string) => void;
+  anchorScale: number;
 }) {
   const theme = CALL_THEME[phone.direction];
   const isPrimary = phone.depth >= 0.7;
@@ -42,7 +44,7 @@ function NetworkPhone({
 
   return (
     <g
-      transform={`translate(${phone.x - 32} ${phone.y - 59}) rotate(${phone.rotate}) scale(${phone.scale})`}
+      transform={`translate(${phone.x - 32 * anchorScale} ${phone.y - 59 * anchorScale}) rotate(${phone.rotate}) scale(${phone.scale})`}
       opacity={phone.opacity}
     >
       <g
@@ -112,6 +114,7 @@ export function ConcurrentScene({ story, opacity: sceneOpacity }: ConcurrentScen
     ySquash: spatial.concurrent.ySquash,
     satelliteScale: spatial.concurrent.satelliteScale,
   });
+  const anchorScale = spatial.concurrent.satelliteScale / STORY_SATELLITE_ICON_SCALE;
 
   return (
     <svg
@@ -122,7 +125,14 @@ export function ConcurrentScene({ story, opacity: sceneOpacity }: ConcurrentScen
       aria-hidden
       style={{ opacity: sceneOpacity }}
     >
-      <CallFlowStreams orbX={ORB.x} orbY={ORB.y} progress={progress} phones={phones} reduceMotion={!!reduceMotion} />
+      <CallFlowStreams
+        orbX={ORB.x}
+        orbY={ORB.y}
+        progress={progress}
+        phones={phones}
+        reduceMotion={!!reduceMotion}
+        viewportWidth={spatial.viewportWidth}
+      />
 
       {phones.map((phone) => (
         <NetworkPhone
@@ -131,6 +141,7 @@ export function ConcurrentScene({ story, opacity: sceneOpacity }: ConcurrentScen
           dualActive={dualPhones.has(phone.id)}
           reduceMotion={!!reduceMotion}
           onToggle={toggleDual}
+          anchorScale={anchorScale}
         />
       ))}
     </svg>

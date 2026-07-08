@@ -2,16 +2,13 @@
 
 import type { CSSProperties, ReactNode } from "react";
 
-import { HubTypingSubhead } from "@/components/site/hub-typing-subhead";
-import { StoryBellIcon, STORY_GLYPH } from "@/components/site/story-stage-glyphs";
+import { STORY_GLYPH } from "@/components/site/story-stage-glyphs";
 import {
   GRUNT_HUB_MODULES,
   GRUNT_MODULE_RADIUS,
   GRUNT_MODULE_LABELS,
   GRUNT_MODULE_SIZE,
   GRUNT_MODULE_STATUS,
-  GRUNT_PLUS_ARMS,
-  GRUNT_ROUTE_BRANCHES,
   GRUNT_STAGE,
   GRUNT_STATUS,
   gruntModuleLetterLift,
@@ -91,17 +88,9 @@ function HubModuleLabelText({
     </>
   );
 }
-const HUB_SUBHEAD_Y = 56;
-
 function hubCardTop(h: number) {
   return -h / 2 - HUB_CARD_CHROME_TOP;
 }
-
-type HubModuleTypingProps = {
-  subheadTyping: (slot: number) => number;
-  scrollPaused: boolean;
-  reduceMotion?: boolean;
-};
 
 type ModuleShellProps = {
   moduleId: GruntHubModuleId;
@@ -142,7 +131,8 @@ function ModuleShell({ moduleId, accent, focused, hovered, live, onHoverChange, 
   const top = hubCardTop(h);
   const cardH = h + HUB_CARD_CHROME_TOP;
   const clipId = `grunt-hub-clip-${moduleId}`;
-  const contentY = top + 12;
+  /** Origin for children — geometric center of the glass card (works at every cardScale). */
+  const centerY = top + cardH / 2;
 
   return (
     <g
@@ -158,7 +148,7 @@ function ModuleShell({ moduleId, accent, focused, hovered, live, onHoverChange, 
     >
       <defs>
         <clipPath id={clipId}>
-          <rect x={-halfW + 3} y={-8} width={w - 6} height={cardH - 12} rx="10" />
+          <rect x={-halfW + 3} y={-cardH / 2 + 4} width={w - 6} height={cardH - 8} rx="10" />
         </clipPath>
       </defs>
       <rect
@@ -184,58 +174,93 @@ function ModuleShell({ moduleId, accent, focused, hovered, live, onHoverChange, 
       <rect x={-halfW - 2} y={top + cardH - 4} width={w + 4} height="8" rx="4" fill="rgba(0,0,0,0.35)" opacity="0.55" />
       <rect x={-halfW} y={top} width={w} height={cardH} rx="12" fill="url(#gruntModuleGlass)" stroke={accent} strokeWidth={focused || hovered ? 1.8 : 1.1} strokeOpacity={focused || hovered ? 0.7 : 0.35} />
       <rect x={-halfW + 1} y={top + 1} width={w - 2} height={cardH - 2} rx="11" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-      <g transform={`translate(0 ${contentY})`} clipPath={`url(#${clipId})`}>
+      <g transform={`translate(0 ${centerY})`} clipPath={`url(#${clipId})`}>
         {children}
       </g>
     </g>
   );
 }
 
+const ROUTE_ACCENT = C.violet;
+/** Settled card icons — large enough to read, centered at ModuleShell origin. */
+const HUB_SETTLED_ICON_SCALE = { schedule: 2.35, chat: 2.5, data: 2.35, route: 2.45 } as const;
+
+/** Custom art assets — used for both in-flight orb icons and settled card icons on all layouts. */
+const GRUNT_MODULE_ICONS = {
+  schedule: "/story/grunt/scheduling.png",
+  conversations: "/story/grunt/conversations.png",
+  data: "/story/grunt/data-entry.png",
+  route: "/story/grunt/call-routing.png",
+} as const;
+
+function HubModuleArtIcon({
+  src,
+  scale = 1,
+  className,
+  size = 22,
+}: {
+  src: string;
+  scale?: number;
+  className?: string;
+  size?: number;
+}) {
+  const half = size / 2;
+  return (
+    <g transform={`scale(${scale})`} className={className}>
+      <image
+        href={src}
+        x={-half}
+        y={-half}
+        width={size}
+        height={size}
+        preserveAspectRatio="xMidYMid meet"
+        className="grunt-scene__module-art-icon"
+      />
+    </g>
+  );
+}
+
 export function HubGlyphCalendar({ scale = 1 }: { scale?: number }) {
   return (
-    <g transform={`scale(${scale})`} className="grunt-scene__orb-glyph grunt-scene__orb-glyph--calendar">
-      <rect x="-9" y="-10" width="18" height="16" rx="3" fill={C.ink} stroke={C.sky} strokeWidth="1.2" />
-      <rect x="-7" y="-8" width="14" height="4" rx="1.5" fill={C.sky} opacity="0.9" />
-      <rect x="-5" y="-2" width="5" height="4" rx="1" fill={C.sky} opacity="0.65" />
-      <rect x="1" y="-2" width="5" height="4" rx="1" fill="rgba(255,255,255,0.15)" />
-    </g>
+    <HubModuleArtIcon
+      src={GRUNT_MODULE_ICONS.schedule}
+      scale={scale}
+      className="grunt-scene__orb-glyph grunt-scene__orb-glyph--calendar"
+      size={24}
+    />
   );
 }
 
 export function HubGlyphPencil({ scale = 1 }: { scale?: number }) {
   return (
-    <g transform={`scale(${scale})`} className="grunt-scene__orb-glyph grunt-scene__orb-glyph--pencil">
-      <path d="M-2 8 L8 -6 L10 -4 L0 10 Z" fill={C.amber} stroke={C.amber} strokeWidth="0.8" />
-      <path d="M-2 8 L-4 10 L-1 11 L0 10 Z" fill="#e8c4b0" />
-      <path d="M8 -6 L10 -4 L6 0 L4 -2 Z" fill={C.cream} opacity="0.85" />
-    </g>
+    <HubModuleArtIcon
+      src={GRUNT_MODULE_ICONS.data}
+      scale={scale}
+      className="grunt-scene__orb-glyph grunt-scene__orb-glyph--pencil"
+      size={24}
+    />
   );
 }
 
 export function HubGlyphChat({ scale = 1, live }: { scale?: number; live?: boolean }) {
   return (
-    <g transform={`scale(${scale})`} className={cn("grunt-scene__orb-glyph grunt-scene__orb-glyph--chat", live && "grunt-scene__orb-glyph--live")}>
-      <rect x="-12" y="-8" width="14" height="10" rx="3" fill={C.ink} stroke={C.mint} strokeWidth="1.1" />
-      <path d="M-10 2 L-8 5 L-6 2" fill={C.ink} stroke={C.mint} strokeWidth="0.8" />
-      <rect x="-2" y="-11" width="14" height="10" rx="3" fill={C.slate} stroke={C.mint} strokeWidth="1.1" opacity="0.95" />
-      <path d="M0 -1 L2 2 L4 -1" fill="none" stroke={C.mint} strokeWidth="0.9" strokeLinecap="round" />
-      <circle cx="8" cy="-9" r="2" fill={C.amber} opacity="0.85" />
-    </g>
+    <HubModuleArtIcon
+      src={GRUNT_MODULE_ICONS.conversations}
+      scale={scale}
+      className={cn("grunt-scene__orb-glyph grunt-scene__orb-glyph--chat", live && "grunt-scene__orb-glyph--live")}
+      size={24}
+    />
   );
 }
 
-export function HubGlyphRoute({ scale = 1, color = ROUTE_ACCENT }: { scale?: number; color?: string }) {
+export function HubGlyphRoute({ scale = 1, color: _color = ROUTE_ACCENT }: { scale?: number; color?: string }) {
   return (
-    <g transform={`scale(${scale})`} className="grunt-scene__orb-glyph grunt-scene__orb-glyph--route">
-      <rect x="-5" y="-10" width="10" height="5.5" rx="2.75" fill={C.ink} stroke={color} strokeWidth="1.1" />
-      <line x1="0" y1="-4.5" x2="0" y2="-1" stroke={color} strokeWidth="1.6" strokeLinecap="round" />
-      <circle cx="0" cy="2" r="4" fill={C.ink} stroke={color} strokeWidth="1.2" />
-      <circle cx="0" cy="2" r="1.5" fill={color} />
-      <path d="M0 6 L-8 11" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M0 6 L8 11" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="-8" cy="11" r="2.2" fill={C.slate} stroke={color} strokeWidth="0.9" />
-      <circle cx="8" cy="11" r="2.2" fill={C.slate} stroke={color} strokeWidth="0.9" />
-    </g>
+    <HubModuleArtIcon
+      src={GRUNT_MODULE_ICONS.route}
+      scale={scale}
+      className="grunt-scene__orb-glyph grunt-scene__orb-glyph--route"
+      size={24}
+    />
   );
 }
 
@@ -274,7 +299,7 @@ export function HubOrbIconFlows({
           <g key={id}>
             <path d={path} fill="none" stroke={accentColor(mod.accent)} strokeWidth="1.4" strokeOpacity={0.18 + flow * 0.18} strokeDasharray="6 12" className="grunt-scene__orb-flow-path" />
             {traveling ? (
-              <g transform={`translate(${pos.x} ${pos.y})`} className="grunt-scene__orb-flow-glyph" filter="url(#gruntOrbIconGlow)" opacity={0.85 + flow * 0.15}>
+              <g transform={`translate(${pos.x} ${pos.y})`} className="grunt-scene__orb-flow-glyph" opacity={0.9 + flow * 0.1}>
                 {glyph}
               </g>
             ) : null}
@@ -285,31 +310,26 @@ export function HubOrbIconFlows({
   );
 }
 
-const HUB_HERO_ICON_Y = 30;
-const HUB_HERO_ICON_SCALE = { chat: 2.55, route: 2.45 } as const;
-const ROUTE_ACCENT = C.violet;
-
 function SettledModuleIcon({
   moduleId,
   arrived,
   live,
-  x = 0,
-  y: yOverride,
 }: {
   moduleId: GruntHubModuleId;
   arrived: number;
   live: boolean;
-  x?: number;
-  y?: number;
 }) {
   if (arrived < 0.12) return null;
   const isChat = moduleId === "conversations";
   const isRoute = moduleId === "route";
-  const isHero = isChat || isRoute;
-  const cardH = GRUNT_MODULE_SIZE[moduleId].h;
-  const lift = cardH * 0.1;
-  const glyphScale = isChat ? HUB_HERO_ICON_SCALE.chat : isRoute ? HUB_HERO_ICON_SCALE.route : 1.65;
-  const y = yOverride ?? (isHero ? HUB_HERO_ICON_Y - lift * 0.25 : 4 - lift);
+  const glyphScale =
+    moduleId === "conversations"
+      ? HUB_SETTLED_ICON_SCALE.chat
+      : moduleId === "route"
+        ? HUB_SETTLED_ICON_SCALE.route
+        : moduleId === "schedule"
+          ? HUB_SETTLED_ICON_SCALE.schedule
+          : HUB_SETTLED_ICON_SCALE.data;
   const settleScale = 0.88 + arrived * 0.12;
   const iconClass = isChat
     ? "grunt-scene__hub-settled-icon grunt-scene__hub-settled-icon--chat"
@@ -319,8 +339,8 @@ function SettledModuleIcon({
 
   return (
     <g
-      transform={`translate(${x} ${y}) scale(${settleScale * glyphScale})`}
-      opacity={isHero ? 0.45 + arrived * 0.55 : 0.35 + arrived * 0.65}
+      transform={`scale(${settleScale * glyphScale})`}
+      opacity={0.55 + arrived * 0.45}
       className={iconClass}
     >
       {moduleId === "schedule" ? <HubGlyphCalendar scale={1} /> : null}
@@ -360,83 +380,28 @@ export function HubPlusArms({
   );
 }
 
-const SCHEDULE_SLOTS = ["9:00", "11:30", "2:15"] as const;
-const SCHEDULE_ICON_X = -22;
-const SCHEDULE_ICON_Y = 48;
-const SCHEDULE_BARS_X = 12;
-const SCHEDULE_BAR_W = 72;
-
-export function ScheduleModule({
-  fill,
-  reminders,
-  live,
-  focused,
-  hovered,
-  labelReveal,
-  iconArrived,
-  bodyReveal,
-  subheadTyping,
-  scrollPaused,
-  reduceMotion = false,
-  onHoverChange,
-}: {
-  fill: number;
-  reminders: number;
+type HubModuleCardProps = {
   live: boolean;
   focused?: boolean;
   hovered?: boolean;
   labelReveal: number;
   iconArrived: number;
   iconFlow?: number;
-  bodyReveal: number;
   onHoverChange?: (id: GruntHubModuleId | null) => void;
-} & HubModuleTypingProps) {
-  const slotsOn = SCHEDULE_SLOTS.map((_, i) => fill > (i + 1) / (SCHEDULE_SLOTS.length + 1));
-  const reminderOn = reminders > 0.35;
+};
 
+export function ScheduleModule({
+  live,
+  focused,
+  hovered,
+  labelReveal,
+  iconArrived,
+  onHoverChange,
+}: HubModuleCardProps) {
   return (
     <>
       <ModuleShell moduleId="schedule" accent={C.sky} focused={focused} hovered={hovered} live={live} onHoverChange={onHoverChange}>
-        <SettledModuleIcon moduleId="schedule" arrived={iconArrived} live={live} x={SCHEDULE_ICON_X} y={SCHEDULE_ICON_Y} />
-        <g transform={`translate(${SCHEDULE_BARS_X} ${HUB_SUBHEAD_Y + 4})`} opacity={bodyReveal} className="grunt-scene__hub-card-body">
-        {SCHEDULE_SLOTS.map((time, i) => {
-          const on = slotsOn[i];
-          return (
-            <g key={time} transform={`translate(0 ${i * 14})`} opacity={on ? 1 : 0.28}>
-              <rect x="0" y="0" width={SCHEDULE_BAR_W} height="11" rx="3" fill={C.slate} stroke={C.sky} strokeWidth="0.8" strokeOpacity={on ? 0.55 : 0.2} />
-              <rect
-                x="2"
-                y="2"
-                width={on ? SCHEDULE_BAR_W - 4 : 18}
-                height="7"
-                rx="2"
-                fill={C.sky}
-                fillOpacity={on ? 0.55 : 0.12}
-                className={on && live ? "grunt-scene__schedule-slot--snap" : undefined}
-                style={{ animationDelay: `${i * 0.15}s` } as CSSProperties}
-              />
-              <text x={SCHEDULE_BAR_W - 4} y="8" textAnchor="end" fill={C.muted} fontSize="6.5" fontWeight="600" fontFamily="system-ui, sans-serif">
-                {time}
-              </text>
-            </g>
-          );
-        })}
-      </g>
-      <g transform={`translate(${SCHEDULE_BARS_X} ${HUB_SUBHEAD_Y + 48})`} opacity={reminderOn ? 1 : 0.25}>
-        <rect x="0" y="0" width={SCHEDULE_BAR_W} height="12" rx="3" fill={C.slate} stroke={C.amber} strokeWidth="0.8" strokeOpacity={reminderOn ? 0.55 : 0.2} />
-        <g transform="translate(6 2) scale(0.55)">
-          <StoryBellIcon ringing={live && reminderOn} />
-        </g>
-      </g>
-        <HubTypingSubhead
-          text="callback reminder"
-          typingReveal={subheadTyping(1)}
-          scrollPaused={scrollPaused}
-          reduceMotion={reduceMotion}
-          x={SCHEDULE_BARS_X + 2}
-          y={HUB_SUBHEAD_Y + 56}
-          anchor="start"
-        />
+        <SettledModuleIcon moduleId="schedule" arrived={iconArrived} live={live} />
       </ModuleShell>
       <HubModuleFloatingLabel moduleId="schedule" labelReveal={labelReveal} accent={C.sky} />
     </>
@@ -444,229 +409,57 @@ export function ScheduleModule({
 }
 
 export function ConversationsModule({
-  queue,
-  followUps,
   live,
   focused,
   hovered,
   labelReveal,
   iconArrived,
-  bodyReveal,
-  subheadTyping,
-  scrollPaused,
-  reduceMotion = false,
   onHoverChange,
-}: {
-  queue: number;
-  followUps: number;
-  live: boolean;
-  focused?: boolean;
-  hovered?: boolean;
-  labelReveal: number;
-  iconArrived: number;
-  iconFlow?: number;
-  bodyReveal: number;
-  onHoverChange?: (id: GruntHubModuleId | null) => void;
-} & HubModuleTypingProps) {
-  const threadCount = Math.min(2, Math.ceil(followUps * 2));
-
+}: HubModuleCardProps) {
   return (
     <>
       <HubModuleFloatingLabel moduleId="conversations" labelReveal={labelReveal} accent={C.mint} />
       <ModuleShell moduleId="conversations" accent={C.mint} focused={focused} hovered={hovered} live={live} onHoverChange={onHoverChange}>
         <SettledModuleIcon moduleId="conversations" arrived={iconArrived} live={live} />
-        <HubTypingSubhead
-          text="IN QUEUE"
-          typingReveal={subheadTyping(0)}
-          scrollPaused={scrollPaused}
-          reduceMotion={reduceMotion}
-          y={HUB_SUBHEAD_Y}
-        />
-        <g opacity={bodyReveal} className="grunt-scene__hub-card-body">
-          <g transform={`translate(-52 ${HUB_SUBHEAD_Y + 8})`}>
-            {[1, 2, 3].map((n) => {
-              const waiting = n <= queue;
-              return (
-                <g key={n} transform={`translate(0 ${n * 12})`} opacity={waiting ? 1 : 0.22}>
-                  <circle cx="8" cy="8" r="6" fill={C.slate} stroke={C.mint} strokeWidth="1.2" />
-                  <text x="8" y="11" textAnchor="middle" fill={C.cream} fontSize="8" fontWeight="800" fontFamily="system-ui, sans-serif">
-                    {n}
-                  </text>
-                  <rect x="20" y="4" width={36 - n * 4} height="3" rx="1.5" fill={C.mint} opacity={waiting ? 0.45 : 0.15} />
-                </g>
-              );
-            })}
-          </g>
-        </g>
-        <HubTypingSubhead
-          text="open threads"
-          typingReveal={subheadTyping(1)}
-          scrollPaused={scrollPaused}
-          reduceMotion={reduceMotion}
-          y={HUB_SUBHEAD_Y + 38}
-        />
-        <g opacity={followUps > 0.2 ? 1 : 0.3} transform={`translate(0 ${HUB_SUBHEAD_Y + 46})`}>
-          {Array.from({ length: threadCount }, (_, i) => (
-            <g key={i} transform={`translate(-52 ${6 + i * 10})`} className={live ? "grunt-scene__hub-card--wait" : undefined} style={{ animationDelay: `${i * 0.2}s` } as CSSProperties}>
-              <rect x="0" y="0" width="104" height="8" rx="3" fill={C.slate} stroke={C.mint} strokeWidth="0.6" strokeOpacity="0.45" />
-              <rect x="4" y="3" width={48 - i * 8} height="2" rx="1" fill={C.muted} opacity="0.55" />
-            </g>
-          ))}
-        </g>
       </ModuleShell>
     </>
   );
 }
 
 export function DataModule({
-  fill,
   live,
   focused,
   hovered,
   labelReveal,
   iconArrived,
-  bodyReveal,
-  subheadTyping,
-  scrollPaused,
-  reduceMotion = false,
   onHoverChange,
-}: {
-  fill: number;
-  live: boolean;
-  focused?: boolean;
-  hovered?: boolean;
-  labelReveal: number;
-  iconArrived: number;
-  iconFlow?: number;
-  bodyReveal: number;
-  onHoverChange?: (id: GruntHubModuleId | null) => void;
-} & HubModuleTypingProps) {
-  const lines = Math.min(4, Math.floor(fill * 4.2));
-
+}: HubModuleCardProps) {
   return (
     <>
       <HubModuleFloatingLabel moduleId="data" labelReveal={labelReveal} accent={C.amber} />
       <ModuleShell moduleId="data" accent={C.amber} focused={focused} hovered={hovered} live={live} onHoverChange={onHoverChange}>
         <SettledModuleIcon moduleId="data" arrived={iconArrived} live={live} />
-        <HubTypingSubhead
-          text="capture details"
-          typingReveal={subheadTyping(0)}
-          scrollPaused={scrollPaused}
-          reduceMotion={reduceMotion}
-          y={HUB_SUBHEAD_Y}
-        />
-        <g opacity={bodyReveal} className="grunt-scene__hub-card-body">
-          <g transform={`translate(-48 ${HUB_SUBHEAD_Y + 8})`}>
-            <rect x="0" y="0" width="44" height="54" rx="4" fill={C.slate} stroke={C.amber} strokeWidth="1.2" />
-            <rect x="4" y="4" width="36" height="8" rx="2" fill={C.amber} fillOpacity="0.35" />
-            {[0, 1, 2, 3].map((i) => (
-              <rect
-                key={i}
-                x="6"
-                y={16 + i * 9}
-                width={i < lines ? 32 : 18}
-                height="4"
-                rx="2"
-                fill={C.amber}
-                opacity={i < lines ? 0.7 : 0.18}
-                className={i === lines - 1 && live ? "grunt-scene__hub-typing-line" : undefined}
-              />
-            ))}
-            {live && lines > 0 ? (
-              <rect x={8 + (lines % 3) * 8} y={16 + (lines - 1) * 9} width="2" height="5" fill={C.cream} className="grunt-scene__form-cursor" />
-            ) : null}
-          </g>
-          <g transform={`translate(8 ${HUB_SUBHEAD_Y + 4})`}>
-            <ellipse cx="16" cy="48" rx="16" ry="4" fill="rgba(0,0,0,0.35)" />
-            <rect x="4" y="16" width="24" height="32" rx="4" fill={C.slate} stroke={C.amber} strokeWidth="1.2" />
-            <rect x="7" y="20" width="18" height="6" rx="2" fill={C.amber} fillOpacity={0.25 + fill * 0.55} />
-            <rect x="7" y="30" width="18" height="6" rx="2" fill={C.amber} fillOpacity={0.15 + fill * 0.45} />
-            <rect x="7" y="40" width="18" height="6" rx="2" fill={C.amber} fillOpacity={0.1 + fill * 0.35} />
-          </g>
-        </g>
       </ModuleShell>
     </>
   );
 }
 
-const ROUTE_SUBHEAD_Y = 6;
-const ROUTE_DIAGRAM_Y = 14;
-const ROUTE_ICON_Y = 53;
-
 export function RouteModule({
-  branches,
   live,
   focused,
   hovered,
   labelReveal,
   iconArrived,
   iconFlow = 0,
-  bodyReveal,
-  subheadTyping,
-  scrollPaused,
-  reduceMotion = false,
   onHoverChange,
-}: {
-  branches: number;
-  live: boolean;
-  focused?: boolean;
-  hovered?: boolean;
-  labelReveal: number;
-  iconArrived: number;
-  iconFlow?: number;
-  bodyReveal: number;
-  onHoverChange?: (id: GruntHubModuleId | null) => void;
-} & HubModuleTypingProps) {
+}: HubModuleCardProps) {
   const routeIconArrived = Math.max(iconArrived, iconFlow * 0.88);
 
   return (
     <>
       <HubModuleFloatingLabel moduleId="route" labelReveal={labelReveal} accent={ROUTE_ACCENT} />
       <ModuleShell moduleId="route" accent={ROUTE_ACCENT} focused={focused} hovered={hovered} live={live} onHoverChange={onHoverChange}>
-        <HubTypingSubhead
-          text="right department"
-          typingReveal={subheadTyping(0)}
-          scrollPaused={scrollPaused}
-          reduceMotion={reduceMotion}
-          y={ROUTE_SUBHEAD_Y}
-        />
-        <g opacity={bodyReveal} className="grunt-scene__hub-card-body" transform={`translate(0 ${ROUTE_DIAGRAM_Y})`}>
-          <circle cx="0" cy="0" r="5" fill={C.ink} stroke={ROUTE_ACCENT} strokeWidth="1" opacity="0.85" />
-          {GRUNT_ROUTE_BRANCHES.map((b, i) => {
-            const active = i < branches;
-            const rad = (b.angle * Math.PI) / 180;
-            const len = 14;
-            const ex = Math.cos(rad) * len;
-            const ey = Math.sin(rad) * len;
-            const branchColor = ["#b4a0ff", "#9b87f5", "#7c6cdf"][i]!;
-            return (
-              <g key={b.id} opacity={active ? 1 : 0.22}>
-                <line
-                  x1="0"
-                  y1="0"
-                  x2={ex}
-                  y2={ey}
-                  stroke={ROUTE_ACCENT}
-                  strokeWidth="1.1"
-                  strokeOpacity={active ? 0.65 : 0.25}
-                  strokeDasharray="3 5"
-                  className={active && live ? "grunt-scene__route-flow" : undefined}
-                  style={{ animationDelay: `${i * 0.12}s` } as CSSProperties}
-                />
-                <rect x={ex - 10} y={ey - 6} width="20" height="10" rx="3" fill={C.slate} stroke={branchColor} strokeWidth="1" />
-                <text x={ex} y={ey + 1} textAnchor="middle" fill={C.cream} fontSize="5" fontWeight="700" fontFamily="system-ui, sans-serif">
-                  {b.label}
-                </text>
-                {active && live ? (
-                  <circle r="2" fill={branchColor}>
-                    <animateMotion dur={`${1.2 + i * 0.15}s`} repeatCount="indefinite" path={`M0 0 L${ex} ${ey}`} calcMode="linear" />
-                  </circle>
-                ) : null}
-              </g>
-            );
-          })}
-        </g>
-        <SettledModuleIcon moduleId="route" arrived={routeIconArrived} live={live} y={ROUTE_ICON_Y} />
+        <SettledModuleIcon moduleId="route" arrived={routeIconArrived} live={live} />
       </ModuleShell>
     </>
   );

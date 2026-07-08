@@ -12,6 +12,7 @@ type IntegrationFlowStreamsProps = {
   nodes: readonly IntegrationNode[];
   progress: number;
   reduceMotion?: boolean;
+  viewportWidth?: number;
 };
 
 const ORB_RADIUS = 38;
@@ -40,7 +41,14 @@ function linkGeometry(nodeX: number, nodeY: number, orbX: number, orbY: number) 
   return { path, x1, y1, x2, y2, chord };
 }
 
-export function IntegrationFlowStreams({ orbX, orbY, nodes, progress, reduceMotion = false }: IntegrationFlowStreamsProps) {
+export function IntegrationFlowStreams({
+  orbX,
+  orbY,
+  nodes,
+  progress,
+  reduceMotion = false,
+  viewportWidth = 1200,
+}: IntegrationFlowStreamsProps) {
   return (
     <g className="integrations-scene__flows" aria-hidden>
       <defs>
@@ -71,7 +79,7 @@ export function IntegrationFlowStreams({ orbX, orbY, nodes, progress, reduceMoti
         const channel = INTEGRATION_CHANNELS[index];
         if (!channel) return null;
 
-        const state = integrationChannelState(progress, index, reduceMotion);
+        const state = integrationChannelState(progress, index, reduceMotion, viewportWidth);
         const intensity = state.opacity * state.highlight;
         if (intensity < 0.04) return null;
 

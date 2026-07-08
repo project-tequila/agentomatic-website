@@ -1,8 +1,8 @@
 import { interpolate } from "@helios-project/core";
 
 import { gatedBodyTypingReveal } from "./body-typing-reveal";
-
 import { PERSISTENT_ORB, STORY_SATELLITE_ICON_SCALE } from "./persistent-orb";
+import { storyRevealSpread, storySpatialT } from "./story-scale";
 
 export type CallDirection = "inbound" | "outbound";
 
@@ -126,11 +126,18 @@ export function concurrentBodyTypingReveal(progress: number, reduceMotion = fals
 }
 
 /** Orbit stays wide — phones remain scattered around the orb. */
-export function concurrentOrbitRadius(progress: number) {
-  return interpolate(progress, [0, 0.5, 1], [CONCURRENT_HERO_ORBIT_MAX, 195, CONCURRENT_HERO_ORBIT_MIN], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+export function concurrentOrbitRadius(progress: number, viewportWidth = 1200) {
+  const spatial = storySpatialT(viewportWidth);
+  const scale = 0.88 + spatial * 0.12;
+  return interpolate(
+    progress,
+    [0, 0.5, 1],
+    [CONCURRENT_HERO_ORBIT_MAX * scale, 195 * scale, CONCURRENT_HERO_ORBIT_MIN * scale],
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    },
+  );
 }
 
 /** @deprecated */
@@ -214,11 +221,13 @@ export function concurrentInboundFlowPath(
   orbY: number,
   depth: number,
   seed = 0,
+  viewportWidth = 1200,
 ) {
-  const hubX = orbX - 44;
+  const spread = storyRevealSpread(1, viewportWidth);
+  const hubX = orbX - 44 * spread;
   const hubY = orbY - 2;
-  const fluff = 38 + depth * 42 + (seed % 3) * 8;
-  const sway = ((seed % 5) - 2) * 6;
+  const fluff = (38 + depth * 42 + (seed % 3) * 8) * spread;
+  const sway = ((seed % 5) - 2) * 6 * spread;
   const c1x = phoneX + (hubX - phoneX) * 0.22 + sway;
   const c1y = phoneY - fluff;
   const c2x = phoneX + (hubX - phoneX) * 0.78 - sway * 0.5;
@@ -234,11 +243,13 @@ export function concurrentOutboundFlowPath(
   orbY: number,
   depth: number,
   seed = 0,
+  viewportWidth = 1200,
 ) {
-  const hubX = orbX + 44;
+  const spread = storyRevealSpread(1, viewportWidth);
+  const hubX = orbX + 44 * spread;
   const hubY = orbY - 2;
-  const fluff = 38 + depth * 42 + (seed % 3) * 8;
-  const sway = ((seed % 5) - 2) * 6;
+  const fluff = (38 + depth * 42 + (seed % 3) * 8) * spread;
+  const sway = ((seed % 5) - 2) * 6 * spread;
   const c1x = hubX + (phoneX - hubX) * 0.22 - sway;
   const c1y = hubY - fluff * 0.55;
   const c2x = hubX + (phoneX - hubX) * 0.78 + sway * 0.5;

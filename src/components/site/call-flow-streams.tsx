@@ -15,9 +15,17 @@ type CallFlowStreamsProps = {
   progress: number;
   phones: ConcurrentNetworkPhone[];
   reduceMotion?: boolean;
+  viewportWidth?: number;
 };
 
-export function CallFlowStreams({ orbX, orbY, progress, phones, reduceMotion = false }: CallFlowStreamsProps) {
+export function CallFlowStreams({
+  orbX,
+  orbY,
+  progress,
+  phones,
+  reduceMotion = false,
+  viewportWidth = 1200,
+}: CallFlowStreamsProps) {
   const inboundIntensity = concurrentFlowIntensity(progress, "inbound");
   const outboundIntensity = concurrentFlowIntensity(progress, "outbound");
 
@@ -73,8 +81,8 @@ export function CallFlowStreams({ orbX, orbY, progress, phones, reduceMotion = f
         const isInbound = phone.direction === "inbound";
         const intensity = isInbound ? inboundIntensity : outboundIntensity;
         const path = isInbound
-          ? concurrentInboundFlowPath(phone.x, phone.y, orbX, orbY, phone.depth, i)
-          : concurrentOutboundFlowPath(phone.x, phone.y, orbX, orbY, phone.depth, i);
+          ? concurrentInboundFlowPath(phone.x, phone.y, orbX, orbY, phone.depth, i, viewportWidth)
+          : concurrentOutboundFlowPath(phone.x, phone.y, orbX, orbY, phone.depth, i, viewportWidth);
         const stroke = isInbound ? "url(#flowInbound)" : "url(#flowOutbound)";
         const dotColor = CALL_THEME[phone.direction].color;
         const pathOpacity = intensity * (0.38 + phone.depth * 0.62) * phone.opacity;

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
-import {  accentColor,
+import {
+  accentColor,
   CircuitGrid,
   ConversationsModule,
   DataModule,
@@ -16,35 +17,25 @@ import {  accentColor,
 } from "@/components/site/grunt-hub-modules";
 import { act1BeatProgress } from "@/lib/story/act1-band-progress";
 import {
-  GRUNT_HUB_MODULES,
   GRUNT_STAGE,
-  gruntConversationFollowUps,
-  gruntConversationQueue,
   gruntConversationsLive,
-  gruntDataFill,
   gruntFocusedModule,
   gruntHubReveal,
   gruntHubSync,
-  gruntModuleBodyReveal,
   gruntModuleEnterOffset,
   gruntModuleFlow,
   gruntModuleIconArrived,
   gruntModuleLabelReveal,
   gruntModuleLive,
   gruntModuleReveal,
-  gruntModuleSubheadTypingReveal,
   gruntPlusArmReveal,
-  gruntRouteBranches,
-  gruntScheduleFill,
-  gruntScheduleReminders,
   gruntSceneReveal,
   gruntStressLevel,
   gruntTendrilPath,
   gruntTendrilPulse,
   type GruntHubModuleId,
 } from "@/lib/story/grunt-reveal";
-import { useStoryScrollPaused } from "@/lib/story/use-story-scroll-paused";
-import { gruntStageViewBox, storyStageViewBox } from "@/lib/story/persistent-orb";
+import { gruntStageViewBox } from "@/lib/story/persistent-orb";
 import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import { STORY_GLYPH } from "@/components/site/story-stage-glyphs";
 
@@ -59,7 +50,6 @@ export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
   const reduceMotion = usePrefersReducedMotion();
   const spatial = useStorySpatialLayout();
   const progress = act1BeatProgress(story, "grunt");
-  const scrollPaused = useStoryScrollPaused(progress ?? 0, 120);
   const [hoveredModule, setHoveredModule] = useState<GruntHubModuleId | null>(null);
   if (progress === null || sceneOpacity < 0.02) return null;
 
@@ -70,17 +60,11 @@ export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
   const stress = gruntStressLevel(progress);
   const sync = gruntHubSync(progress);
 
-  const scheduleFill = gruntScheduleFill(progress);
-  const scheduleReminders = gruntScheduleReminders(progress);
-  const conversationQueue = gruntConversationQueue(progress, rm);
-  const conversationFollowUps = gruntConversationFollowUps(progress);
-  const dataFill = gruntDataFill(progress);
-  const routeBranches = gruntRouteBranches(progress, rm);
-
   const { orbX, orbY } = GRUNT_STAGE;
   const hubModules = spatial.grunt.modules;
   const moduleRadius = spatial.grunt.moduleRadius;
   const satelliteScale = spatial.grunt.satelliteScale;
+  const cardScale = spatial.grunt.cardScale;
 
   const focusedId = gruntFocusedModule(progress);
   const hoveredMod = hoveredModule ? hubModules.find((m) => m.id === hoveredModule) : null;
@@ -99,37 +83,25 @@ export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
     const labelReveal = gruntModuleLabelReveal(progress, mod.revealAt);
     const iconArrived = gruntModuleIconArrived(progress, mod.revealAt);
     const iconFlow = gruntModuleFlow(progress, mod.revealAt);
-    const bodyReveal = gruntModuleBodyReveal(progress, mod.revealAt);
-    const subheadTyping = (slot: number) => gruntModuleSubheadTypingReveal(progress, mod.revealAt, slot);
-    const hoverProps = {
+    const cardProps = {
+      live,
+      focused,
       hovered,
       onHoverChange: setHoveredModule,
       labelReveal,
       iconArrived,
       iconFlow,
-      bodyReveal,
-      subheadTyping,
-      scrollPaused,
-      reduceMotion: rm,
     };
 
     switch (id) {
       case "schedule":
-        return <ScheduleModule fill={scheduleFill} reminders={scheduleReminders} live={live} focused={focused} {...hoverProps} />;
+        return <ScheduleModule {...cardProps} />;
       case "conversations":
-        return (
-          <ConversationsModule
-            queue={conversationQueue}
-            followUps={conversationFollowUps}
-            live={gruntConversationsLive(progress) && !rm}
-            focused={focused}
-            {...hoverProps}
-          />
-        );
+        return <ConversationsModule {...cardProps} live={gruntConversationsLive(progress) && !rm} />;
       case "data":
-        return <DataModule fill={dataFill} live={live} focused={focused} {...hoverProps} />;
+        return <DataModule {...cardProps} />;
       case "route":
-        return <RouteModule branches={routeBranches} live={live} focused={focused} {...hoverProps} />;
+        return <RouteModule {...cardProps} />;
     }
   };
 
@@ -216,12 +188,12 @@ export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
         if (op < 0.02) return null;
         const focused = focusedId === mod.id;
         const scale = focused || hoveredModule === mod.id ? 1.04 : 0.98 + op * 0.02;
-        const enter = rm ? { x: 0, y: 0 } : gruntModuleEnterOffset(progress, mod);
+        const enter = rm ? { x: 0, y: 0 } : gruntModuleEnterOffset(progress, mod, spatial.viewportWidth);
 
         return (
           <g
             key={mod.id}
-            transform={`translate(${mod.x + enter.x} ${mod.y + enter.y}) scale(${scale * satelliteScale})`}
+            transform={`translate(${mod.x + enter.x} ${mod.y + enter.y}) scale(${scale * satelliteScale * cardScale})`}
             opacity={op}
             className="grunt-scene__hub-module-wrap"
           >

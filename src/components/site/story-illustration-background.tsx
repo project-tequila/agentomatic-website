@@ -1,34 +1,46 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 
 import { useHeliosVoice } from "@/lib/helios/helios-provider";
 import { useVideoFrame } from "@/lib/helios/use-video-frame";
 import { act1BeatOpacity } from "@/lib/story/act1-band-progress";
 import { featureBandOpacity } from "@/lib/story/feature-band-progress";
+import { hoursDayNightMix } from "@/lib/story/hours-day-night";
 import { illustrationAtmosphere, visibleIllustrationScenes } from "@/lib/story/illustration-scenes";
 import { storyToSceneProgress } from "@/lib/story/chapters";
 import { persistentOrbMode } from "@/lib/story/persistent-orb";
+import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
+import { useStoryVisualScale } from "@/lib/story/use-story-visual-scale";
 import { cn } from "@/lib/utils";
 
 import { ConcurrentScene } from "./concurrent-scene";
 import { GruntScene } from "./grunt-scene";
 import { HandoffScene } from "./handoff-scene";
+import { HoursSkyAtmosphere } from "./hours-sky-atmosphere";
 import { IntegrationsScene } from "./integrations-scene";
 import { MultilingualScene } from "./multilingual-scene";
 import { PersistentFrontdeskOrb } from "./persistent-frontdesk-orb";
 import { RemindersScene } from "./reminders-scene";
 import { StoryIllustration } from "./story-illustrations";
 
+const PARALLAX_LERP = 0.12;
+const GRID_PARALLAX_PX = 22;
+const WASH_PARALLAX_PX = 14;
+const STAGE_PARALLAX_PX = 10;
+const ORB_PARALLAX_PX = 8;
+
 export function StoryIllustrationBackground() {
   const { helios, setVoiceInput } = useHeliosVoice();
   const { inputProps } = useVideoFrame(helios);
+  const reduceMotion = usePrefersReducedMotion();
   const story = inputProps.storyProgress ?? 0;
   const scene = storyToSceneProgress(story);
   const atmosphere = illustrationAtmosphere(story);
   const scenes = visibleIllustrationScenes(story);
   const hoursScene = scenes.find((s) => s.id === "hours");
   const hoursOpacity = hoursScene?.opacity ?? 0;
+  const hoursMix = hoursOpacity > 0.02 ? hoursDayNightMix(story) : null;
   const integrationsOpacity = featureBandOpacity(story, "integrations");
   const multilingualOpacity = featureBandOpacity(story, "multilingual");
   const handoffOpacity = featureBandOpacity(story, "handoff");
@@ -41,16 +53,112 @@ export function StoryIllustrationBackground() {
 
   const rootRef = useRef<HTMLDivElement>(null);
   const stageAnchorRef = useRef<HTMLDivElement>(null);
+  const targetRef = useRef({ x: 0, y: 0 });
+  const currentRef = useRef({ x: 0, y: 0 });
+  const rafRef = useRef(0);
+
+  useStoryVisualScale(stageAnchorRef, rootRef);
 
   useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    const applyParallax = (x: number, y: number) => {
+      const vars: Record<string, string> = {
+        "--bg-parallax-x": x.toFixed(4),
+        "--bg-parallax-y": y.toFixed(4),
+        "--bg-parallax-grid-x": `${(x * GRID_PARALLAX_PX).toFixed(2)}px`,
+        "--bg-parallax-grid-y": `${(-y * GRID_PARALLAX_PX).toFixed(2)}px`,
+        "--bg-parallax-wash-x": `${(x * WASH_PARALLAX_PX).toFixed(2)}px`,
+        "--bg-parallax-wash-y": `${(-y * WASH_PARALLAX_PX).toFixed(2)}px`,
+        "--bg-parallax-stage-x": `${(x * STAGE_PARALLAX_PX).toFixed(2)}px`,
+        "--bg-parallax-stage-y": `${(-y * STAGE_PARALLAX_PX).toFixed(2)}px`,
+        "--bg-parallax-orb-x": `${(x * ORB_PARALLAX_PX).toFixed(2)}px`,
+        "--bg-parallax-orb-y": `${(-y * ORB_PARALLAX_PX).toFixed(2)}px`,
+      };
+
+      for (const [key, value] of Object.entries(vars)) {
+        root.style.setProperty(key, value);
+        document.documentElement.style.setProperty(key, value);
+      }
+    };
+
+    if (reduceMotion) {
+      applyParallax(0, 0);
+      return undefined;
+    }
+
+    const tick = () => {
+      const target = targetRef.current;
+      const current = currentRef.current;
+      current.x += (target.x - current.x) * PARALLAX_LERP;
+      current.y += (target.y - current.y) * PARALLAX_LERP;
+      applyParallax(current.x, current.y);
+
+      if (Math.abs(target.x - current.x) > 0.001 || Math.abs(target.y - current.y) > 0.001) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        rafRef.current = 0;
+      }
+    };
+
+    const schedule = () => {
+      if (!rafRef.current) rafRef.current = requestAnimationFrame(tick);
+    };
+
     const onMove = (event: PointerEvent) => {
       const nx = (event.clientX / window.innerWidth) * 2 - 1;
       const ny = -((event.clientY / window.innerHeight) * 2 - 1);
+      targetRef.current = { x: nx, y: ny };
       setVoiceInput({ pointerX: nx, pointerY: ny });
+      schedule();
     };
+
+    const onLeave = () => {
+      targetRef.current = { x: 0, y: 0 };
+      setVoiceInput({ pointerX: 0, pointerY: 0 });
+      schedule();
+    };
+
     window.addEventListener("pointermove", onMove, { passive: true });
-    return () => window.removeEventListener("pointermove", onMove);
-  }, [setVoiceInput]);
+    window.addEventListener("pointerleave", onLeave);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") onLeave();
+    });
+
+    applyParallax(0, 0);
+
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerleave", onLeave);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      const keys = [
+        "--bg-parallax-x",
+        "--bg-parallax-y",
+        "--bg-parallax-grid-x",
+        "--bg-parallax-grid-y",
+        "--bg-parallax-wash-x",
+        "--bg-parallax-wash-y",
+        "--bg-parallax-stage-x",
+        "--bg-parallax-stage-y",
+        "--bg-parallax-orb-x",
+        "--bg-parallax-orb-y",
+      ];
+      for (const key of keys) {
+        root.style.removeProperty(key);
+        document.documentElement.style.removeProperty(key);
+      }
+    };
+  }, [reduceMotion, setVoiceInput]);
+
+  const hoursCssVars = hoursMix
+    ? ({
+        "--hours-day-mix": hoursMix.dayMix.toFixed(4),
+        "--hours-night-mix": (1 - hoursMix.dayMix).toFixed(4),
+        "--hours-star-opacity": hoursMix.starOpacity.toFixed(4),
+        "--hours-day-glow": hoursMix.dayGlow.toFixed(4),
+      } as CSSProperties)
+    : undefined;
 
   return (
     <div
@@ -67,14 +175,22 @@ export function StoryIllustrationBackground() {
         hoursOpacity > 0.02 && "story-illustration-bg--hours",
         `story-illustration-bg--orb-${orbMode}`,
       )}
+      style={hoursCssVars}
       aria-hidden
     >
       <div className="editorial-bg__grid" style={{ opacity: atmosphere.grid }} />
       <div
         className="story-illustration-bg__wash"
         data-tone={atmosphere.wash}
-        style={{ opacity: 0.18 + scene * 0.08 }}
+        style={{
+          opacity:
+            hoursOpacity > 0.02
+              ? (0.18 + scene * 0.08) * (1 - hoursOpacity * 0.9)
+              : 0.18 + scene * 0.08,
+        }}
       />
+
+      {hoursOpacity > 0.02 ? <HoursSkyAtmosphere story={story} sceneOpacity={hoursOpacity} /> : null}
 
       <div
         ref={stageAnchorRef}
@@ -154,17 +270,14 @@ export function StoryIllustrationBackground() {
               <RemindersScene story={story} opacity={remindersOpacity} />
             </div>
           ) : null}
-
         </div>
       </div>
 
-      <PersistentFrontdeskOrb
-        story={story}
-        hoursSceneOpacity={hoursScene?.opacity ?? 0}
-      />
+      <PersistentFrontdeskOrb story={story} hoursSceneOpacity={hoursScene?.opacity ?? 0} />
 
       <div className="story-illustration-bg__fade-edges" aria-hidden />
       <div className="story-illustration-bg__fade-bottom" aria-hidden />
     </div>
   );
 }
+

@@ -48,8 +48,19 @@ export function visibleIllustrationScenes(story: number) {
 
 export function illustrationAtmosphere(story: number) {
   const act1 = story < ACT1_END;
+  const hoursChapter = featureChapters.find((c) => c.id === "hours");
+  const hoursOpacity = hoursChapter
+    ? sceneIllustrationOpacity(story, hoursChapter.start, hoursChapter.end)
+    : 0;
+
+  const baseGrid = interpolate(story, [0, ACT1_END, FEATURES_END], [0.22, 0.38, 0.32], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
   return {
-    grid: interpolate(story, [0, ACT1_END, FEATURES_END], [0.22, 0.38, 0.32], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
+    // Dim tech grid under hours sky so night doesn’t read as polka-dot wallpaper.
+    grid: baseGrid * (1 - hoursOpacity * 0.95),
     wash: act1 ? "cool" : "warm",
     vignette: interpolate(story, [FEATURES_END, 1], [0.35, 0.65], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
   };
