@@ -18,28 +18,15 @@ import { cn } from "@/lib/utils";
 
 const C = STORY_GLYPH;
 
-/** Label offset from module anchor — preserves pre-box-removal label positions. */
-const HUB_LABEL_ANCHOR_TOP = 22;
-const HUB_LABEL_GAP = 15;
+/** Label sits below icon — unified placement for all hub modules. */
+const HUB_LABEL_GAP_BELOW = 44;
 const HUB_LABEL_FONT_SIZE = 13;
 /** Icon center Y — unchanged from prior card-body center so arm positions stay stable. */
 const HUB_ICON_CENTER_Y = -11;
 const HUB_ORB_GLYPH_SIZE = 30;
 
-function hubLabelPlacement(moduleId: GruntHubModuleId, halfW: number) {
-  switch (moduleId) {
-    case "schedule":
-      return { x: halfW + 14, anchor: "start" as const };
-    case "data":
-      return { x: halfW + 8, anchor: "start" as const };
-    default:
-      return { x: 0, anchor: "middle" as const };
-  }
-}
-
-function hubLabelOffsetY(moduleId: GruntHubModuleId, cardTop: number) {
-  if (moduleId === "schedule") return cardTop + 10;
-  return cardTop - HUB_LABEL_GAP;
+function hubLabelOffsetY() {
+  return HUB_ICON_CENTER_Y + HUB_LABEL_GAP_BELOW;
 }
 
 function HubModuleLabelText({
@@ -48,50 +35,36 @@ function HubModuleLabelText({
   x,
   y,
   anchor,
-  accent,
 }: {
   text: string;
   labelReveal: number;
   x: number;
   y: number;
   anchor: "start" | "middle" | "end";
-  accent: string;
 }) {
-  const charW = HUB_LABEL_FONT_SIZE * 0.58;
-  const totalW = text.length * charW;
-  const underlineX =
-    anchor === "middle" ? -totalW / 2 - 4 : anchor === "end" ? x - totalW - 4 : x - 4;
-
   return (
-    <>
-      <text
-        x={x}
-        y={y}
-        textAnchor={anchor}
-        fill={C.cream}
-        fontSize={HUB_LABEL_FONT_SIZE}
-        fontWeight="700"
-        letterSpacing="0.04em"
-        className="grunt-scene__hub-label-text"
-      >
-        {text.split("").map((ch, i) => {
-          const op = gruntModuleLetterOpacity(labelReveal, i, text.length);
-          const lift = gruntModuleLetterLift(labelReveal, i, text.length);
-          return (
-            <tspan key={`${ch}-${i}`} opacity={op} dy={i === 0 ? lift : 0}>
-              {ch}
-            </tspan>
-          );
-        })}
-      </text>
-      <rect x={underlineX} y={y - 14} width={totalW + 8} height={2.5} rx="1" fill={accent} opacity={labelReveal * 0.35} />
-    </>
+    <text
+      x={x}
+      y={y}
+      textAnchor={anchor}
+      fill={C.cream}
+      fontSize={HUB_LABEL_FONT_SIZE}
+      fontWeight="700"
+      letterSpacing="0.04em"
+      className="grunt-scene__hub-label-text"
+    >
+      {text.split("").map((ch, i) => {
+        const op = gruntModuleLetterOpacity(labelReveal, i, text.length);
+        const lift = gruntModuleLetterLift(labelReveal, i, text.length);
+        return (
+          <tspan key={`${ch}-${i}`} opacity={op} dy={i === 0 ? lift : 0}>
+            {ch}
+          </tspan>
+        );
+      })}
+    </text>
   );
 }
-function hubLabelAnchorTop(h: number) {
-  return -h / 2 - HUB_LABEL_ANCHOR_TOP;
-}
-
 type ModuleShellProps = {
   moduleId: GruntHubModuleId;
   accent: string;
@@ -108,22 +81,16 @@ type ModuleShellProps = {
 export function HubModuleFloatingLabel({
   moduleId,
   labelReveal,
-  accent,
 }: {
   moduleId: GruntHubModuleId;
   labelReveal: number;
-  accent: string;
 }) {
   const text = GRUNT_MODULE_LABELS[moduleId];
-  const { w, h } = GRUNT_MODULE_SIZE[moduleId];
-  const halfW = w / 2;
-  const top = hubLabelAnchorTop(h);
-  const labelY = hubLabelOffsetY(moduleId, top);
-  const placement = hubLabelPlacement(moduleId, halfW);
+  const labelY = hubLabelOffsetY();
 
   return (
     <g transform={`translate(0 ${labelY})`} className="grunt-scene__hub-floating-label">
-      <HubModuleLabelText text={text} labelReveal={labelReveal} x={placement.x} y={0} anchor={placement.anchor} accent={accent} />
+      <HubModuleLabelText text={text} labelReveal={labelReveal} x={0} y={0} anchor="middle" />
     </g>
   );
 }
@@ -163,14 +130,14 @@ function ModuleShell({
         rx="14"
         className="grunt-scene__hub-hit"
       />
-      {focused || hovered ? (
+      {hovered ? (
         <ellipse
           cx={0}
           cy={HUB_ICON_CENTER_Y}
           rx={halfW * 0.72}
           ry={halfH * 0.72}
           fill={accent}
-          opacity={hovered ? 0.16 : 0.11}
+          opacity={0.16}
           className="grunt-scene__hub-focus-glow"
         />
       ) : null}
@@ -192,8 +159,15 @@ function ModuleShell({
 }
 
 const ROUTE_ACCENT = C.violet;
-/** Settled hub icons — centered at ModuleShell icon origin. */
-const HUB_SETTLED_ICON_SCALE = { schedule: 3.05, chat: 3.2, data: 3.05, route: 3.15 } as const;
+/** Settled hub icons — single scale for all modules (25% smaller than prior 3.0). */
+const HUB_SETTLED_ICON_SCALE = 2.25;
+const HUB_MODULE_VISUAL_SCALE: Record<GruntHubModuleId, number> = {
+  schedule: 1,
+  conversations: 1,
+  data: 0.86,
+  /** call-routing.png is full-bleed; inset others ~22–28% — match their on-screen size. */
+  route: 0.78,
+};
 
 /** Custom art assets — used for both in-flight orb icons and settled card icons on all layouts. */
 const GRUNT_MODULE_ICONS = {
@@ -317,14 +291,8 @@ function SettledModuleIcon({
   const isChat = moduleId === "conversations";
   const isRoute = moduleId === "route";
   const isSchedule = moduleId === "schedule";
-  const glyphScale =
-    moduleId === "conversations"
-      ? HUB_SETTLED_ICON_SCALE.chat
-      : moduleId === "route"
-        ? HUB_SETTLED_ICON_SCALE.route
-        : moduleId === "schedule"
-          ? HUB_SETTLED_ICON_SCALE.schedule
-          : HUB_SETTLED_ICON_SCALE.data;
+  const isData = moduleId === "data";
+  const visualScale = HUB_MODULE_VISUAL_SCALE[moduleId];
   const settleScale = 0.78 + arrived * 0.22;
   const iconClass = isChat
     ? "grunt-scene__hub-settled-icon grunt-scene__hub-settled-icon--chat"
@@ -332,10 +300,12 @@ function SettledModuleIcon({
       ? "grunt-scene__hub-settled-icon grunt-scene__hub-settled-icon--route"
       : isSchedule
         ? "grunt-scene__hub-settled-icon grunt-scene__hub-settled-icon--schedule"
-        : "grunt-scene__hub-settled-icon";
+        : isData
+          ? "grunt-scene__hub-settled-icon grunt-scene__hub-settled-icon--data"
+          : "grunt-scene__hub-settled-icon";
 
   return (
-    <g transform={`scale(${settleScale * glyphScale})`} opacity={arrived} className={iconClass}>
+    <g transform={`scale(${settleScale * HUB_SETTLED_ICON_SCALE * visualScale})`} opacity={arrived} className={iconClass}>
       {moduleId === "schedule" ? <HubGlyphCalendar scale={1} /> : null}
       {moduleId === "conversations" ? <HubGlyphChat scale={1} live={live} /> : null}
       {moduleId === "data" ? <HubGlyphPencil scale={1} /> : null}
@@ -382,7 +352,7 @@ export function ScheduleModule({
       >
         <SettledModuleIcon moduleId="schedule" arrived={iconArrived} live={live} />
       </ModuleShell>
-      <HubModuleFloatingLabel moduleId="schedule" labelReveal={labelReveal} accent={C.sky} />
+      <HubModuleFloatingLabel moduleId="schedule" labelReveal={labelReveal} />
     </>
   );
 }
@@ -400,7 +370,6 @@ export function ConversationsModule({
 }: HubModuleCardProps) {
   return (
     <>
-      <HubModuleFloatingLabel moduleId="conversations" labelReveal={labelReveal} accent={C.mint} />
       <ModuleShell
         moduleId="conversations"
         accent={C.mint}
@@ -414,6 +383,7 @@ export function ConversationsModule({
       >
         <SettledModuleIcon moduleId="conversations" arrived={iconArrived} live={live} />
       </ModuleShell>
+      <HubModuleFloatingLabel moduleId="conversations" labelReveal={labelReveal} />
     </>
   );
 }
@@ -431,7 +401,6 @@ export function DataModule({
 }: HubModuleCardProps) {
   return (
     <>
-      <HubModuleFloatingLabel moduleId="data" labelReveal={labelReveal} accent={C.amber} />
       <ModuleShell
         moduleId="data"
         accent={C.amber}
@@ -445,6 +414,7 @@ export function DataModule({
       >
         <SettledModuleIcon moduleId="data" arrived={iconArrived} live={live} />
       </ModuleShell>
+      <HubModuleFloatingLabel moduleId="data" labelReveal={labelReveal} />
     </>
   );
 }
@@ -462,7 +432,6 @@ export function RouteModule({
 }: HubModuleCardProps) {
   return (
     <>
-      <HubModuleFloatingLabel moduleId="route" labelReveal={labelReveal} accent={ROUTE_ACCENT} />
       <ModuleShell
         moduleId="route"
         accent={ROUTE_ACCENT}
@@ -476,6 +445,7 @@ export function RouteModule({
       >
         <SettledModuleIcon moduleId="route" arrived={iconArrived} live={live} />
       </ModuleShell>
+      <HubModuleFloatingLabel moduleId="route" labelReveal={labelReveal} />
     </>
   );
 }
@@ -497,6 +467,7 @@ export function HubTendril({
   accent,
   focused,
   reduceMotion,
+  compact = false,
 }: {
   path: string;
   opacity: number;
@@ -504,8 +475,13 @@ export function HubTendril({
   accent: "mint" | "sky" | "amber" | "violet";
   focused?: boolean;
   reduceMotion?: boolean;
+  compact?: boolean;
 }) {
   if (opacity < 0.02) return null;
+
+  const bloomW = compact ? (focused ? 11 : 8) : focused ? 17 : 13;
+  const midW = compact ? (focused ? 4 : 3) : focused ? 6 : 5;
+  const coreW = compact ? (focused ? 1.4 : 1.1) : focused ? 1.8 : 1.4;
 
   return (
     <g opacity={opacity} className={cn("grunt-scene__hub-tendril", `grunt-scene__hub-tendril--${accent}`)}>
@@ -513,7 +489,7 @@ export function HubTendril({
         d={path}
         fill="none"
         stroke={color}
-        strokeWidth={focused ? 17 : 13}
+        strokeWidth={bloomW}
         strokeOpacity={focused ? 0.18 : 0.13}
         strokeLinecap="round"
         filter={`url(#gruntTendrilGlow-${accent})`}
@@ -522,7 +498,7 @@ export function HubTendril({
         d={path}
         fill="none"
         stroke={color}
-        strokeWidth={focused ? 6 : 5}
+        strokeWidth={midW}
         strokeOpacity={focused ? 0.27 : 0.20}
         strokeLinecap="round"
         filter="url(#gruntTendrilBlur)"
@@ -531,10 +507,10 @@ export function HubTendril({
         d={path}
         fill="none"
         stroke={color}
-        strokeWidth={focused ? 1.8 : 1.4}
+        strokeWidth={coreW}
         strokeOpacity={focused ? 0.64 : 0.50}
         strokeLinecap="round"
-        strokeDasharray="10 16"
+        strokeDasharray={compact ? "6 10" : "10 16"}
         filter={`url(#gruntTendrilCore-${accent})`}
         className={cn(
           "grunt-scene__hub-tendril-dash",

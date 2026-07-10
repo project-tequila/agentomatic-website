@@ -38,8 +38,8 @@ export const STORY_STAGE_VISUAL_SCALE = 1;
 /** Orb-connected satellite icons (channels, phones, hub modules) — matches --story-satellite-icon-scale in CSS. */
 export const STORY_SATELLITE_ICON_SCALE = 0.765;
 
-/** Persistent frontdesk orb visual scale — matches --story-orb-scale in CSS (25% smaller than base). */
-export const STORY_ORB_SCALE = 0.75;
+/** Persistent frontdesk orb visual scale — matches desktop --story-orb-scale in CSS. */
+export const STORY_ORB_SCALE = 0.6;
 
 /** Outermost voice wave radius in SVG user units (FrontdeskVoiceOrb). */
 export const PERSISTENT_ORB_OUTER_WAVE_RADIUS = 104;
