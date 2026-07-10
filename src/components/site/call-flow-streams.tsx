@@ -8,6 +8,7 @@ import {
   type ConcurrentNetworkPhone,
 } from "@/lib/story/concurrent-reveal";
 import { cn } from "@/lib/utils";
+import { useStoryFlowMagnetic } from "@/lib/motion/use-story-flow-magnetic";
 
 type CallFlowStreamsProps = {
   orbX: number;
@@ -15,11 +16,22 @@ type CallFlowStreamsProps = {
   progress: number;
   phones: ConcurrentNetworkPhone[];
   reduceMotion?: boolean;
+  viewportWidth?: number;
 };
 
-export function CallFlowStreams({ orbX, orbY, progress, phones, reduceMotion = false }: CallFlowStreamsProps) {
+export function CallFlowStreams({
+  orbX,
+  orbY,
+  progress,
+  phones,
+  reduceMotion = false,
+  viewportWidth = 1200,
+}: CallFlowStreamsProps) {
   const inboundIntensity = concurrentFlowIntensity(progress, "inbound");
   const outboundIntensity = concurrentFlowIntensity(progress, "outbound");
+
+  const flowIds = phones.map((p) => p.id);
+  const { offsets, setGroupRef } = useStoryFlowMagnetic(flowIds, { disabled: !!reduceMotion });
 
   if (phones.length === 0) return null;
 
@@ -73,15 +85,22 @@ export function CallFlowStreams({ orbX, orbY, progress, phones, reduceMotion = f
         const isInbound = phone.direction === "inbound";
         const intensity = isInbound ? inboundIntensity : outboundIntensity;
         const path = isInbound
-          ? concurrentInboundFlowPath(phone.x, phone.y, orbX, orbY, phone.depth, i)
-          : concurrentOutboundFlowPath(phone.x, phone.y, orbX, orbY, phone.depth, i);
+          ? concurrentInboundFlowPath(phone.x, phone.y, orbX, orbY, phone.depth, i, viewportWidth)
+          : concurrentOutboundFlowPath(phone.x, phone.y, orbX, orbY, phone.depth, i, viewportWidth);
         const stroke = isInbound ? "url(#flowInbound)" : "url(#flowOutbound)";
         const dotColor = CALL_THEME[phone.direction].color;
         const pathOpacity = intensity * (0.38 + phone.depth * 0.62) * phone.opacity;
         const strokeW = 1.1 + phone.depth * 0.85;
+        const mag = offsets[phone.id] ?? { x: 0, y: 0 };
 
         return (
-          <g key={`flow-${phone.id}`} opacity={pathOpacity}>
+          <g
+            key={`flow-${phone.id}`}
+            opacity={pathOpacity}
+            ref={(node) => setGroupRef(phone.id, node)}
+            transform={`translate(${mag.x} ${mag.y})`}
+            className="story-flow-magnetic"
+          >
             <path
               d={path}
               fill="none"

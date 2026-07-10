@@ -41,7 +41,7 @@ export function StoryChapterNav() {
     for (const chapter of chapters) {
       if (story >= chapter.progress - 0.04) current = chapter.id;
     }
-    setActiveId(current);
+    queueMicrotask(() => setActiveId(current));
   }, [story]);
 
   const onJump = useCallback(

@@ -1,6 +1,7 @@
 import { interpolate } from "@helios-project/core";
 
 import { gatedBodyTypingReveal } from "./body-typing-reveal";
+import { storyCompactT, lerpValue, storyRevealSpread } from "./story-scale";
 import type { ComponentType } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Calendar, Mail, Phone } from "lucide-react";
@@ -58,8 +59,8 @@ function integrationNodesAtRadius(radius: number): IntegrationNode[] {
 /** Wide corner layout — desktop; equidistant nodes, bottom pair above copy band. */
 export const INTEGRATION_NODES_DESKTOP: readonly IntegrationNode[] = integrationNodesAtRadius(200);
 
-/** Tighter ring — survives portrait slice crop above the copy band. */
-export const INTEGRATION_NODES_COMPACT: readonly IntegrationNode[] = integrationNodesAtRadius(178);
+/** Tighter ring — wider on compact to fill meet-fit stage above copy band. */
+export const INTEGRATION_NODES_COMPACT: readonly IntegrationNode[] = integrationNodesAtRadius(244);
 
 /** @deprecated use integrationLayoutForWidth */
 export const INTEGRATION_NODES = INTEGRATION_NODES_DESKTOP;
@@ -87,9 +88,15 @@ function lerpIntegrationNodes(
   });
 }
 
-/** Same ring geometry on all viewports — channels orbit the centered orb like desktop. */
-export function integrationLayoutForWidth(_viewportWidth: number): IntegrationLayout {
-  return { nodes: INTEGRATION_NODES_DESKTOP, satelliteScale: 0.62, hubScale: 0.72 };
+/** Interpolate ring geometry between desktop and compact layouts. */
+export function integrationLayoutForWidth(viewportWidth: number): IntegrationLayout {
+  const t = storyCompactT(viewportWidth);
+  const nodes = lerpIntegrationNodes(INTEGRATION_NODES_DESKTOP, INTEGRATION_NODES_COMPACT, t);
+  return {
+    nodes,
+    satelliteScale: lerpValue(0.62, 0.86, t),
+    hubScale: lerpValue(0.72, 0.94, t),
+  };
 }
 
 /** Channels finish by ~66% of the band — gap before body line appears. */
@@ -126,21 +133,35 @@ function smoothstep(t: number) {
 }
 
 /** Scroll progress 0–1 inside the integrations chapter band. */
-export function integrationChannelState(progress: number, index: number, reduceMotion = false): ChannelRevealState {
+export function integrationChannelState(
+  progress: number,
+  index: number,
+  reduceMotion = false,
+  viewportWidth = 1200,
+): ChannelRevealState {
   const total = INTEGRATION_CHANNELS.length;
   const slot = INTEGRATIONS_CHANNEL_WINDOW / total;
   const start = index * slot;
   const peak = start + slot * 0.52;
   const side = INTEGRATION_CHANNELS[index]?.side ?? "left";
+  const enterX = 120 * storyRevealSpread(1, viewportWidth);
+  const enterY = 32 * storyRevealSpread(1, viewportWidth);
 
   if (progress < start) {
-    return { opacity: 0, translateX: side === "left" ? -120 : 120, translateY: 32, scale: 0.72, highlight: 0, separator: 0 };
+    return {
+      opacity: 0,
+      translateX: side === "left" ? -enterX : enterX,
+      translateY: enterY,
+      scale: 0.72,
+      highlight: 0,
+      separator: 0,
+    };
   }
 
   const raw = interpolate(progress, [start, peak], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const enter = reduceMotion ? (raw > 0.4 ? 1 : 0) : smoothstep(raw);
-  const fromX = (side === "left" ? -1 : 1) * 120 * (1 - enter);
-  const fromY = 32 * (1 - enter);
+  const fromX = (side === "left" ? -1 : 1) * enterX * (1 - enter);
+  const fromY = enterY * (1 - enter);
 
   const separator =
     index < total - 1

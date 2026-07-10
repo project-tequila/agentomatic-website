@@ -7,6 +7,7 @@ import {
   INTEGRATION_CHANNELS,
   integrationChannelState,
 } from "@/lib/story/integrations-reveal";
+import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import { cn } from "@/lib/utils";
 
 type IntegrationsFeatureTitleProps = {
@@ -17,15 +18,17 @@ function ChannelWord({
   index,
   progress,
   reduceMotion,
+  viewportWidth,
 }: {
   index: number;
   progress: number;
   reduceMotion: boolean;
+  viewportWidth: number;
 }) {
   const channel = INTEGRATION_CHANNELS[index];
   if (!channel) return null;
 
-  const state = integrationChannelState(progress, index, reduceMotion);
+  const state = integrationChannelState(progress, index, reduceMotion, viewportWidth);
   const live = state.highlight >= 0.72 && state.opacity > 0.5;
 
   return (
@@ -48,12 +51,14 @@ function ChannelSep({
   index,
   progress,
   reduceMotion,
+  viewportWidth,
 }: {
   index: number;
   progress: number;
   reduceMotion: boolean;
+  viewportWidth: number;
 }) {
-  const state = integrationChannelState(progress, index, reduceMotion);
+  const state = integrationChannelState(progress, index, reduceMotion, viewportWidth);
 
   return (
     <span className="integrations-channels__sep" style={{ opacity: state.opacity }} aria-hidden>
@@ -64,8 +69,10 @@ function ChannelSep({
 
 export function IntegrationsFeatureTitle({ story }: IntegrationsFeatureTitleProps) {
   const reduceMotion = usePrefersReducedMotion();
+  const spatial = useStorySpatialLayout();
   const progress = featureBandProgress(story, "integrations");
   const motionOff = !!reduceMotion;
+  const viewportWidth = spatial.viewportWidth;
 
   if (progress === null) {
     return (
@@ -82,21 +89,21 @@ export function IntegrationsFeatureTitle({ story }: IntegrationsFeatureTitleProp
     );
   }
 
-  const calendar = integrationChannelState(progress, 3, motionOff);
+  const calendar = integrationChannelState(progress, 3, motionOff, viewportWidth);
 
   return (
     <h2 className="rumik-story__title rumik-story__title--integrations">
       <span className="integrations-channels">
         <span className="integrations-channels__row">
-          <ChannelWord index={0} progress={progress} reduceMotion={motionOff} />
-          <ChannelSep index={1} progress={progress} reduceMotion={motionOff} />
-          <ChannelWord index={1} progress={progress} reduceMotion={motionOff} />
+          <ChannelWord index={0} progress={progress} reduceMotion={motionOff} viewportWidth={viewportWidth} />
+          <ChannelSep index={1} progress={progress} reduceMotion={motionOff} viewportWidth={viewportWidth} />
+          <ChannelWord index={1} progress={progress} reduceMotion={motionOff} viewportWidth={viewportWidth} />
         </span>
         <span className="integrations-channels__row">
-          <ChannelSep index={2} progress={progress} reduceMotion={motionOff} />
-          <ChannelWord index={2} progress={progress} reduceMotion={motionOff} />
-          <ChannelSep index={3} progress={progress} reduceMotion={motionOff} />
-          <ChannelWord index={3} progress={progress} reduceMotion={motionOff} />
+          <ChannelSep index={2} progress={progress} reduceMotion={motionOff} viewportWidth={viewportWidth} />
+          <ChannelWord index={2} progress={progress} reduceMotion={motionOff} viewportWidth={viewportWidth} />
+          <ChannelSep index={3} progress={progress} reduceMotion={motionOff} viewportWidth={viewportWidth} />
+          <ChannelWord index={3} progress={progress} reduceMotion={motionOff} viewportWidth={viewportWidth} />
           <span className="integrations-channels__period" style={{ opacity: calendar.opacity }}>
             .
           </span>

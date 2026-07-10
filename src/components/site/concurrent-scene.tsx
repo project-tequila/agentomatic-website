@@ -3,14 +3,16 @@
 import { useCallback, useState, type CSSProperties } from "react";
 import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
-import { featureBandProgress } from "@/lib/story/feature-band-progress";
+import { useSvgGroupMagnetic } from "@/lib/motion/use-svg-group-magnetic";
+import { featureBandSceneProgress } from "@/lib/story/feature-band-progress";
 import {
   CALL_THEME,
+  CONCURRENT_NETWORK_NODES,
   CONCURRENT_STAGE,
   concurrentVisibleNetworkPhones,
   type ConcurrentNetworkPhone,
 } from "@/lib/story/concurrent-reveal";
-import { storyStageViewBoxForWidth } from "@/lib/story/persistent-orb";
+import { STORY_SATELLITE_ICON_SCALE, storyStageViewBoxForWidth } from "@/lib/story/persistent-orb";
 import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import { cn } from "@/lib/utils";
 
@@ -23,17 +25,26 @@ type ConcurrentSceneProps = {
 };
 
 const ORB = { x: CONCURRENT_STAGE.orbX, y: CONCURRENT_STAGE.orbY };
+const PHONE_IDS = CONCURRENT_NETWORK_NODES.map((node) => node.id);
 
 function NetworkPhone({
   phone,
   dualActive,
   reduceMotion,
   onToggle,
+  anchorScale,
+  magX,
+  magY,
+  setMagRef,
 }: {
   phone: ConcurrentNetworkPhone;
   dualActive: boolean;
   reduceMotion: boolean;
   onToggle: (id: string) => void;
+  anchorScale: number;
+  magX: number;
+  magY: number;
+  setMagRef: (node: SVGGElement | null) => void;
 }) {
   const theme = CALL_THEME[phone.direction];
   const isPrimary = phone.depth >= 0.7;
@@ -42,48 +53,50 @@ function NetworkPhone({
 
   return (
     <g
-      transform={`translate(${phone.x - 32} ${phone.y - 59}) rotate(${phone.rotate}) scale(${phone.scale})`}
+      transform={`translate(${phone.x - 32 * anchorScale} ${phone.y - 59 * anchorScale}) rotate(${phone.rotate}) scale(${phone.scale})`}
       opacity={phone.opacity}
     >
-      <g
-        className={cn(
-          "concurrent-scene__network-phone",
-          `concurrent-scene__network-phone--${phone.direction}`,
-          `concurrent-scene__network-phone--depth-${phone.depth >= 0.66 ? "near" : phone.depth >= 0.4 ? "mid" : "far"}`,
-          isPrimary && "concurrent-scene__network-phone--primary",
-          live && (phone.direction === "inbound" ? "concurrent-scene__network-phone--live-in" : "concurrent-scene__network-phone--live-out"),
-          ringing && "concurrent-scene__network-phone--ringing-in",
-          dualActive && "concurrent-scene__network-phone--dual-active",
-        )}
-        style={
-          {
-            "--phone-accent": theme.color,
-            animationDelay: `${phone.revealAt * 1200}ms`,
-          } as CSSProperties
-        }
-        onClick={() => onToggle(phone.id)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onToggle(phone.id);
+      <g ref={setMagRef} transform={`translate(${magX} ${magY})`} className="concurrent-scene__phone-magnetic">
+        <g
+          className={cn(
+            "concurrent-scene__network-phone",
+            `concurrent-scene__network-phone--${phone.direction}`,
+            `concurrent-scene__network-phone--depth-${phone.depth >= 0.66 ? "near" : phone.depth >= 0.4 ? "mid" : "far"}`,
+            isPrimary && "concurrent-scene__network-phone--primary",
+            live && (phone.direction === "inbound" ? "concurrent-scene__network-phone--live-in" : "concurrent-scene__network-phone--live-out"),
+            ringing && "concurrent-scene__network-phone--ringing-in",
+            dualActive && "concurrent-scene__network-phone--dual-active",
+          )}
+          style={
+            {
+              "--phone-accent": theme.color,
+              animationDelay: `${phone.revealAt * 1200}ms`,
+            } as CSSProperties
           }
-        }}
-        role="button"
-        tabIndex={0}
-        aria-label={`${phone.direction} call phone`}
-      >
-        <g className="concurrent-scene__network-phone__motion">
-          <RealisticPhoneSvg
-            accent={theme.color}
-            highlight={isPrimary ? 0.95 : 0.72 + phone.depth * 0.2}
-            uid={phone.id}
-            showRing={isPrimary || live}
-            variant="frontdesk"
-            callDirection={phone.direction}
-            useAccentVar={dualActive}
-            minimal
-            ringing={ringing}
-          />
+          onClick={() => onToggle(phone.id)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onToggle(phone.id);
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label={`${phone.direction} call phone`}
+        >
+          <g className="concurrent-scene__network-phone__motion">
+            <RealisticPhoneSvg
+              accent={theme.color}
+              highlight={isPrimary ? 0.95 : 0.72 + phone.depth * 0.2}
+              uid={phone.id}
+              showRing={isPrimary || live}
+              variant="frontdesk"
+              callDirection={phone.direction}
+              useAccentVar={dualActive}
+              minimal
+              ringing={ringing}
+            />
+          </g>
         </g>
       </g>
     </g>
@@ -94,6 +107,12 @@ export function ConcurrentScene({ story, opacity: sceneOpacity }: ConcurrentScen
   const reduceMotion = usePrefersReducedMotion();
   const spatial = useStorySpatialLayout();
   const [dualPhones, setDualPhones] = useState<Set<string>>(() => new Set());
+  const { offsets, setGroupRef } = useSvgGroupMagnetic(PHONE_IDS, {
+    strength: 0.4,
+    maxDisplacement: 12,
+    radiusFactor: 1.15,
+    disabled: !!reduceMotion,
+  });
 
   const toggleDual = useCallback((id: string) => {
     setDualPhones((prev) => {
@@ -104,7 +123,7 @@ export function ConcurrentScene({ story, opacity: sceneOpacity }: ConcurrentScen
     });
   }, []);
 
-  const progress = featureBandProgress(story, "concurrent");
+  const progress = featureBandSceneProgress(story, "concurrent");
   if (progress === null || sceneOpacity < 0.02) return null;
 
   const phones = concurrentVisibleNetworkPhones(progress, !!reduceMotion, {
@@ -112,27 +131,42 @@ export function ConcurrentScene({ story, opacity: sceneOpacity }: ConcurrentScen
     ySquash: spatial.concurrent.ySquash,
     satelliteScale: spatial.concurrent.satelliteScale,
   });
+  const anchorScale = spatial.concurrent.satelliteScale / STORY_SATELLITE_ICON_SCALE;
 
   return (
     <svg
       viewBox={storyStageViewBoxForWidth(spatial.viewportWidth)}
       preserveAspectRatio={spatial.preserveAspectRatio}
       suppressHydrationWarning
-      className="concurrent-scene"
+      className="concurrent-scene concurrent-scene--interactive"
       aria-hidden
       style={{ opacity: sceneOpacity }}
     >
-      <CallFlowStreams orbX={ORB.x} orbY={ORB.y} progress={progress} phones={phones} reduceMotion={!!reduceMotion} />
+      <CallFlowStreams
+        orbX={ORB.x}
+        orbY={ORB.y}
+        progress={progress}
+        phones={phones}
+        reduceMotion={!!reduceMotion}
+        viewportWidth={spatial.viewportWidth}
+      />
 
-      {phones.map((phone) => (
-        <NetworkPhone
-          key={phone.id}
-          phone={phone}
-          dualActive={dualPhones.has(phone.id)}
-          reduceMotion={!!reduceMotion}
-          onToggle={toggleDual}
-        />
-      ))}
+      {phones.map((phone) => {
+        const mag = offsets[phone.id] ?? { x: 0, y: 0 };
+        return (
+          <NetworkPhone
+            key={phone.id}
+            phone={phone}
+            dualActive={dualPhones.has(phone.id)}
+            reduceMotion={!!reduceMotion}
+            onToggle={toggleDual}
+            anchorScale={anchorScale}
+            magX={mag.x}
+            magY={mag.y}
+            setMagRef={(el) => setGroupRef(phone.id, el)}
+          />
+        );
+      })}
     </svg>
   );
 }

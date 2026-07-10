@@ -25,7 +25,8 @@ export function useStoryScrollPaused(story: number, delayMs = 120) {
     const scrollEl = scrollRef.current;
     if (!scrollEl) return;
 
-    markActive();
+    // Avoid synchronous state writes in effects (lint rule).
+    queueMicrotask(markActive);
 
     scrollEl.addEventListener("scroll", markActive, { passive: true });
     scrollEl.addEventListener("touchstart", markActive, { passive: true });
@@ -46,7 +47,7 @@ export function useStoryScrollPaused(story: number, delayMs = 120) {
   useEffect(() => {
     if (Math.abs(story - lastStory.current) > 0.0004) {
       lastStory.current = story;
-      markActive();
+      queueMicrotask(markActive);
     }
   }, [story, delayMs]);
 

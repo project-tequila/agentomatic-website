@@ -21,7 +21,7 @@ import { useScrollContainer } from "@/lib/helios/scroll-container-context";
 import { useVideoFrame } from "@/lib/helios/use-video-frame";
 import { act1BeatProgress } from "@/lib/story/act1-band-progress";
 import { staticTitleBodyTypingReveal } from "@/lib/story/body-typing-reveal";
-import { featureBandProgress, featureBandOpacity } from "@/lib/story/feature-band-progress";
+import { featureBandProgress, featureBandOpacitySequential } from "@/lib/story/feature-band-progress";
 import { concurrentBodyTypingReveal } from "@/lib/story/concurrent-reveal";
 import { integrationsBodyReveal } from "@/lib/story/integrations-reveal";
 import { handoffBodyReveal } from "@/lib/story/handoff-reveal";
@@ -77,7 +77,7 @@ export function RumikStory() {
   const concurrentProgress = feature?.id === "concurrent" ? featureBandProgress(story, "concurrent") : null;
   const hoursProgress = feature?.id === "hours" ? featureBandProgress(story, "hours") : null;
   const dashboardProgress = feature?.id === "dashboard" ? featureBandProgress(story, "dashboard") : null;
-  const dashboardOpacity = featureBandOpacity(story, "dashboard");
+  const dashboardOpacity = featureBandOpacitySequential(story, "dashboard");
   const dashboardBand = featureBandProgress(story, "dashboard");
   const dashboardScenarioIndex =
     dashboardBand !== null ? Math.min(3, Math.floor(dashboardBand * 4)) : 0;
@@ -105,7 +105,7 @@ export function RumikStory() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const seen = sessionStorage.getItem(SCROLL_SEEN_KEY);
-    if (!seen && story < 0.02) setShowFirstVisitCue(true);
+    if (!seen && story < 0.02) queueMicrotask(() => setShowFirstVisitCue(true));
   }, [story]);
 
   useEffect(() => {
@@ -136,7 +136,7 @@ export function RumikStory() {
     >
       <DemoCallScrollReveal reveal={panelReveal} />
       <div className="rumik-story__sticky">
-        {dashboardOpacity > 0.02 ? (
+        {feature?.id === "dashboard" && dashboardOpacity > 0.05 ? (
           <div className="rumik-story__command-console" style={{ opacity: dashboardOpacity }}>
             <CommandCenterConsole
               active={dashboardOpacity > 0.12}

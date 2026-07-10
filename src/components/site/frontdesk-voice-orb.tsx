@@ -102,9 +102,8 @@ const MODE_WAVE_GRADIENTS: Record<
   },
 };
 
-function wavePath(
-  cx: number,
-  cy: number,
+/** Local-space ring path around (0,0) so CSS rotate/scale stays orb-centered. */
+function wavePathLocal(
   radius: number,
   amplitude: number,
   frequency: number,
@@ -123,8 +122,8 @@ function wavePath(
     const ripple3 = Math.sin(t * (frequency * 1.35) + phase * 0.7) * (amplitude * 0.28);
     const bias = (pointerX * Math.cos(t) + pointerY * Math.sin(t)) * pointerStrength;
     const r = radius + ripple + ripple2 + ripple3 + bias;
-    const x = cx + Math.cos(t) * r;
-    const y = cy + Math.sin(t) * r;
+    const x = Math.cos(t) * r;
+    const y = Math.sin(t) * r;
     parts.push(i === 0 ? `M ${x.toFixed(2)} ${y.toFixed(2)}` : `L ${x.toFixed(2)} ${y.toFixed(2)}`);
   }
 
@@ -143,40 +142,49 @@ export function FrontdeskVoiceOrb({
 }: FrontdeskVoiceOrbProps) {
   const px = reduceMotion ? 0 : pointerX;
   const py = reduceMotion ? 0 : pointerY;
-  const tiltX = px * 6;
-  const tiltY = py * 5;
+  const tiltX = px * 10;
+  const tiltY = py * 8;
   const palette = MODE_WAVE_GRADIENTS[mode];
   const uid = idSuffix;
 
-  const waves = useMemo(() => {
-    const layers = [
-      { r: 46, amp: 4.8, freq: 5.5, phase: 0, opacity: 0.58, stroke: 1.5 },
-      { r: 58, amp: 6.8, freq: 4.4, phase: 0.9, opacity: 0.42, stroke: 1.25 },
-      { r: 72, amp: 8.5, freq: 3.8, phase: 1.8, opacity: 0.3, stroke: 1.05 },
-      { r: 88, amp: 10.2, freq: 3.2, phase: 2.6, opacity: 0.2, stroke: 0.95 },
-      { r: 104, amp: 11.5, freq: 2.8, phase: 3.4, opacity: 0.12, stroke: 0.8 },
+  const { coreWaves, outerWaves } = useMemo(() => {
+    /** Rings that cross through the solid core (core radius = 26). */
+    const coreLayers = [
+      { r: 8, amp: 2.2, freq: 6.2, phase: 0.2, opacity: 0.72, stroke: 1.35 },
+      { r: 14, amp: 3.1, freq: 5.6, phase: 0.85, opacity: 0.62, stroke: 1.3 },
+      { r: 20, amp: 3.8, freq: 5.1, phase: 1.5, opacity: 0.52, stroke: 1.2 },
+      { r: 24, amp: 4.2, freq: 4.7, phase: 2.1, opacity: 0.42, stroke: 1.1 },
+    ];
+    /** Rings that bloom outside the solid disc. */
+    const outerLayers = [
+      { r: 34, amp: 5.2, freq: 4.2, phase: 0.4, opacity: 0.48, stroke: 1.2 },
+      { r: 48, amp: 6.8, freq: 3.8, phase: 1.1, opacity: 0.34, stroke: 1.05 },
+      { r: 66, amp: 8.5, freq: 3.3, phase: 1.9, opacity: 0.24, stroke: 0.95 },
+      { r: 86, amp: 10.2, freq: 2.9, phase: 2.8, opacity: 0.16, stroke: 0.85 },
+      { r: 104, amp: 11.5, freq: 2.6, phase: 3.5, opacity: 0.1, stroke: 0.75 },
     ];
 
-    return layers.map((layer) => ({
-      ...layer,
-      d: wavePath(
-        cx + tiltX * 0.15,
-        cy + tiltY * 0.15,
-        layer.r * (0.98 + intensity * 0.04),
-        layer.amp * (0.85 + intensity * 0.25 + Math.abs(px) * 0.35),
-        layer.freq,
-        layer.phase + px * 0.8 + py * 0.6,
-        px,
-        py,
-        5 + intensity * 3,
-      ),
-    }));
-  }, [cx, cy, px, py, tiltX, tiltY, intensity]);
+    const build = (layers: typeof coreLayers) =>
+      layers.map((layer) => ({
+        ...layer,
+        d: wavePathLocal(
+          layer.r * (0.98 + intensity * 0.04),
+          layer.amp * (0.85 + intensity * 0.25 + Math.abs(px) * 0.35),
+          layer.freq,
+          layer.phase + px * 0.8 + py * 0.6,
+          px,
+          py,
+          5 + intensity * 3,
+        ),
+      }));
+
+    return { coreWaves: build(coreLayers), outerWaves: build(outerLayers) };
+  }, [px, py, intensity]);
 
   return (
     <g
       className={cn("frontdesk-voice-orb", `frontdesk-voice-orb--${mode}`)}
-      transform={`translate(${tiltX * 0.35} ${tiltY * 0.35})`}
+      transform={`translate(${cx + tiltX * 0.35} ${cy + tiltY * 0.35})`}
     >
       <defs>
         <radialGradient id={`frontdeskOrbCore-${uid}`} cx="38%" cy="32%" r="68%">
@@ -202,38 +210,61 @@ export function FrontdeskVoiceOrb({
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
+        <filter id={`frontdeskCoreWaveGlow-${uid}`} x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="1.4" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
       </defs>
 
-      <ellipse cx={cx - 42} cy={cy} rx="38" ry="48" fill="rgba(140,255,210,0.07)" />
-      <ellipse cx={cx + 42} cy={cy} rx="38" ry="48" fill="rgba(255,200,87,0.07)" />
+      <ellipse cx={-42 + tiltX * 0.08} cy={tiltY * 0.08} rx="38" ry="48" fill="rgba(140,255,210,0.07)" />
+      <ellipse cx={42 + tiltX * 0.08} cy={tiltY * 0.08} rx="38" ry="48" fill="rgba(255,200,87,0.07)" />
 
-      <ellipse cx={cx} cy={cy + 38} rx="36" ry="6" fill="rgba(0,0,0,0.35)" opacity="0.45" />
+      <ellipse cx={0} cy={38} rx="36" ry="6" fill="rgba(0,0,0,0.35)" opacity="0.45" />
 
-      {waves.map((wave, i) => (
-        <path
-          key={i}
-          d={wave.d}
-          fill="none"
-          stroke={`url(#frontdeskWaveDual-${uid})`}
-          strokeWidth={wave.stroke}
-          opacity={wave.opacity}
-          strokeLinecap="round"
-          filter={i < 2 ? `url(#frontdeskOrbBlur-${uid})` : undefined}
-          className="frontdesk-voice-orb__wave"
-          style={{ animationDelay: `${i * 0.28}s`, transformOrigin: `${cx}px ${cy}px` }}
-        />
-      ))}
+      {/* Outer bloom sits behind the solid disc. */}
+      <g className="frontdesk-voice-orb__waves frontdesk-voice-orb__waves--outer" transform={`translate(${tiltX * 0.12} ${tiltY * 0.12})`}>
+        {outerWaves.map((wave, i) => (
+          <path
+            key={`outer-${i}`}
+            d={wave.d}
+            fill="none"
+            stroke={`url(#frontdeskWaveDual-${uid})`}
+            strokeWidth={wave.stroke}
+            opacity={wave.opacity}
+            strokeLinecap="round"
+            filter={i < 2 ? `url(#frontdeskOrbBlur-${uid})` : undefined}
+            className="frontdesk-voice-orb__wave"
+            style={{ animationDelay: `${(i + 3) * 0.28}s` }}
+          />
+        ))}
+      </g>
 
-      <circle
-        cx={cx}
-        cy={cy}
-        r="34"
-        fill={palette.halo}
-        className="frontdesk-voice-orb__halo"
-      />
-      <circle cx={cx} cy={cy} r="26" fill={`url(#frontdeskOrbCore-${uid})`} stroke="rgba(255,255,255,0.22)" strokeWidth="1.2" />
-      <circle cx={cx - 8} cy={cy - 10} r="14" fill={`url(#frontdeskOrbSheen-${uid})`} opacity="0.85" />
-      <circle cx={cx} cy={cy} r="4" fill="#f5f2eb" opacity="0.92" />
+      <circle cx={0} cy={0} r="34" fill={palette.halo} className="frontdesk-voice-orb__halo" />
+      <circle cx={0} cy={0} r="26" fill={`url(#frontdeskOrbCore-${uid})`} stroke="rgba(255,255,255,0.22)" strokeWidth="1.2" />
+      <circle cx={-8} cy={-10} r="14" fill={`url(#frontdeskOrbSheen-${uid})`} opacity="0.85" />
+
+      {/* Inner topo rings paint over the solid core so lines run through the center. */}
+      <g className="frontdesk-voice-orb__waves frontdesk-voice-orb__waves--core" transform={`translate(${tiltX * 0.08} ${tiltY * 0.08})`}>
+        {coreWaves.map((wave, i) => (
+          <path
+            key={`core-${i}`}
+            d={wave.d}
+            fill="none"
+            stroke={`url(#frontdeskWaveDual-${uid})`}
+            strokeWidth={wave.stroke}
+            opacity={wave.opacity}
+            strokeLinecap="round"
+            filter={`url(#frontdeskCoreWaveGlow-${uid})`}
+            className="frontdesk-voice-orb__wave frontdesk-voice-orb__wave--core"
+            style={{ animationDelay: `${i * 0.22}s` }}
+          />
+        ))}
+      </g>
+
+      <circle cx={0} cy={0} r="3.2" fill="#f5f2eb" opacity="0.88" />
     </g>
   );
 }
