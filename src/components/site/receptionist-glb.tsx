@@ -95,12 +95,13 @@ export function ReceptionistGlbCharacter() {
     if (walkAction && modeRef.current === "walk") {
       const clip = walkAction.getClip();
       if (!walkAction.isRunning()) walkAction.play();
-      walkAction.paused = true;
-      walkAction.time = walk * clip.duration;
+      // Freeze walk action without mutating hook-provided action fields directly.
+      walkAction.setEffectiveTimeScale(0);
+      walkAction.getMixer().setTime(walk * clip.duration);
     }
 
     if (idleAction && modeRef.current === "idle") {
-      idleAction.timeScale = 0.85 + energy * 0.35;
+      idleAction.setEffectiveTimeScale(0.85 + energy * 0.35);
       if (!idleAction.isRunning()) idleAction.play();
     }
 

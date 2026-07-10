@@ -59,8 +59,8 @@ function integrationNodesAtRadius(radius: number): IntegrationNode[] {
 /** Wide corner layout — desktop; equidistant nodes, bottom pair above copy band. */
 export const INTEGRATION_NODES_DESKTOP: readonly IntegrationNode[] = integrationNodesAtRadius(200);
 
-/** Tighter ring — survives portrait slice crop above the copy band. */
-export const INTEGRATION_NODES_COMPACT: readonly IntegrationNode[] = integrationNodesAtRadius(178);
+/** Tighter ring — wider on compact to fill meet-fit stage above copy band. */
+export const INTEGRATION_NODES_COMPACT: readonly IntegrationNode[] = integrationNodesAtRadius(244);
 
 /** @deprecated use integrationLayoutForWidth */
 export const INTEGRATION_NODES = INTEGRATION_NODES_DESKTOP;
@@ -94,8 +94,8 @@ export function integrationLayoutForWidth(viewportWidth: number): IntegrationLay
   const nodes = lerpIntegrationNodes(INTEGRATION_NODES_DESKTOP, INTEGRATION_NODES_COMPACT, t);
   return {
     nodes,
-    satelliteScale: lerpValue(0.62, 0.68, t),
-    hubScale: lerpValue(0.72, 0.78, t),
+    satelliteScale: lerpValue(0.62, 0.86, t),
+    hubScale: lerpValue(0.72, 0.94, t),
   };
 }
 

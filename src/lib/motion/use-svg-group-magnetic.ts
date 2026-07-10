@@ -51,10 +51,8 @@ export function useSvgGroupMagnetic(
   const reduceMotion = usePrefersReducedMotion();
   const { disabled = false, strength, maxDisplacement, radiusFactor } = options;
   const configRef = useRef(resolveMagneticConfig({ strength, maxDisplacement, radiusFactor }));
-  configRef.current = resolveMagneticConfig({ strength, maxDisplacement, radiusFactor });
 
   const idsRef = useRef(ids);
-  idsRef.current = ids;
 
   const groupRefs = useRef(new Map<string, SVGGElement | null>());
   const statesRef = useRef(new Map<string, GroupState>());
@@ -63,8 +61,6 @@ export function useSvgGroupMagnetic(
   const coarseRef = useRef(false);
   const disabledRef = useRef(disabled);
   const reduceMotionRef = useRef(!!reduceMotion);
-  disabledRef.current = disabled;
-  reduceMotionRef.current = !!reduceMotion;
 
   const [offsets, setOffsets] = useState<Record<string, Offset>>(() =>
     Object.fromEntries(ids.map((id) => [id, ZERO])),
@@ -83,6 +79,8 @@ export function useSvgGroupMagnetic(
       rafRef.current = 0;
     }
   }, []);
+
+  const tickRef = useRef<() => void>(() => {});
 
   const tick = useCallback(() => {
     const next: Record<string, Offset> = {};
@@ -130,7 +128,7 @@ export function useSvgGroupMagnetic(
     setOffsets(next);
 
     if (pointerRef.current.active || settling) {
-      rafRef.current = requestAnimationFrame(tick);
+      rafRef.current = requestAnimationFrame(() => tickRef.current());
     } else {
       rafRef.current = 0;
     }
@@ -138,9 +136,9 @@ export function useSvgGroupMagnetic(
 
   const startLoop = useCallback(() => {
     if (!rafRef.current) {
-      rafRef.current = requestAnimationFrame(tick);
+      rafRef.current = requestAnimationFrame(() => tickRef.current());
     }
-  }, [tick]);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -152,6 +150,19 @@ export function useSvgGroupMagnetic(
     media.addEventListener("change", onChange);
     return () => media.removeEventListener("change", onChange);
   }, []);
+
+  useEffect(() => {
+    configRef.current = resolveMagneticConfig({ strength, maxDisplacement, radiusFactor });
+  }, [strength, maxDisplacement, radiusFactor]);
+
+  useEffect(() => {
+    idsRef.current = ids;
+  }, [ids]);
+
+  useEffect(() => {
+    disabledRef.current = disabled;
+    reduceMotionRef.current = !!reduceMotion;
+  }, [disabled, reduceMotion]);
 
   useEffect(() => {
     if (disabled || reduceMotion) return;
@@ -174,6 +185,10 @@ export function useSvgGroupMagnetic(
       stopLoop();
     };
   }, [disabled, reduceMotion, startLoop, stopLoop]);
+
+  useEffect(() => {
+    tickRef.current = tick;
+  }, [tick]);
 
   return { offsets, setGroupRef };
 }

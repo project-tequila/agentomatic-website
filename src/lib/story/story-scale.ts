@@ -36,14 +36,29 @@ export function lerpValue(from: number, to: number, t: number): number {
   return from + (to - from) * t;
 }
 
-/** Scale entrance offsets — tighter on compact viewports. */
+/** Scale entrance offsets — keep readable motion on compact viewports. */
 export function storyRevealSpread(base: number, viewportWidth: number): number {
   const compact = storyCompactT(viewportWidth);
-  return base * lerpValue(1, 0.78, compact);
+  return base * lerpValue(1, 0.92, compact);
 }
 
-/** Slightly larger satellites on mobile for tap/readability. */
+/**
+ * Spread multiplier for orb satellites (hub modules, phones, channels).
+ * Desktop stays 1; mobile/tablet push elements outward to use meet-fit slack.
+ */
+export function storyCompactSpreadMultiplier(viewportWidth: number): number {
+  const compact = storyCompactT(viewportWidth);
+  return lerpValue(1, 1.34, compact);
+}
+
+/** Overall visual boost for compact stages (orb + scene fill). */
+export function storyCompactVisualBoost(viewportWidth: number): number {
+  const compact = storyCompactT(viewportWidth);
+  return lerpValue(1, 1.22, compact);
+}
+
+/** Larger satellites on mobile — fills background without crowding the orb core. */
 export function storySatelliteScaleForWidth(viewportWidth: number): number {
   const compact = storyCompactT(viewportWidth);
-  return lerpValue(STORY_SATELLITE_ICON_SCALE, STORY_SATELLITE_ICON_SCALE * 1.08, compact);
+  return lerpValue(STORY_SATELLITE_ICON_SCALE, STORY_SATELLITE_ICON_SCALE * 1.18, compact);
 }

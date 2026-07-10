@@ -2,7 +2,7 @@ import { interpolate } from "@helios-project/core";
 
 import { gatedBodyTypingReveal } from "./body-typing-reveal";
 import { PERSISTENT_ORB, STORY_SATELLITE_ICON_SCALE } from "./persistent-orb";
-import { storyRevealSpread, storySpatialT } from "./story-scale";
+import { storyCompactSpreadMultiplier, storyRevealSpread } from "./story-scale";
 
 export type CallDirection = "inbound" | "outbound";
 
@@ -127,12 +127,11 @@ export function concurrentBodyTypingReveal(progress: number, reduceMotion = fals
 
 /** Orbit stays wide — phones remain scattered around the orb. */
 export function concurrentOrbitRadius(progress: number, viewportWidth = 1200) {
-  const spatial = storySpatialT(viewportWidth);
-  const scale = 0.88 + spatial * 0.12;
+  const spread = storyCompactSpreadMultiplier(viewportWidth);
   return interpolate(
     progress,
     [0, 0.5, 1],
-    [CONCURRENT_HERO_ORBIT_MAX * scale, 195 * scale, CONCURRENT_HERO_ORBIT_MIN * scale],
+    [CONCURRENT_HERO_ORBIT_MAX * spread, 195 * spread, CONCURRENT_HERO_ORBIT_MIN * spread],
     {
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp",

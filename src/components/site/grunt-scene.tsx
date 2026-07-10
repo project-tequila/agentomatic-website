@@ -5,32 +5,29 @@ import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion"
 
 import {
   accentColor,
-  CircuitGrid,
   ConversationsModule,
   DataModule,
+  GruntStaticBackdrop,
   HubHoverStatus,
-  HubOrbIconFlows,
-  HubPlusArms,
   HubTendril,
   RouteModule,
   ScheduleModule,
 } from "@/components/site/grunt-hub-modules";
+import { useSvgGroupMagnetic } from "@/lib/motion/use-svg-group-magnetic";
 import { act1BeatProgress } from "@/lib/story/act1-band-progress";
 import {
+  GRUNT_HUB_MODULES,
   GRUNT_STAGE,
   gruntConversationsLive,
   gruntFocusedModule,
   gruntHubReveal,
   gruntHubSync,
   gruntModuleEnterOffset,
-  gruntModuleFlow,
   gruntModuleIconArrived,
   gruntModuleLabelReveal,
   gruntModuleLive,
   gruntModuleReveal,
-  gruntPlusArmReveal,
   gruntSceneReveal,
-  gruntStressLevel,
   gruntTendrilPath,
   gruntTendrilPulse,
   type GruntHubModuleId,
@@ -46,18 +43,25 @@ type GruntSceneProps = {
 
 const C = STORY_GLYPH;
 
+const GRUNT_MODULE_IDS = GRUNT_HUB_MODULES.map((mod) => mod.id);
+
 export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
   const reduceMotion = usePrefersReducedMotion();
   const spatial = useStorySpatialLayout();
   const progress = act1BeatProgress(story, "grunt");
   const [hoveredModule, setHoveredModule] = useState<GruntHubModuleId | null>(null);
-  if (progress === null || sceneOpacity < 0.02) return null;
-
   const rm = !!reduceMotion;
+
+  const { offsets: iconOffsets, setGroupRef: setIconRef } = useSvgGroupMagnetic(GRUNT_MODULE_IDS, {
+    strength: 0.4,
+    maxDisplacement: 12,
+    radiusFactor: 1.15,
+    disabled: rm,
+  });
+
+  if (progress === null || sceneOpacity < 0.02) return null;
   const reveal = gruntSceneReveal(progress);
   const hubReveal = gruntHubReveal(progress);
-  const plusReveal = gruntPlusArmReveal(progress);
-  const stress = gruntStressLevel(progress);
   const sync = gruntHubSync(progress);
 
   const { orbX, orbY } = GRUNT_STAGE;
@@ -69,12 +73,6 @@ export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
   const focusedId = gruntFocusedModule(progress);
   const hoveredMod = hoveredModule ? hubModules.find((m) => m.id === hoveredModule) : null;
 
-  const iconFlows = hubModules.map((mod) => ({
-    id: mod.id,
-    flow: gruntModuleFlow(progress, mod.revealAt),
-    arrived: gruntModuleIconArrived(progress, mod.revealAt),
-  }));
-
   const moduleContent = (id: GruntHubModuleId) => {
     const mod = hubModules.find((m) => m.id === id)!;
     const live = gruntModuleLive(progress, mod.revealAt) && !rm;
@@ -82,7 +80,7 @@ export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
     const hovered = hoveredModule === id;
     const labelReveal = gruntModuleLabelReveal(progress, mod.revealAt);
     const iconArrived = gruntModuleIconArrived(progress, mod.revealAt);
-    const iconFlow = gruntModuleFlow(progress, mod.revealAt);
+    const mag = iconOffsets[id] ?? { x: 0, y: 0 };
     const cardProps = {
       live,
       focused,
@@ -90,7 +88,9 @@ export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
       onHoverChange: setHoveredModule,
       labelReveal,
       iconArrived,
-      iconFlow,
+      magX: mag.x,
+      magY: mag.y,
+      setMagRef: (node: SVGGElement | null) => setIconRef(id, node),
     };
 
     switch (id) {
@@ -125,25 +125,41 @@ export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
         <filter id="gruntModuleShadow" x="-40%" y="-30%" width="180%" height="180%">
           <feDropShadow dx="0" dy="8" stdDeviation="10" floodColor="#000000" floodOpacity="0.35" />
         </filter>
-        <filter id="gruntTendrilBlur" x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation="3.5" />
+        <filter id="gruntTendrilBlur" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="3.8" />
         </filter>
+        {(["sky", "mint", "amber", "violet"] as const).map((accent) => {
+          const glowColor = accentColor(accent);
+          return (
+            <g key={accent}>
+              <filter id={`gruntTendrilGlow-${accent}`} x="-60%" y="-60%" width="220%" height="220%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="bloom" />
+                <feMerge>
+                  <feMergeNode in="bloom" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              <filter id={`gruntTendrilCore-${accent}`} x="-100%" y="-100%" width="300%" height="300%">
+                <feDropShadow dx="0" dy="0" stdDeviation="2.5" floodColor={glowColor} floodOpacity="0.66" />
+                <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor={glowColor} floodOpacity="0.35" />
+              </filter>
+            </g>
+          );
+        })}
         <linearGradient id="gruntModuleGlass" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stopColor="#2a303c" />
           <stop offset="48%" stopColor="#1e222b" />
           <stop offset="100%" stopColor="#14171e" />
         </linearGradient>
-        <linearGradient id="gruntPlusArmGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor={C.violet} stopOpacity="0.15" />
-          <stop offset="25%" stopColor={C.sky} stopOpacity="0.55" />
-          <stop offset="50%" stopColor={C.mint} stopOpacity="0.85" />
-          <stop offset="75%" stopColor={C.amber} stopOpacity="0.55" />
-          <stop offset="100%" stopColor={C.mint} stopOpacity="0.15" />
-        </linearGradient>
         <radialGradient id="gruntHubCore" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor={C.mint} stopOpacity={0.1 + sync * 0.08} />
-          <stop offset="55%" stopColor={C.mint} stopOpacity={0.04 + sync * 0.03} />
+          <stop offset="0%" stopColor={C.mint} stopOpacity={0.08 + sync * 0.06} />
+          <stop offset="55%" stopColor={C.mint} stopOpacity={0.03 + sync * 0.025} />
           <stop offset="100%" stopColor={C.mint} stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id="gruntStaticWash" cx="50%" cy="46%" r="58%">
+          <stop offset="0%" stopColor={C.mint} stopOpacity="0.035" />
+          <stop offset="42%" stopColor={C.violet} stopOpacity="0.015" />
+          <stop offset="100%" stopColor="#0a0c10" stopOpacity="0" />
         </radialGradient>
         <filter id="gruntOrbIconGlow" x="-100%" y="-100%" width="300%" height="300%">
           <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#8cffd2" floodOpacity="0.45" />
@@ -153,35 +169,32 @@ export function GruntScene({ story, opacity: sceneOpacity }: GruntSceneProps) {
         </filter>
       </defs>
 
-      <CircuitGrid opacity={hubReveal * 0.65} />
+      <GruntStaticBackdrop opacity={hubReveal} />
 
-      <HubPlusArms opacity={plusReveal * hubReveal} sync={sync} moduleRadius={moduleRadius} />
-
-      <ellipse cx={orbX} cy={orbY} rx="118" ry="86" fill="url(#gruntHubCore)" className="grunt-scene__hub-orb-halo" />
-      <ellipse cx={orbX} cy={orbY} rx="92" ry="66" fill={C.mint} opacity={0.025 + stress * 0.035 + sync * 0.04} filter="url(#gruntHubGlow)" />
+      <ellipse cx={orbX} cy={orbY} rx="96" ry="68" fill="url(#gruntHubCore)" />
 
       {hubModules.map((mod) => {
-        const flow = gruntModuleFlow(progress, mod.revealAt);
+        const modReveal = gruntModuleReveal(progress, mod.revealAt);
         const path = gruntTendrilPath(mod, moduleRadius);
         const color = accentColor(mod.accent);
-        const live = gruntModuleLive(progress, mod.revealAt) && !rm;
         const focused = focusedId === mod.id;
+        const tendrilOp =
+          hubReveal * gruntTendrilPulse(progress, mod.revealAt) * (focused || hoveredModule === mod.id ? 1.13 : 1);
+
+        if (modReveal < 0.02 && tendrilOp < 0.02) return null;
 
         return (
           <HubTendril
             key={`tendril-${mod.id}`}
             path={path}
-            flow={flow}
-            opacity={hubReveal * gruntTendrilPulse(progress, flow) * (focused || hoveredModule === mod.id ? 1.2 : 0.85)}
+            opacity={tendrilOp}
             color={color}
-            live={live || sync > 0.5}
+            accent={mod.accent}
             focused={focused || hoveredModule === mod.id}
             reduceMotion={rm}
           />
         );
       })}
-
-      <HubOrbIconFlows flows={iconFlows} reduceMotion={rm} modules={hubModules} moduleRadius={moduleRadius} />
 
       {hubModules.map((mod) => {
         const op = gruntModuleReveal(progress, mod.revealAt) * reveal;

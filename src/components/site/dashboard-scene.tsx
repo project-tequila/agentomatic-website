@@ -2,7 +2,7 @@
 
 import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
-import { featureBandProgress } from "@/lib/story/feature-band-progress";
+import { featureBandSceneProgress } from "@/lib/story/feature-band-progress";
 import {
   DASHBOARD_COMPOSER_H,
   DASHBOARD_EXCHANGE_H,
@@ -46,10 +46,22 @@ import { storyStageViewBoxForWidth } from "@/lib/story/persistent-orb";
 import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import { STORY_GLYPH } from "@/components/site/story-stage-glyphs";
 import { cn } from "@/lib/utils";
+import { useStoryFlowMagnetic } from "@/lib/motion/use-story-flow-magnetic";
+import { useSvgGroupMagnetic } from "@/lib/motion/use-svg-group-magnetic";
 
 type DashboardSceneProps = {
   story: number;
   opacity: number;
+};
+
+const DASHBOARD_ICON_MAGNETIC_IDS = [
+  ...DASHBOARD_RAIL_ICONS.map((item) => `rail-${item.id}`),
+  ...DASHBOARD_RAIL_ICONS.map((item) => `reply-${item.id}`),
+] as const;
+
+type DashboardIconMagnetic = {
+  offsets: Record<string, { x: number; y: number }>;
+  setIconRef: (id: string, node: SVGGElement | null) => void;
 };
 
 function managerBubbleWidth(text: string) {
@@ -172,22 +184,57 @@ function TypingDots({ opacity, enter, reduceMotion }: { opacity: number; enter: 
   );
 }
 
-function ReplyGlyph({ id, color, x, y, scale = 0.22 }: { id: string; color: string; x: number; y: number; scale?: number }) {
+function ReplyGlyph({
+  magId,
+  id,
+  color,
+  x,
+  y,
+  scale = 0.22,
+  magnetic,
+}: {
+  magId: string;
+  id: string;
+  color: string;
+  x: number;
+  y: number;
+  scale?: number;
+  magnetic: DashboardIconMagnetic;
+}) {
+  const mag = magnetic.offsets[magId] ?? { x: 0, y: 0 };
   return (
-    <g transform={`translate(${x} ${y}) scale(${scale})`}>
-      <PremiumChannelGlyph id={id} color={color} uid={`reply-${id}`} />
+    <g transform={`translate(${x} ${y})`}>
+      <g
+        ref={(node) => magnetic.setIconRef(magId, node)}
+        transform={`translate(${mag.x} ${mag.y})`}
+        className="concurrent-scene__phone-magnetic"
+      >
+        <g transform={`scale(${scale})`}>
+          <PremiumChannelGlyph id={id} color={color} uid={`reply-${id}`} />
+        </g>
+      </g>
     </g>
   );
 }
 
-function DatabaseReply({ opacity, complete, reduceMotion }: { opacity: number; complete: number; reduceMotion: boolean }) {
+function DatabaseReply({
+  opacity,
+  complete,
+  reduceMotion,
+  magnetic,
+}: {
+  opacity: number;
+  complete: number;
+  reduceMotion: boolean;
+  magnetic: DashboardIconMagnetic;
+}) {
   const C = STORY_GLYPH;
   const count = dashboardDatabaseBookingCount(complete, reduceMotion);
   const counting = complete > 0.08 && complete < 0.92 && !reduceMotion;
   return (
     <g opacity={opacity} transform="translate(0 36)">
       <rect x={0} y={0} width={158} height={42} rx={10} fill="rgba(18,20,24,0.94)" stroke={C.mint} strokeWidth={1.3} strokeOpacity={0.42} />
-      <ReplyGlyph id="database" color={C.sky} x={18} y={21} />
+      <ReplyGlyph magId="reply-database" id="database" color={C.sky} x={18} y={21} magnetic={magnetic} />
       <text
         x={36}
         y={19}
@@ -215,14 +262,24 @@ function DatabaseReply({ opacity, complete, reduceMotion }: { opacity: number; c
   );
 }
 
-function PhoneReply({ opacity, complete, reduceMotion }: { opacity: number; complete: number; reduceMotion: boolean }) {
+function PhoneReply({
+  opacity,
+  complete,
+  reduceMotion,
+  magnetic,
+}: {
+  opacity: number;
+  complete: number;
+  reduceMotion: boolean;
+  magnetic: DashboardIconMagnetic;
+}) {
   const C = STORY_GLYPH;
   const live = complete > 0.3 && complete < 0.85 && !reduceMotion;
   return (
     <g opacity={opacity} transform="translate(0 36)">
       <rect x={0} y={0} width={166} height={42} rx={10} fill="rgba(18,20,24,0.94)" stroke={C.mint} strokeWidth={1.3} strokeOpacity={0.42} />
       <g transform="translate(18 21)" className={live ? "dashboard-scene__phone-pulse" : undefined}>
-        <ReplyGlyph id="phone" color={C.amber} x={0} y={0} scale={0.24} />
+        <ReplyGlyph magId="reply-phone" id="phone" color={C.amber} x={0} y={0} scale={0.24} magnetic={magnetic} />
       </g>
       <text x={36} y={19} fill={C.cream} fontSize={9.5} fontWeight={600} fontFamily="system-ui, sans-serif">
         3 outbound
@@ -242,13 +299,23 @@ function PhoneReply({ opacity, complete, reduceMotion }: { opacity: number; comp
   );
 }
 
-function CalendarReply({ opacity, complete, reduceMotion }: { opacity: number; complete: number; reduceMotion: boolean }) {
+function CalendarReply({
+  opacity,
+  complete,
+  reduceMotion,
+  magnetic,
+}: {
+  opacity: number;
+  complete: number;
+  reduceMotion: boolean;
+  magnetic: DashboardIconMagnetic;
+}) {
   const C = STORY_GLYPH;
   return (
     <g opacity={opacity} transform="translate(0 36)">
       <rect x={0} y={0} width={174} height={42} rx={10} fill="rgba(18,20,24,0.94)" stroke={C.mint} strokeWidth={1.3} strokeOpacity={0.42} />
       <g transform="translate(18 21)" className={complete > 0.5 ? "dashboard-scene__calendar-block" : undefined}>
-        <ReplyGlyph id="calendar" color={C.amber} x={0} y={0} scale={0.24} />
+        <ReplyGlyph magId="reply-calendar" id="calendar" color={C.amber} x={0} y={0} scale={0.24} magnetic={magnetic} />
       </g>
       <text x={36} y={19} fill={C.cream} fontSize={9.5} fontWeight={600} fontFamily="system-ui, sans-serif">
         2–4pm blocked
@@ -266,14 +333,24 @@ function CalendarReply({ opacity, complete, reduceMotion }: { opacity: number; c
   );
 }
 
-function ReminderReply({ opacity, complete, reduceMotion }: { opacity: number; complete: number; reduceMotion: boolean }) {
+function ReminderReply({
+  opacity,
+  complete,
+  reduceMotion,
+  magnetic,
+}: {
+  opacity: number;
+  complete: number;
+  reduceMotion: boolean;
+  magnetic: DashboardIconMagnetic;
+}) {
   const C = STORY_GLYPH;
   const live = complete > 0.4 && complete < 0.9 && !reduceMotion;
   return (
     <g opacity={opacity} transform="translate(0 36)">
       <rect x={0} y={0} width={142} height={42} rx={10} fill="rgba(18,20,24,0.94)" stroke={C.mint} strokeWidth={1.3} strokeOpacity={0.42} />
       <g transform="translate(16 21)" className={live ? "dashboard-scene__queue-bell" : undefined}>
-        <ReplyGlyph id="whatsapp" color="#22c55e" x={0} y={0} scale={0.24} />
+        <ReplyGlyph magId="reply-whatsapp" id="whatsapp" color="#22c55e" x={0} y={0} scale={0.24} magnetic={magnetic} />
       </g>
       <text x={34} y={19} fill={C.cream} fontSize={9.5} fontWeight={600} fontFamily="system-ui, sans-serif">
         no-shows nudged
@@ -296,23 +373,42 @@ function AgentReply({
   opacity,
   complete,
   reduceMotion,
+  magnetic,
 }: {
   type: DashboardResponseType;
   opacity: number;
   complete: number;
   reduceMotion: boolean;
+  magnetic: DashboardIconMagnetic;
 }) {
-  if (type === "database") return <DatabaseReply opacity={opacity} complete={complete} reduceMotion={reduceMotion} />;
-  if (type === "phone") return <PhoneReply opacity={opacity} complete={complete} reduceMotion={reduceMotion} />;
-  if (type === "calendar") return <CalendarReply opacity={opacity} complete={complete} reduceMotion={reduceMotion} />;
-  return <ReminderReply opacity={opacity} complete={complete} reduceMotion={reduceMotion} />;
+  if (type === "database") return <DatabaseReply opacity={opacity} complete={complete} reduceMotion={reduceMotion} magnetic={magnetic} />;
+  if (type === "phone") return <PhoneReply opacity={opacity} complete={complete} reduceMotion={reduceMotion} magnetic={magnetic} />;
+  if (type === "calendar") return <CalendarReply opacity={opacity} complete={complete} reduceMotion={reduceMotion} magnetic={magnetic} />;
+  return <ReminderReply opacity={opacity} complete={complete} reduceMotion={reduceMotion} magnetic={magnetic} />;
 }
 
 export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneProps) {
   const reduceMotion = usePrefersReducedMotion();
   const spatial = useStorySpatialLayout();
   const motionOff = !!reduceMotion;
-  const progress = featureBandProgress(story, "dashboard");
+  const progress = featureBandSceneProgress(story, "dashboard");
+
+  const { offsets: flowOffsets, setGroupRef: setFlowRef } = useStoryFlowMagnetic(
+    ["chatToOrb", "exchangeToOrb", "exchangeToIcon"],
+    { disabled: !!reduceMotion },
+  );
+  const chatToOrbMag = flowOffsets.chatToOrb ?? { x: 0, y: 0 };
+  const exchangeToOrbMag = flowOffsets.exchangeToOrb ?? { x: 0, y: 0 };
+  const exchangeToIconMag = flowOffsets.exchangeToIcon ?? { x: 0, y: 0 };
+
+  const { offsets: iconOffsets, setGroupRef: setIconRef } = useSvgGroupMagnetic(DASHBOARD_ICON_MAGNETIC_IDS, {
+    strength: 0.4,
+    maxDisplacement: 12,
+    radiusFactor: 1.15,
+    disabled: motionOff,
+  });
+  const iconMagnetic: DashboardIconMagnetic = { offsets: iconOffsets, setIconRef };
+
   if (progress === null || sceneOpacity < 0.02) return null;
 
   const frame = dashboardFrameReveal(progress);
@@ -397,24 +493,30 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
       <ellipse cx={orbX} cy={orbY + 12} rx={108} ry={68} fill={C.violet} opacity={0.025 + arcFlow * 0.05} />
 
       <g opacity={arcReveal * frame * 0.78}>
-        <path
-          d={chatToOrbPath}
-          fill="none"
-          stroke="url(#dashboardArcGrad)"
-          strokeWidth={2}
-          strokeDasharray="6 8"
-          className={arcLive ? "dashboard-scene__flow" : undefined}
-        />
-        {!motionOff && arcFlow > 0.2 ? (
-          <>
-            <circle r={3.2} fill={C.mint} opacity={0.85 * arcFlow}>
-              <animateMotion dur="2.3s" repeatCount="indefinite" path={chatToOrbPath} calcMode="linear" />
-            </circle>
-            <circle r={2.6} fill={C.violet} opacity={0.75 * arcFlow}>
-              <animateMotion dur="2.3s" repeatCount="indefinite" path={chatToOrbPath} calcMode="linear" begin="0.75s" />
-            </circle>
-          </>
-        ) : null}
+        <g
+          ref={(node) => setFlowRef("chatToOrb", node)}
+          transform={`translate(${chatToOrbMag.x} ${chatToOrbMag.y})`}
+          className="story-flow-magnetic"
+        >
+          <path
+            d={chatToOrbPath}
+            fill="none"
+            stroke="url(#dashboardArcGrad)"
+            strokeWidth={2}
+            strokeDasharray="6 8"
+            className={arcLive ? "dashboard-scene__flow" : undefined}
+          />
+          {!motionOff && arcFlow > 0.2 ? (
+            <>
+              <circle r={3.2} fill={C.mint} opacity={0.85 * arcFlow}>
+                <animateMotion dur="2.3s" repeatCount="indefinite" path={chatToOrbPath} calcMode="linear" />
+              </circle>
+              <circle r={2.6} fill={C.violet} opacity={0.75 * arcFlow}>
+                <animateMotion dur="2.3s" repeatCount="indefinite" path={chatToOrbPath} calcMode="linear" begin="0.75s" />
+              </circle>
+            </>
+          ) : null}
+        </g>
       </g>
 
       {activeExchangeIdx >= 0 ? (() => {
@@ -429,37 +531,49 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
           <g key={`flow-${item.id}`} opacity={queueRail}>
             {flowOrb > 0.08 ? (
               <g opacity={flowOrb * 0.9}>
-                <path
-                  d={chatToOrbPath}
-                  fill="none"
-                  stroke={item.color}
-                  strokeWidth={1.6}
-                  strokeDasharray="4 6"
-                  opacity={0.55}
-                  className="dashboard-scene__flow"
-                />
-                {!motionOff ? (
-                  <circle r={2.4} fill={C.mint} opacity={0.95 * flowOrb}>
-                    <animateMotion dur="1.1s" repeatCount="1" path={chatToOrbPath} calcMode="linear" fill="freeze" />
-                  </circle>
-                ) : null}
+                <g
+                  ref={(node) => setFlowRef("exchangeToOrb", node)}
+                  transform={`translate(${exchangeToOrbMag.x} ${exchangeToOrbMag.y})`}
+                  className="story-flow-magnetic"
+                >
+                  <path
+                    d={chatToOrbPath}
+                    fill="none"
+                    stroke={item.color}
+                    strokeWidth={1.6}
+                    strokeDasharray="4 6"
+                    opacity={0.55}
+                    className="dashboard-scene__flow"
+                  />
+                  {!motionOff ? (
+                    <circle r={2.4} fill={C.mint} opacity={0.95 * flowOrb}>
+                      <animateMotion dur="1.1s" repeatCount="1" path={chatToOrbPath} calcMode="linear" fill="freeze" />
+                    </circle>
+                  ) : null}
+                </g>
               </g>
             ) : null}
             {flowIcon > 0.08 ? (
               <g opacity={flowIcon}>
-                <path
-                  d={iconPath}
-                  fill="none"
-                  stroke="url(#dashboardIconGrad)"
-                  strokeWidth={1.5}
-                  strokeDasharray="4 6"
-                  className="dashboard-scene__spur-flow"
-                />
-                {!motionOff ? (
-                  <circle r={2.6} fill={item.color} opacity={0.92 * flowIcon}>
-                    <animateMotion dur="1.4s" repeatCount="indefinite" path={iconPath} calcMode="linear" />
-                  </circle>
-                ) : null}
+                <g
+                  ref={(node) => setFlowRef("exchangeToIcon", node)}
+                  transform={`translate(${exchangeToIconMag.x} ${exchangeToIconMag.y})`}
+                  className="story-flow-magnetic"
+                >
+                  <path
+                    d={iconPath}
+                    fill="none"
+                    stroke="url(#dashboardIconGrad)"
+                    strokeWidth={1.5}
+                    strokeDasharray="4 6"
+                    className="dashboard-scene__spur-flow"
+                  />
+                  {!motionOff ? (
+                    <circle r={2.6} fill={item.color} opacity={0.92 * flowIcon}>
+                      <animateMotion dur="1.4s" repeatCount="indefinite" path={iconPath} calcMode="linear" />
+                    </circle>
+                  ) : null}
+                </g>
               </g>
             ) : null}
           </g>
@@ -471,13 +585,21 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
         {DASHBOARD_RAIL_ICONS.map((item, i) => {
           const active = dashboardRailItemActive(progress, i);
           const iy = icons.y + 24 + i * 36;
+          const magId = `rail-${item.id}`;
+          const mag = iconOffsets[magId] ?? { x: 0, y: 0 };
           return (
             <g
               key={item.id}
               transform={`translate(${icons.x + icons.w / 2} ${iy}) scale(${satelliteScale})`}
               className={cn(active > 0.5 && "dashboard-scene__queue-item--live")}
             >
-              <ActionIcon icon={item.id} color={item.color} active={active} />
+              <g
+                ref={(node) => setIconRef(magId, node)}
+                transform={`translate(${mag.x} ${mag.y})`}
+                className="concurrent-scene__phone-magnetic"
+              >
+                <ActionIcon icon={item.id} color={item.color} active={active} />
+              </g>
             </g>
           );
         })}
@@ -550,6 +672,7 @@ export function DashboardScene({ story, opacity: sceneOpacity }: DashboardSceneP
                       opacity={agentOpacity * agentEnter}
                       complete={agentOpacity}
                       reduceMotion={motionOff}
+                      magnetic={iconMagnetic}
                     />
                   </g>
                 </g>

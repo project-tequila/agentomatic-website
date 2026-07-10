@@ -33,10 +33,6 @@ export function useScrollTypingDisplay(
   const reduceMotionRef = useRef(reduceMotion);
   const coarseRef = useRef(false);
 
-  targetRef.current = target;
-  pausedRef.current = scrollPaused;
-  reduceMotionRef.current = reduceMotion;
-
   const lerp = options.lerp ?? 0.38;
   const pausedStep = options.pausedStep ?? 0.04;
   const completeStep = options.completeStep ?? 0.025;
@@ -46,8 +42,14 @@ export function useScrollTypingDisplay(
   }, []);
 
   useEffect(() => {
+    targetRef.current = target;
+    pausedRef.current = scrollPaused;
+    reduceMotionRef.current = reduceMotion;
+  }, [target, scrollPaused, reduceMotion]);
+
+  useEffect(() => {
     if (reduceMotion) {
-      setDisplay(1);
+      queueMicrotask(() => setDisplay(1));
       return;
     }
 

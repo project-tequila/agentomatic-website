@@ -14,6 +14,7 @@ import {
   lerpPoint,
   lerpRect,
   lerpValue,
+  storyCompactSpreadMultiplier,
   storyCompactT,
   storySatelliteScaleForWidth,
   type StoryPoint,
@@ -32,9 +33,11 @@ export type ConcurrentSpatialLayout = {
 
 export function concurrentLayoutForWidth(viewportWidth: number): ConcurrentSpatialLayout {
   const t = storyCompactT(viewportWidth);
+  const spread = storyCompactSpreadMultiplier(viewportWidth);
   return {
-    radiusScale: lerpValue(STORY_ORB_SCALE, 0.68, t),
-    ySquash: lerpValue(0.82, 0.76, t),
+    /** Desktop keeps historical 0.75 inset; compact spreads phones into meet-fit slack. */
+    radiusScale: STORY_ORB_SCALE * spread * lerpValue(1, 1.08, t),
+    ySquash: lerpValue(0.82, 0.9, t),
     satelliteScale: storySatelliteScaleForWidth(viewportWidth),
   };
 }
@@ -55,12 +58,13 @@ export type GruntSpatialLayout = {
   cardScale: number;
 };
 
-/** Hub module card boost on mobile/tablet only (scheduling, routing, etc.). */
-export const GRUNT_HUB_CARD_SCALE_COMPACT = 1.25;
+/** Hub module card boost on mobile/tablet — mild; spread handles de-cluttering. */
+export const GRUNT_HUB_CARD_SCALE_COMPACT = 1.06;
 
 export function gruntLayoutForWidth(viewportWidth: number): GruntSpatialLayout {
+  const spread = storyCompactSpreadMultiplier(viewportWidth);
   const t = storyCompactT(viewportWidth);
-  const moduleRadius = lerpValue(GRUNT_MODULE_RADIUS, 128, t);
+  const moduleRadius = GRUNT_MODULE_RADIUS * spread * lerpValue(1, 1.28, t);
   return {
     moduleRadius,
     modules: gruntModulesForRadius(moduleRadius),
@@ -170,7 +174,7 @@ export type HoursSpatialLayout = {
   satelliteScale: number;
 };
 
-const HOURS_ORBIT_COMPACT = PERSISTENT_ORB_HOURS_ORBIT_RADIUS - 12;
+const HOURS_ORBIT_COMPACT = PERSISTENT_ORB_HOURS_ORBIT_RADIUS * 1.4;
 
 export function hoursLayoutForWidth(viewportWidth: number): HoursSpatialLayout {
   const t = storyCompactT(viewportWidth);

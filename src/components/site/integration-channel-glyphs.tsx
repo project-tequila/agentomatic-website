@@ -19,17 +19,14 @@ export function PremiumChannelGlyph({ id, color, uid }: PremiumChannelGlyphProps
   const art = CHANNEL_ART[id as keyof typeof CHANNEL_ART];
   if (art) {
     return (
-      <ChannelArtIcon
-        src={art}
-        channelId={id as keyof typeof CHANNEL_ART}
-      />
+      <StoryChannelArtIcon src={art} channelId={id as keyof typeof CHANNEL_ART} />
     );
   }
   if (id === "database") return <DatabasePremium color={color} uid={uid} />;
-  return <ChannelArtIcon src={CHANNEL_ART.calendar} channelId="calendar" />;
+  return <StoryChannelArtIcon src={CHANNEL_ART.calendar} channelId="calendar" />;
 }
 
-function ChannelArtIcon({
+export function StoryChannelArtIcon({
   src,
   size = ICON,
   channelId,

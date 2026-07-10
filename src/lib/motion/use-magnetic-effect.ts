@@ -99,8 +99,9 @@ export function useMagneticEffect<T extends HTMLElement = HTMLElement>(
     maxDisplacement,
     radiusFactor,
   } = options;
-
-  configRef.current = resolveMagneticConfig({ strength, maxDisplacement, radiusFactor });
+  useEffect(() => {
+    configRef.current = resolveMagneticConfig({ strength, maxDisplacement, radiusFactor });
+  }, [strength, maxDisplacement, radiusFactor]);
 
   useEffect(() => {
     coarsePointer.current = getCoarsePointerSnapshot();
@@ -115,6 +116,8 @@ export function useMagneticEffect<T extends HTMLElement = HTMLElement>(
       rafRef.current = 0;
     }
   }, []);
+
+  const tickRef = useRef<() => void>(() => {});
 
   const tick = useCallback(() => {
     const el = elRef.current;
@@ -148,7 +151,7 @@ export function useMagneticEffect<T extends HTMLElement = HTMLElement>(
       Math.abs(state.targetY) > 0.01;
 
     if (pointerRef.current.active || settling) {
-      rafRef.current = requestAnimationFrame(tick);
+      rafRef.current = requestAnimationFrame(() => tickRef.current());
     } else {
       rafRef.current = 0;
     }
@@ -156,7 +159,7 @@ export function useMagneticEffect<T extends HTMLElement = HTMLElement>(
 
   const startLoop = useCallback(() => {
     if (!rafRef.current) {
-      rafRef.current = requestAnimationFrame(tick);
+      rafRef.current = requestAnimationFrame(() => tickRef.current());
     }
   }, [tick]);
 
@@ -201,6 +204,10 @@ export function useMagneticEffect<T extends HTMLElement = HTMLElement>(
     elRef.current?.removeEventListener("pointerleave", onPointerLeave);
     stopLoop();
   }, [onPointerLeave, onPointerMove, stopLoop]);
+
+  useEffect(() => {
+    tickRef.current = tick;
+  }, [tick]);
 
   const style: CSSProperties | undefined =
     surface === "surface" || surface === "orb-pin" ? { willChange: "transform" } : undefined;

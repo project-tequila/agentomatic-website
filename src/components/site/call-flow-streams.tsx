@@ -8,6 +8,7 @@ import {
   type ConcurrentNetworkPhone,
 } from "@/lib/story/concurrent-reveal";
 import { cn } from "@/lib/utils";
+import { useStoryFlowMagnetic } from "@/lib/motion/use-story-flow-magnetic";
 
 type CallFlowStreamsProps = {
   orbX: number;
@@ -28,6 +29,9 @@ export function CallFlowStreams({
 }: CallFlowStreamsProps) {
   const inboundIntensity = concurrentFlowIntensity(progress, "inbound");
   const outboundIntensity = concurrentFlowIntensity(progress, "outbound");
+
+  const flowIds = phones.map((p) => p.id);
+  const { offsets, setGroupRef } = useStoryFlowMagnetic(flowIds, { disabled: !!reduceMotion });
 
   if (phones.length === 0) return null;
 
@@ -87,9 +91,16 @@ export function CallFlowStreams({
         const dotColor = CALL_THEME[phone.direction].color;
         const pathOpacity = intensity * (0.38 + phone.depth * 0.62) * phone.opacity;
         const strokeW = 1.1 + phone.depth * 0.85;
+        const mag = offsets[phone.id] ?? { x: 0, y: 0 };
 
         return (
-          <g key={`flow-${phone.id}`} opacity={pathOpacity}>
+          <g
+            key={`flow-${phone.id}`}
+            opacity={pathOpacity}
+            ref={(node) => setGroupRef(phone.id, node)}
+            transform={`translate(${mag.x} ${mag.y})`}
+            className="story-flow-magnetic"
+          >
             <path
               d={path}
               fill="none"

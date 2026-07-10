@@ -3,7 +3,7 @@
 import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { MultilingualTypingLine } from "@/components/site/multilingual-typing-line";
-import { featureBandProgress } from "@/lib/story/feature-band-progress";
+import { featureBandSceneProgress } from "@/lib/story/feature-band-progress";
 import {
   MULTILINGUAL_LANGUAGES,
   MULTILINGUAL_PROVIDER_BADGE,
@@ -21,6 +21,8 @@ import { useStoryScrollPaused } from "@/lib/story/use-story-scroll-paused";
 import { storyStageViewBoxForWidth } from "@/lib/story/persistent-orb";
 import { useStorySpatialLayout } from "@/lib/story/use-story-viewport";
 import { cn } from "@/lib/utils";
+import { useStoryFlowMagnetic } from "@/lib/motion/use-story-flow-magnetic";
+import { useSvgGroupMagnetic } from "@/lib/motion/use-svg-group-magnetic";
 
 type MultilingualSceneProps = {
   story: number;
@@ -38,9 +40,20 @@ const C = {
 export function MultilingualScene({ story, opacity: sceneOpacity }: MultilingualSceneProps) {
   const reduceMotion = usePrefersReducedMotion();
   const spatial = useStorySpatialLayout();
-  const progress = featureBandProgress(story, "multilingual");
+  const progress = featureBandSceneProgress(story, "multilingual");
   const scrollPaused = useStoryScrollPaused(progress ?? 0, 120);
   const rm = !!reduceMotion;
+
+  const { offsets: flowOffsets, setGroupRef: setFlowRef } = useStoryFlowMagnetic(["orbLink"], { disabled: !!reduceMotion });
+  const orbLinkMag = flowOffsets.orbLink ?? { x: 0, y: 0 };
+
+  const { offsets: iconOffsets, setGroupRef: setIconRef } = useSvgGroupMagnetic(["card"], {
+    strength: 0.4,
+    maxDisplacement: 12,
+    radiusFactor: 1.15,
+    disabled: !!reduceMotion,
+  });
+  const cardMag = iconOffsets.card ?? { x: 0, y: 0 };
 
   if (progress === null || sceneOpacity < 0.02) return null;
 
@@ -95,6 +108,11 @@ export function MultilingualScene({ story, opacity: sceneOpacity }: Multilingual
       </defs>
 
       <g opacity={linkReveal}>
+        <g
+          ref={(node) => setFlowRef("orbLink", node)}
+          transform={`translate(${orbLinkMag.x} ${orbLinkMag.y})`}
+          className="story-flow-magnetic"
+        >
         <path
           d={orbPath}
           fill="none"
@@ -108,6 +126,7 @@ export function MultilingualScene({ story, opacity: sceneOpacity }: Multilingual
             <animateMotion dur="2.6s" repeatCount="indefinite" path={orbPath} calcMode="linear" />
           </circle>
         ) : null}
+        </g>
       </g>
 
       <g
@@ -115,6 +134,11 @@ export function MultilingualScene({ story, opacity: sceneOpacity }: Multilingual
         opacity={cardReveal}
         className="multilingual-scene__card-wrap"
       >
+        <g
+          ref={(node) => setIconRef("card", node)}
+          transform={`translate(${cardMag.x} ${cardMag.y})`}
+          className="concurrent-scene__phone-magnetic"
+        >
         <rect
           x={0}
           y={0}
@@ -221,6 +245,7 @@ export function MultilingualScene({ story, opacity: sceneOpacity }: Multilingual
             {"   ·   "}
             {tickerLabels}
           </text>
+        </g>
         </g>
       </g>
     </svg>

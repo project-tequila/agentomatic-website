@@ -95,28 +95,27 @@ export function gruntPlusArmReveal(progress: number) {
 }
 
 export function gruntModuleReveal(progress: number, revealAt: number) {
-  return interpolate(progress, [revealAt, revealAt + 0.16], [0, 1], {
+  return interpolate(progress, [revealAt, revealAt + 0.18], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
 }
 
+/** @deprecated Flow travel removed — mirrors reveal for any legacy callers. */
 export function gruntModuleFlow(progress: number, revealAt: number) {
-  return interpolate(progress, [revealAt + 0.05, revealAt + 0.52], [0, 1], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  return gruntModuleReveal(progress, revealAt);
 }
 
 export function gruntModuleLive(progress: number, revealAt: number) {
-  const f = gruntModuleFlow(progress, revealAt);
-  return f > 0.2 && progress < revealAt + 0.78;
+  const r = gruntModuleReveal(progress, revealAt);
+  return r > 0.72 && progress < revealAt + 0.82;
 }
 
 export function gruntModuleEnterOffset(progress: number, module: GruntHubModule, viewportWidth = 1200) {
-  const t = 1 - gruntModuleReveal(progress, module.revealAt);
-  const ease = t * t;
-  const spread = 32 * storyRevealSpread(1, viewportWidth);
+  const reveal = gruntModuleReveal(progress, module.revealAt);
+  const t = 1 - reveal;
+  const ease = t * t * t;
+  const spread = 52 * storyRevealSpread(1, viewportWidth);
   switch (module.id) {
     case "schedule":
       return { x: 0, y: -spread * ease };
@@ -174,10 +173,12 @@ export function gruntOrbIconPosition(module: GruntHubModule, flow: number, modul
   };
 }
 
-/** Icon has reached the card — unlocks in-card content. */
+/** Icon has finished sliding in — unlocks in-card content. */
 export function gruntModuleIconArrived(progress: number, revealAt: number) {
-  const flow = gruntModuleFlow(progress, revealAt);
-  return interpolate(flow, [0.78, 0.98], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  return interpolate(gruntModuleReveal(progress, revealAt), [0.08, 0.92], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
 }
 
 /** In-card text/details fade in after the icon lands. */
@@ -203,7 +204,7 @@ export function gruntModuleSubheadTypingReveal(progress: number, revealAt: numbe
 
 /** Letter-by-letter label above each card. */
 export function gruntModuleLabelReveal(progress: number, revealAt: number) {
-  return interpolate(gruntModuleFlow(progress, revealAt), [0.12, 0.55], [0, 1], {
+  return interpolate(gruntModuleReveal(progress, revealAt), [0.42, 0.95], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
@@ -220,8 +221,8 @@ export function gruntModuleLetterLift(labelReveal: number, index: number, total:
   return (1 - op) * 10;
 }
 
-export function gruntTendrilPulse(progress: number, flow: number) {
-  return clamp01(flow * (0.45 + gruntStressLevel(progress) * 0.55));
+export function gruntTendrilPulse(progress: number, revealAt: number) {
+  return clamp01(gruntModuleReveal(progress, revealAt) * (0.50 + gruntStressLevel(progress) * 0.20));
 }
 
 export function gruntScheduleFill(progress: number) {
@@ -261,21 +262,17 @@ export function gruntHubSync(progress: number) {
   return interpolate(progress, [0.74, 0.96], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 }
 
-/** Average icon-travel progress across all four hub modules. */
+/** Average slide-in reveal across all four hub modules. */
 export function gruntHubAverageFlow(progress: number) {
-  const total = GRUNT_HUB_MODULES.reduce((sum, mod) => sum + gruntModuleFlow(progress, mod.revealAt), 0);
+  const total = GRUNT_HUB_MODULES.reduce((sum, mod) => sum + gruntModuleReveal(progress, mod.revealAt), 0);
   return total / GRUNT_HUB_MODULES.length;
 }
 
 /** Hub illustration considered complete — sync band + all modules substantially arrived. */
 export function gruntHubImageComplete(progress: number) {
-  const avgFlow = gruntHubAverageFlow(progress);
-  const routeMod = GRUNT_HUB_MODULES.find((m) => m.id === "route")!;
-  const routeFlow = gruntModuleFlow(progress, routeMod.revealAt);
-  const coreModulesDone = GRUNT_HUB_MODULES.filter((m) => m.id !== "route").every(
-    (mod) => gruntModuleIconArrived(progress, mod.revealAt) >= 0.92,
-  );
-  return avgFlow >= 0.86 && coreModulesDone && routeFlow >= 0.48 && gruntHubSync(progress) > 0.08;
+  const avgReveal = gruntHubAverageFlow(progress);
+  const allArrived = GRUNT_HUB_MODULES.every((mod) => gruntModuleIconArrived(progress, mod.revealAt) >= 0.88);
+  return avgReveal >= 0.9 && allArrived && gruntHubSync(progress) > 0.08;
 }
 
 /** Title line 1 — types in parallel with the four block animations, finishes early. */
