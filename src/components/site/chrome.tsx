@@ -194,7 +194,7 @@ export function SiteChrome() {
           </nav>
 
           <div className="site-chrome__actions">
-            <MotionChromeLink href={BOOKER_ROUTE} className="site-chrome-action-btn site-chrome-sign-in">
+            <MotionChromeLink href={BOOKER_ROUTE} className="site-chrome-action-btn site-chrome-sign-up">
               log in
             </MotionChromeLink>
             <MotionChromeLink href={BOOKER_SIGNUP_ROUTE} className="site-chrome-action-btn site-chrome-sign-up">
@@ -280,7 +280,7 @@ export function SiteChrome() {
             </MotionChromeLink>
             <MotionChromeLink
               href={BOOKER_ROUTE}
-              className="site-chrome-action-btn site-chrome-action-btn--full site-chrome-sign-in"
+              className="site-chrome-action-btn site-chrome-action-btn--full site-chrome-sign-up"
               onClick={() => setMenuOpen(false)}
             >
               log in

@@ -128,31 +128,35 @@ export function gruntModuleEnterOffset(progress: number, module: GruntHubModule,
   }
 }
 
-/** Soft curve from orb to module card edge — tendrils. */
+/** Radial line from orb center to each module icon. */
 export function gruntTendrilPath(module: GruntHubModule, moduleRadius = GRUNT_MODULE_RADIUS) {
-  return gruntFlowPath(module, moduleRadius - 46, moduleRadius);
+  const dx = module.x - orbX;
+  const dy = module.y - orbY;
+  const dist = Math.hypot(dx, dy) || moduleRadius;
+  return gruntFlowPath(module, Math.max(0, dist - 16), moduleRadius, 0);
 }
 
 /** Icons travel the open corridor before each card. */
 export function gruntOrbFlowPath(module: GruntHubModule, moduleRadius = GRUNT_MODULE_RADIUS) {
-  return gruntFlowPath(module, moduleRadius * 0.62, moduleRadius);
+  return gruntFlowPath(module, moduleRadius * 0.62, moduleRadius, 0);
 }
 
-function gruntFlowPath(module: GruntHubModule, reach: number, moduleRadius = GRUNT_MODULE_RADIUS) {
+function gruntFlowPath(
+  module: GruntHubModule,
+  reach: number,
+  _moduleRadius = GRUNT_MODULE_RADIUS,
+  startRadius = 0,
+) {
   const dx = module.x - orbX;
   const dy = module.y - orbY;
   const len = Math.hypot(dx, dy) || 1;
-  const endX = orbX + (dx / len) * reach;
-  const endY = orbY + (dy / len) * reach;
-  const fluff = 18;
-
-  if (Math.abs(dy) >= Math.abs(dx)) {
-    const side = dy < 0 ? -fluff : fluff;
-    return `M ${orbX} ${orbY} C ${orbX + side} ${orbY + (endY - orbY) * 0.28}, ${orbX - side * 0.55} ${orbY + (endY - orbY) * 0.62}, ${endX} ${endY}`;
-  }
-
-  const side = dx < 0 ? -fluff : fluff;
-  return `M ${orbX} ${orbY} C ${orbX + (endX - orbX) * 0.28} ${orbY + side}, ${orbX + (endX - orbX) * 0.62} ${orbY - side * 0.55}, ${endX} ${endY}`;
+  const ux = dx / len;
+  const uy = dy / len;
+  const startX = orbX + ux * startRadius;
+  const startY = orbY + uy * startRadius;
+  const endX = orbX + ux * reach;
+  const endY = orbY + uy * reach;
+  return `M ${startX} ${startY} L ${endX} ${endY}`;
 }
 
 export function gruntModuleFlowAnchor(mod: GruntHubModule, moduleRadius = GRUNT_MODULE_RADIUS) {

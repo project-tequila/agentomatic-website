@@ -41,8 +41,26 @@ function GruntPhraseTyping({
   const incomplete = display < 0.995;
   const showCursor = !reduceMotion && incomplete && display > 0.02;
 
-  if (reduceMotion || display < 0.12 || display > 0.88) {
+  if (reduceMotion) {
+    return typingReveal > 0.06 ? (
+      <span className="grunt-title__phrase">{PHRASE}</span>
+    ) : (
+      <span className="grunt-title__phrase" style={{ opacity: 0 }} aria-hidden>
+        {PHRASE}
+      </span>
+    );
+  }
+
+  if (display > 0.88) {
     return <span className="grunt-title__phrase">{PHRASE}</span>;
+  }
+
+  if (display < 0.02) {
+    return (
+      <span className="grunt-title__phrase grunt-title__phrase--typing" style={{ opacity: 0 }} aria-hidden>
+        {PHRASE}
+      </span>
+    );
   }
 
   return (

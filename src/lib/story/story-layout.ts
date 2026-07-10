@@ -42,7 +42,11 @@ export function concurrentLayoutForWidth(viewportWidth: number): ConcurrentSpati
   };
 }
 
-export function gruntModulesForRadius(moduleRadius: number, orbX = PERSISTENT_ORB.cx, orbY = PERSISTENT_ORB.cy): GruntHubModule[] {
+export function gruntModulesForRadius(
+  moduleRadius: number,
+  orbX = PERSISTENT_ORB.cx,
+  orbY = PERSISTENT_ORB.cy,
+): GruntHubModule[] {
   return [
     { id: "schedule", x: orbX, y: orbY - moduleRadius, revealAt: 0.06, accent: "sky" },
     { id: "conversations", x: orbX + moduleRadius, y: orbY, revealAt: 0.24, accent: "mint" },
@@ -61,13 +65,17 @@ export type GruntSpatialLayout = {
 /** Hub module card boost on mobile/tablet — mild; spread handles de-cluttering. */
 export const GRUNT_HUB_CARD_SCALE_COMPACT = 1.06;
 
+/** Hub inset on desktop — shrinks orb/backdrop corridor without rescaling icon art. */
+export const GRUNT_HUB_DESKTOP_AMBIENT_SCALE = 0.8;
+
 export function gruntLayoutForWidth(viewportWidth: number): GruntSpatialLayout {
   const spread = storyCompactSpreadMultiplier(viewportWidth);
   const t = storyCompactT(viewportWidth);
-  const moduleRadius = GRUNT_MODULE_RADIUS * spread * lerpValue(1, 1.28, t);
+  const desktopTighten = viewportWidth > 900 ? GRUNT_HUB_DESKTOP_AMBIENT_SCALE : 1;
+  const moduleRadius = GRUNT_MODULE_RADIUS * spread * lerpValue(1, 1.28, t) * desktopTighten;
   return {
     moduleRadius,
-    modules: gruntModulesForRadius(moduleRadius),
+    modules: gruntModulesForRadius(moduleRadius, PERSISTENT_ORB.cx, PERSISTENT_ORB.cy),
     satelliteScale: storySatelliteScaleForWidth(viewportWidth),
     cardScale: lerpValue(1, GRUNT_HUB_CARD_SCALE_COMPACT, t),
   };
