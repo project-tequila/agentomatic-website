@@ -3615,9 +3615,9 @@
     inset: 0;
   }
 
-  /* Unified orb + stage anchor — same on every chapter (navbar clearance). */
+  /* Unified orb + stage anchor — same on every chapter (desktop lift). */
   .story-illustration-bg {
-    --story-visual-y-offset: 9%;
+    --story-visual-y-offset: -5%;
     --story-orb-scale: 0.6;
   }
 }

@@ -14,8 +14,6 @@ WHITE_MATTE_LUM = 245
 # Dark line art becomes white outline strokes.
 STROKE_LUM_MAX = 120
 # Preserve teal/cyan accent fills from Flaticon palette.
-TEAL_MIN_G = 150
-TEAL_MIN_B = 150
 TEAL_MAX_R = 90
 
 
@@ -24,7 +22,14 @@ def lum(r: int, g: int, b: int) -> float:
 
 
 def is_teal(r: int, g: int, b: int) -> bool:
-    return r <= TEAL_MAX_R and g >= TEAL_MIN_G and b >= TEAL_MIN_B
+    # Bright Flaticon cyan (51, 204, 204) and darker handset teal (0, 150, 136).
+    if r > TEAL_MAX_R:
+        return False
+    if g < 120 or b < 100:
+        return False
+    if g <= r + 40 or b <= r + 40:
+        return False
+    return abs(g - b) / max(g, b) < 0.35
 
 
 def is_stroke(r: int, g: int, b: int) -> bool:
@@ -78,6 +83,16 @@ def dilate_strokes(img: Image.Image, radius: int = 1) -> Image.Image:
             if ep[x, y] > 0 and bp[x, y][3] < 200:
                 bp[x, y] = (245, 242, 235, 255)
     return base
+
+
+def save_png(png_path: Path) -> None:
+    """Process a still PNG in place (e.g. call-routing handset icon)."""
+    img = Image.open(png_path)
+    frame = process_frame(img)
+    frame = dilate_strokes(frame)
+    frame.save(png_path, "PNG")
+    print(f"wrote {png_path.name}")
+    analyze(png_path)
 
 
 def save_still(gif_path: Path, webp_path: Path) -> None:
@@ -140,6 +155,8 @@ def analyze(path: Path) -> None:
 
 
 def main() -> None:
+    save_png(GRUNT / "call-routing.png")
+
     pairs: Iterable[tuple[str, str]] = (
         ("scheduling.gif", "scheduling"),
         ("conversations.gif", "conversations"),
