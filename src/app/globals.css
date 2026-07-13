@@ -1760,7 +1760,6 @@
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.15;
-  text-transform: lowercase;
   color: var(--rumik-text);
 }
 
@@ -1769,7 +1768,6 @@
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.2;
-  text-transform: lowercase;
   color: var(--rumik-text);
 }
 
@@ -1777,7 +1775,6 @@
   margin-bottom: 1rem;
   font-size: 0.92rem;
   line-height: 1.65;
-  text-transform: lowercase;
   color: var(--rumik-subtle);
   overflow-wrap: break-word;
 }
@@ -1789,7 +1786,6 @@
   font-size: 0.92rem;
   line-height: 1.65;
   font-style: italic;
-  text-transform: lowercase;
   color: var(--rumik-muted);
 }
 
@@ -1798,7 +1794,6 @@
   padding-left: 1.25rem;
   font-size: 0.92rem;
   line-height: 1.65;
-  text-transform: lowercase;
   color: var(--rumik-subtle);
 }
 
@@ -1834,8 +1829,15 @@
 .site-blog-prose__caption {
   padding: 0.65rem 1rem;
   font-size: 0.72rem;
-  text-transform: lowercase;
   color: var(--rumik-muted);
+}
+
+/* Blog pages use standard English capitalization in titles and body copy */
+.site-blog-article .site-display,
+.site-blog-article .site-lead,
+.site-blog-index .site-card__title,
+.site-blog-index .site-card__body {
+  text-transform: none;
 }
 
 /* —— rumik.ai-style scroll story —— */

@@ -71,13 +71,19 @@ export default function StudioError({
     );
   }
 
+  const isMissingProjectId = error.message.includes("projectId");
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-6">
       <div className="max-w-lg space-y-4 text-center">
         <h1 className="font-serif text-2xl text-foreground">
-          CMS studio failed to load
+          {isMissingProjectId ? "Sanity is not configured" : "CMS studio failed to load"}
         </h1>
-        <p className="text-sm text-muted-foreground">{error.message}</p>
+        <p className="text-sm text-muted-foreground">
+          {isMissingProjectId
+            ? "Add NEXT_PUBLIC_SANITY_PROJECT_ID and NEXT_PUBLIC_SANITY_DATASET to your Vercel project, redeploy, then allow https://www.agentomatic.in in Sanity CORS."
+            : error.message}
+        </p>
         <button
           type="button"
           onClick={reset}

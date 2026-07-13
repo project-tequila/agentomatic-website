@@ -2,6 +2,8 @@ import { createClient, type SanityClient } from "next-sanity";
 
 import { apiVersion, dataset, isSanityConfigured, projectId } from "@/sanity/env";
 
+const readToken = process.env.SANITY_API_READ_TOKEN;
+
 let client: SanityClient | null = null;
 
 export function getSanityClient(): SanityClient | null {
@@ -14,8 +16,9 @@ export function getSanityClient(): SanityClient | null {
       projectId,
       dataset,
       apiVersion,
-      useCdn: true,
+      useCdn: Boolean(readToken),
       perspective: "published",
+      token: readToken,
     });
   }
 

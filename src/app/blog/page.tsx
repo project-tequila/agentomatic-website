@@ -33,7 +33,7 @@ export default async function BlogPage() {
         />
 
         {posts.length > 0 ? (
-          <div className="site-divider-list mt-10">
+          <div className="site-blog-index site-divider-list mt-10">
             {posts.map((post) => (
               <BlogPostListItem key={post._id} post={post} />
             ))}
