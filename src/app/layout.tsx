@@ -1,4 +1,5 @@
 import { Analytics } from "@vercel/analytics/next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, IBM_Plex_Mono, Newsreader } from "next/font/google";
 
@@ -52,6 +53,7 @@ export default function RootLayout({
         <JsonLd data={websiteJsonLd()} />
         <SiteDemoCallRoot>{children}</SiteDemoCallRoot>
         <Analytics />
+        <GoogleAnalytics gaId="G-DTVTGE7GB6" />
       </body>
     </html>
   );
