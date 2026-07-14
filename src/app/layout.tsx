@@ -53,7 +53,7 @@ export default function RootLayout({
         <JsonLd data={websiteJsonLd()} />
         <SiteDemoCallRoot>{children}</SiteDemoCallRoot>
         <Analytics />
-        <GoogleAnalytics gaId="G-GEXVM2J416" />
+        <GoogleAnalytics gaId="G-DTVTGE7GB6" />
       </body>
     </html>
   );
