@@ -12,9 +12,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const posts = await getPublishedPosts();
 
   return pageMetadata({
-    title: "blog — agentomatic",
+    title: "Shop Talk — agentomatic",
     description:
-      "field notes on building voice agents people trust — scripts, qualification, and operational memory.",
+      "Shop Talk on building voice agents people trust — scripts, qualification, and operational memory.",
     path: "/blog",
     robots: posts.length === 0 ? { index: false, follow: true } : undefined,
   });
@@ -25,11 +25,11 @@ export default async function BlogPage() {
 
   return (
     <SitePageShell>
-      <SiteMain>
+      <SiteMain className="site-blog-list">
         <SitePageHeader
-          kicker="field notes"
-          title="notes on building voices people trust."
-          lead="practical writing on voice agents, qualification flows, and turning calls into memory."
+          kicker="Shop Talk"
+          title="Notes on building voices people trust."
+          lead="Practical writing on voice agents, qualification flows, and turning calls into memory."
         />
 
         {posts.length > 0 ? (
@@ -39,7 +39,7 @@ export default async function BlogPage() {
             ))}
           </div>
         ) : (
-          <p className="site-lead mt-10">no published notes yet — check back soon.</p>
+          <p className="site-lead mt-10">No published notes yet — check back soon.</p>
         )}
       </SiteMain>
     </SitePageShell>
