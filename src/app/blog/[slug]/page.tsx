@@ -92,11 +92,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         })}
       />
       <SiteMain>
-        <article className="w-full max-w-3xl">
+        <article className="site-blog-article w-full max-w-3xl">
           <div className="site-page-header">
             <p className="site-card__meta">
               <Link href="/blog" className="site-link hover:opacity-80">
-                field notes
+                Shop Talk
               </Link>
               <span aria-hidden> · </span>
               <time dateTime={post.publishedAt}>{formatPostDate(post.publishedAt)}</time>
@@ -130,7 +130,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
           <div className="mt-12 border-t border-[var(--rumik-surface-border)] pt-8">
             <Link href="/blog" className="site-link text-sm hover:opacity-80">
-              ← back to field notes
+              ← Back to Shop Talk
             </Link>
           </div>
         </article>

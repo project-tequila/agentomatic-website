@@ -1755,12 +1755,27 @@
   color: var(--rumik-subtle);
 }
 
+/* Blog reading surfaces keep natural English casing (CMS text is source of truth). */
+.site-blog-article .site-display,
+.site-blog-article .site-lead,
+.site-blog-article .site-card__meta,
+.site-blog-article .site-link,
+.site-blog-prose .site-link,
+.site-blog-list .site-kicker,
+.site-blog-list .site-display,
+.site-blog-list .site-lead,
+.site-blog-list .site-card__meta,
+.site-blog-list .site-card__title,
+.site-blog-list .site-card__body {
+  text-transform: none;
+}
+
 .site-blog-prose__heading {
   font-size: clamp(1.35rem, 3vw, 1.75rem);
   font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.15;
-  text-transform: lowercase;
+  text-transform: none;
   color: var(--rumik-text);
 }
 
@@ -1769,7 +1784,7 @@
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.2;
-  text-transform: lowercase;
+  text-transform: none;
   color: var(--rumik-text);
 }
 
@@ -1777,7 +1792,7 @@
   margin-bottom: 1rem;
   font-size: 0.92rem;
   line-height: 1.65;
-  text-transform: lowercase;
+  text-transform: none;
   color: var(--rumik-subtle);
   overflow-wrap: break-word;
 }
@@ -1789,7 +1804,7 @@
   font-size: 0.92rem;
   line-height: 1.65;
   font-style: italic;
-  text-transform: lowercase;
+  text-transform: none;
   color: var(--rumik-muted);
 }
 
@@ -1798,7 +1813,7 @@
   padding-left: 1.25rem;
   font-size: 0.92rem;
   line-height: 1.65;
-  text-transform: lowercase;
+  text-transform: none;
   color: var(--rumik-subtle);
 }
 
@@ -1834,7 +1849,7 @@
 .site-blog-prose__caption {
   padding: 0.65rem 1rem;
   font-size: 0.72rem;
-  text-transform: lowercase;
+  text-transform: none;
   color: var(--rumik-muted);
 }
 
