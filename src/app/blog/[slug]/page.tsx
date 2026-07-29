@@ -72,7 +72,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   }
 
   const coverUrl = post.coverImage
-    ? urlForImage(post.coverImage).width(1400).height(788).auto("format").url()
+    ? urlForImage(post.coverImage).width(1400).auto("format").url()
     : null;
 
   const ogImageUrl = post.coverImage
@@ -92,8 +92,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         })}
       />
       <SiteMain>
-        <article className="site-blog-article w-full max-w-3xl">
-          <div className="site-page-header">
+        <article className="site-blog-article w-full">
+          <div className="site-page-header mx-auto w-full max-w-3xl">
             <p className="site-card__meta">
               <Link href="/blog" className="site-link hover:opacity-80">
                 Shop Talk
@@ -112,23 +112,24 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           </div>
 
           {coverUrl ? (
-            <div className="relative mt-8 aspect-[16/9] overflow-hidden rounded-2xl border border-[var(--rumik-surface-border)]">
+            <figure className="site-blog-cover">
               <Image
                 src={coverUrl}
                 alt={post.coverImage?.alt || post.title}
-                fill
-                className="object-cover"
+                width={1400}
+                height={418}
+                className="site-blog-cover__img"
                 priority
-                sizes="(max-width: 1024px) 100vw, 768px"
+                sizes="(max-width: 1200px) 100vw, 1200px"
               />
-            </div>
+            </figure>
           ) : null}
 
-          <div className="mt-10">
+          <div className="mx-auto mt-10 w-full max-w-3xl">
             <PostBody value={post.body} />
           </div>
 
-          <div className="mt-12 border-t border-[var(--rumik-surface-border)] pt-8">
+          <div className="mx-auto mt-12 w-full max-w-3xl border-t border-[var(--rumik-surface-border)] pt-8">
             <Link href="/blog" className="site-link text-sm hover:opacity-80">
               ← Back to Shop Talk
             </Link>
