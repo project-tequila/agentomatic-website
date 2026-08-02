@@ -38,6 +38,7 @@ export async function placeDemoOutboundCall(params: {
   toPhoneNumber: string;
   provider?: string;
   message?: string;
+  language?: string;
 }): Promise<DemoOutboundGatewayResult> {
   const apiKey = process.env.DEMO_OUTBOUND_API_KEY?.trim();
   if (!apiKey) {
@@ -55,6 +56,7 @@ export async function placeDemoOutboundCall(params: {
       to_phone_number: params.toPhoneNumber,
       provider: params.provider,
       message: params.message,
+      language: params.language,
     }),
     cache: "no-store",
   });

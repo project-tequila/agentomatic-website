@@ -8164,7 +8164,8 @@
 }
 
 .call-panel-surface__country,
-.call-panel-surface__input-wrap {
+.call-panel-surface__input-wrap,
+.call-panel-surface__language {
   min-height: 3.15rem;
   border-radius: 0.75rem;
   border: 1px solid var(--call-panel-border);
@@ -8231,8 +8232,38 @@
   cursor: pointer;
 }
 
+.call-panel-surface__language {
+  position: relative;
+  display: flex;
+  min-width: 7.5rem;
+  align-items: center;
+  padding: 0 0.15rem;
+}
+
+.call-panel-surface__language-select {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  margin: 0;
+  border: 0;
+  border-radius: inherit;
+  padding: 0 1.75rem 0 0.75rem;
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235c6370' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.55rem center;
+  background-size: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--call-panel-ink);
+  cursor: pointer;
+  appearance: none;
+  outline: none;
+}
+
 .call-panel-surface__country:focus-within,
-.call-panel-surface__input-wrap:focus-within {
+.call-panel-surface__input-wrap:focus-within,
+.call-panel-surface__language:focus-within {
   border-color: var(--call-panel-accent);
   background: #ffffff;
   box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.1);
@@ -8577,7 +8608,7 @@
 
 .call-panel-surface__fields--bar {
   display: grid;
-  grid-template-columns: 4.65rem minmax(0, 1fr) auto;
+  grid-template-columns: 4.65rem minmax(0, 1fr) minmax(7rem, 8.5rem) auto;
   align-items: stretch;
   gap: var(--demo-call-strip-space, 0.5rem);
   width: 100%;
@@ -8610,7 +8641,8 @@
 }
 
 .call-panel-surface__form--bar .call-panel-surface__country:focus-within,
-.call-panel-surface__form--bar .call-panel-surface__input-wrap:focus-within {
+.call-panel-surface__form--bar .call-panel-surface__input-wrap:focus-within,
+.call-panel-surface__form--bar .call-panel-surface__language:focus-within {
   border-color: #0a0a0a;
   box-shadow: 0 0 0 2px rgba(10, 10, 10, 0.14);
   background: #ffffff;
@@ -8623,6 +8655,22 @@
 .call-panel-surface__form--bar .call-panel-surface__input {
   font-size: 0.8125rem;
   min-width: 0;
+}
+
+.call-panel-surface__form--bar .call-panel-surface__language {
+  width: 100%;
+  min-width: 0;
+  min-height: 2.5rem;
+  height: 100%;
+  border: 1.5px solid rgba(10, 10, 10, 0.38);
+  border-radius: 0.5rem;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.call-panel-surface__form--bar .call-panel-surface__language-select {
+  font-size: 0.78rem;
+  padding-inline: 0.55rem 1.4rem;
 }
 
 .call-panel-surface__submit--bar {
@@ -8657,7 +8705,7 @@
 
 .call-panel-surface__fields--compact {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr minmax(7rem, 8.5rem) auto;
   align-items: stretch;
   gap: 0.5rem;
 }
@@ -8669,7 +8717,8 @@
   padding: 0 1.75rem 0 0.65rem;
 }
 
-.call-panel-surface__form--compact .call-panel-surface__input-wrap {
+.call-panel-surface__form--compact .call-panel-surface__input-wrap,
+.call-panel-surface__form--compact .call-panel-surface__language {
   min-height: 2.75rem;
 }
 
@@ -8796,17 +8845,22 @@
   }
 
   .call-panel-surface__fields--bar {
-    grid-template-columns: 3.85rem minmax(0, 1fr) auto;
-    grid-template-rows: auto;
+    grid-template-columns: 3.85rem minmax(0, 1fr);
+    grid-template-rows: auto auto;
   }
 
+  .call-panel-surface__form--bar .call-panel-surface__language,
   .call-panel-surface__submit--bar {
     grid-column: auto;
     max-width: none;
-    width: auto;
+    width: 100%;
     min-height: 2.75rem;
     padding-inline: 0.55rem;
     font-size: 0.72rem;
+  }
+
+  .call-panel-surface__form--bar .call-panel-surface__language {
+    min-width: 0;
   }
 
   .call-panel-surface__form--bar .call-panel-surface__country,
@@ -8825,9 +8879,10 @@
 
   .call-panel-surface__fields--compact {
     grid-template-columns: 5.75rem 1fr;
-    grid-template-rows: auto auto;
+    grid-template-rows: auto auto auto;
   }
 
+  .call-panel-surface__form--compact .call-panel-surface__language,
   .call-panel-surface__submit {
     grid-column: 1 / -1;
     width: 100%;

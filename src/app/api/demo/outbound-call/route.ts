@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 
 import { normalizeToE164 } from "@/lib/phone";
+import { normalizeVoiceLanguage } from "@/lib/voice-languages";
 import { placeDemoOutboundCall } from "@/lib/voice-gateway";
 
 export const runtime = "nodejs";
 
 type OutboundCallBody = {
   phone?: string;
+  language?: string;
 };
 
 export async function POST(request: Request) {
@@ -27,11 +29,14 @@ export async function POST(request: Request) {
     );
   }
 
+  const language = normalizeVoiceLanguage(body.language);
+
   try {
     const result = await placeDemoOutboundCall({
       toPhoneNumber: phone,
       provider: process.env.DEMO_VOICE_PROVIDER?.trim() || undefined,
       message: process.env.DEMO_VOICE_MESSAGE?.trim() || undefined,
+      language,
     });
 
     return NextResponse.json({
