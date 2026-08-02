@@ -6,6 +6,11 @@ import { useState } from "react";
 
 import { countryById, countryCodes, countryFlagUrl } from "@/lib/country-codes";
 import { cn } from "@/lib/utils";
+import {
+  DEFAULT_DEMO_VOICE_LANGUAGE,
+  VOICE_LANGUAGE_OPTIONS,
+  type VoiceLanguageCode,
+} from "@/lib/voice-languages";
 
 type OutboundUiState = "idle" | "loading" | "success" | "error";
 
@@ -36,6 +41,7 @@ export function DemoCallForm({
   const reduceMotion = useReducedMotion();
   const [countryId, setCountryId] = useState(countryCodes[0]!.id);
   const [localNumber, setLocalNumber] = useState("");
+  const [language, setLanguage] = useState<VoiceLanguageCode>(DEFAULT_DEMO_VOICE_LANGUAGE);
   const [outboundState, setOutboundState] = useState<OutboundUiState>("idle");
   const [outboundMessage, setOutboundMessage] = useState("");
 
@@ -59,7 +65,7 @@ export function DemoCallForm({
       const res = await fetch("/api/demo/outbound-call", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: fullPhone }),
+        body: JSON.stringify({ phone: fullPhone, language }),
       });
       const data = (await res.json()) as { error?: string; message?: string };
       if (!res.ok) {
@@ -148,6 +154,24 @@ export function DemoCallForm({
             autoFocus={autoFocus}
           />
         </div>
+
+        <label className="call-panel-surface__language" htmlFor="demo-voice-language">
+          <span className="sr-only">Language</span>
+          <select
+            id="demo-voice-language"
+            name="language"
+            value={language}
+            onChange={(event) => setLanguage(event.target.value as VoiceLanguageCode)}
+            className="call-panel-surface__language-select"
+            aria-label="Conversation language"
+          >
+            {VOICE_LANGUAGE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
 
         {isInlineSubmit ? (
           <button
