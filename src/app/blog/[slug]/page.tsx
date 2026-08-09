@@ -30,7 +30,10 @@ export async function generateMetadata({
   const post = await getPublishedPostBySlug(slug);
 
   if (!post) {
-    return { title: "note not found — agentomatic" };
+    return {
+      title: "note not found — agentomatic",
+      robots: { index: false, follow: false },
+    };
   }
 
   const title = post.seoTitle ?? post.title;
@@ -93,7 +96,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       />
       <SiteMain>
         <article className="site-blog-article w-full">
-          <div className="site-page-header mx-auto w-full max-w-3xl">
+          <div className="site-page-header w-full">
             <p className="site-card__meta">
               <Link href="/blog" className="site-link hover:opacity-80">
                 Shop Talk
@@ -125,11 +128,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </figure>
           ) : null}
 
-          <div className="mx-auto mt-10 w-full max-w-3xl">
+          <div className="mt-10 w-full">
             <PostBody value={post.body} />
           </div>
 
-          <div className="mx-auto mt-12 w-full max-w-3xl border-t border-[var(--rumik-surface-border)] pt-8">
+          <div className="mt-12 w-full border-t border-[var(--rumik-surface-border)] pt-8">
             <Link href="/blog" className="site-link text-sm hover:opacity-80">
               ← Back to Shop Talk
             </Link>

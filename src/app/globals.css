@@ -1751,6 +1751,15 @@
   background: rgba(255, 255, 255, 0.04);
 }
 
+/* Blog post: title, excerpt, body, and cover share container width. */
+.site-blog-article .site-page-header {
+  max-width: 100%;
+}
+
+.site-blog-article .site-lead {
+  max-width: 100%;
+}
+
 .site-blog-cover {
   width: 100%;
   max-width: 100%;
