@@ -31,6 +31,9 @@ export function SiteFooter() {
           <Link className="site-footer__link" href="/contact">
             contact
           </Link>
+          <Link className="site-footer__link" href="/privacy">
+            privacy
+          </Link>
         </nav>
 
         <p className="site-footer__copy">© {year} agentomatic labs</p>

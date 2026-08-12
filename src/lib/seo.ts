@@ -13,7 +13,17 @@ export const DEFAULT_TITLE = "agentomatic — ai frontdesk";
 export const DEFAULT_DESCRIPTION =
   "streamline your front desk with ai — routine calls handled automatically, warm human transfer when it matters. phone, whatsapp, email, and calendar in one place.";
 
-export const STATIC_ROUTES = ["/", "/solutions", "/vision", "/about", "/pricing", "/blog", "/contact", "/agents"] as const;
+export const STATIC_ROUTES = [
+  "/",
+  "/solutions",
+  "/vision",
+  "/about",
+  "/pricing",
+  "/blog",
+  "/contact",
+  "/agents",
+  "/privacy",
+] as const;
 
 const DEFAULT_OG_IMAGE = {
   url: "/opengraph-image",
