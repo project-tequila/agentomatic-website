@@ -90,6 +90,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           description: post.seoDescription ?? post.excerpt,
           slug,
           publishedAt: post.publishedAt,
+          dateModified: post._updatedAt,
           authorName: post.authorName,
           imageUrl: ogImageUrl,
         })}

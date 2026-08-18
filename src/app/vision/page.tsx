@@ -4,8 +4,6 @@ import { SitePageShell } from "@/components/site/site-page-shell";
 import { VisionPageContent } from "@/components/site/vision-page-content";
 import { pageMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = pageMetadata({
   title: "vision — agentomatic",
   description:

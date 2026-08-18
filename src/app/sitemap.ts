@@ -1,26 +1,32 @@
 import type { MetadataRoute } from "next";
 
-import { getSiteUrl, STATIC_ROUTES } from "@/lib/seo";
-import { getPublishedPostSlugs } from "@/sanity/fetch";
+import { canonicalUrl, STATIC_ROUTE_LASTMOD, STATIC_ROUTES } from "@/lib/seo";
+import { getPublishedPostsForSitemap } from "@/sanity/fetch";
 
+/**
+ * Sitemap must never 500 — Google treats failed sitemap fetches as
+ * indexation blockers. Static routes always ship; blog slugs are best-effort.
+ */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const siteUrl = getSiteUrl();
-  const lastModified = new Date();
-
   const staticEntries: MetadataRoute.Sitemap = STATIC_ROUTES.map((route) => ({
-    url: new URL(route, siteUrl).toString(),
-    lastModified,
+    url: canonicalUrl(route),
+    lastModified: STATIC_ROUTE_LASTMOD[route],
     changeFrequency: route === "/" ? "weekly" : "monthly",
     priority: route === "/" ? 1 : 0.8,
   }));
 
-  const slugs = await getPublishedPostSlugs();
-  const blogEntries: MetadataRoute.Sitemap = slugs.map((slug) => ({
-    url: new URL(`/blog/${slug}`, siteUrl).toString(),
-    lastModified,
-    changeFrequency: "weekly",
-    priority: 0.6,
-  }));
+  let blogEntries: MetadataRoute.Sitemap = [];
+  try {
+    const posts = await getPublishedPostsForSitemap();
+    blogEntries = posts.map((post) => ({
+      url: canonicalUrl(`/blog/${post.slug}`),
+      lastModified: post._updatedAt,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    }));
+  } catch (error) {
+    console.error("[sitemap] Failed to load published post slugs; serving static routes only.", error);
+  }
 
   return [...staticEntries, ...blogEntries];
 }

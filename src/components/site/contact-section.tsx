@@ -36,7 +36,13 @@ function validateField(name: string, value: string): string {
   }
 }
 
-export function ContactSection() {
+type ContactSectionProps = {
+  /** Use `h1` on `/contact`. Embedded blocks (home, page shell) stay `h2`. */
+  headingLevel?: "h1" | "h2";
+};
+
+export function ContactSection({ headingLevel = "h2" }: ContactSectionProps) {
+  const HeadingTag = headingLevel;
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -62,9 +68,10 @@ export function ContactSection() {
     });
   }
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const fd = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const fd = new FormData(form);
     const nextErrors = validateForm(fd);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
@@ -80,11 +87,46 @@ export function ContactSection() {
       document.getElementById(idMap[firstId] ?? "")?.focus();
       return;
     }
+
     setBusy(true);
-    window.setTimeout(() => {
-      setBusy(false);
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next.form;
+      return next;
+    });
+
+    try {
+      const res = await fetch("/api/leads/hubspot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: String(fd.get("fname") ?? ""),
+          lastName: String(fd.get("lname") ?? ""),
+          company: String(fd.get("organization") ?? ""),
+          sector: String(fd.get("sector") ?? ""),
+          email: String(fd.get("email") ?? ""),
+          phone: String(fd.get("phone") ?? ""),
+          query: String(fd.get("query") ?? ""),
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        setErrors((prev) => ({
+          ...prev,
+          form: data.error || "Could not send your request. Please try again.",
+        }));
+        return;
+      }
       setSent(true);
-    }, 900);
+      form.reset();
+    } catch {
+      setErrors((prev) => ({
+        ...prev,
+        form: "Could not send your request. Please try again.",
+      }));
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -93,7 +135,9 @@ export function ContactSection() {
         <div className="site-contact-section__grid">
           <div>
             <p className="site-kicker">contact</p>
-            <h2 className="site-display text-[clamp(1.75rem,calc(3.5vw + 0.5rem),3rem)]">let your visitors speak first.</h2>
+            <HeadingTag className="site-display text-[clamp(1.75rem,calc(3.5vw + 0.5rem),3rem)]">
+              let your visitors speak first.
+            </HeadingTag>
             <p className="site-lead">
               tell us where calls, leads, or visitor questions get stuck. we&apos;ll shape a voice-agent flow around that
               moment.
@@ -196,9 +240,13 @@ export function ContactSection() {
                     suppressHydrationWarning
                   >
                     <option value="">select sector</option>
-                    <option>sales / growth</option>
                     <option>healthcare / clinic</option>
                     <option>legal / professional services</option>
+                    <option>home services</option>
+                    <option>hospitality</option>
+                    <option>salon / beauty</option>
+                    <option>education</option>
+                    <option>sales / growth</option>
                     <option>other</option>
                   </select>
                   {errors.sector ? (
@@ -268,6 +316,11 @@ export function ContactSection() {
                     suppressHydrationWarning
                   />
                 </div>
+                {errors.form ? (
+                  <p className="site-field-error mt-3" role="alert">
+                    {errors.form}
+                  </p>
+                ) : null}
                 <button type="submit" disabled={busy} className="site-btn site-btn--full mt-4" suppressHydrationWarning>
                   {busy ? (
                     <>

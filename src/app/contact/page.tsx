@@ -15,7 +15,7 @@ export const metadata: Metadata = pageMetadata({
 export default function ContactPage() {
   return (
     <SitePageShell showContactAndFooter={false}>
-      <ContactSection />
+      <ContactSection headingLevel="h1" />
       <SiteFooter />
     </SitePageShell>
   );

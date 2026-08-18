@@ -22,6 +22,12 @@ export function SiteFooter() {
           <Link className="site-footer__link" href="/solutions">
             solutions
           </Link>
+          <Link className="site-footer__link" href="/agents">
+            agents
+          </Link>
+          <Link className="site-footer__link" href="/vision">
+            vision
+          </Link>
           <Link className="site-footer__link" href="/pricing">
             pricing
           </Link>
