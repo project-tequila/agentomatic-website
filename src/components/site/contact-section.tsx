@@ -68,10 +68,9 @@ export function ContactSection({ headingLevel = "h2" }: ContactSectionProps) {
     });
   }
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const form = e.currentTarget;
-    const fd = new FormData(form);
+    const fd = new FormData(e.currentTarget);
     const nextErrors = validateForm(fd);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
@@ -87,46 +86,11 @@ export function ContactSection({ headingLevel = "h2" }: ContactSectionProps) {
       document.getElementById(idMap[firstId] ?? "")?.focus();
       return;
     }
-
     setBusy(true);
-    setErrors((prev) => {
-      const next = { ...prev };
-      delete next.form;
-      return next;
-    });
-
-    try {
-      const res = await fetch("/api/leads/hubspot", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: String(fd.get("fname") ?? ""),
-          lastName: String(fd.get("lname") ?? ""),
-          company: String(fd.get("organization") ?? ""),
-          sector: String(fd.get("sector") ?? ""),
-          email: String(fd.get("email") ?? ""),
-          phone: String(fd.get("phone") ?? ""),
-          query: String(fd.get("query") ?? ""),
-        }),
-      });
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) {
-        setErrors((prev) => ({
-          ...prev,
-          form: data.error || "Could not send your request. Please try again.",
-        }));
-        return;
-      }
-      setSent(true);
-      form.reset();
-    } catch {
-      setErrors((prev) => ({
-        ...prev,
-        form: "Could not send your request. Please try again.",
-      }));
-    } finally {
+    window.setTimeout(() => {
       setBusy(false);
-    }
+      setSent(true);
+    }, 900);
   }
 
   return (
@@ -240,13 +204,9 @@ export function ContactSection({ headingLevel = "h2" }: ContactSectionProps) {
                     suppressHydrationWarning
                   >
                     <option value="">select sector</option>
+                    <option>sales / growth</option>
                     <option>healthcare / clinic</option>
                     <option>legal / professional services</option>
-                    <option>home services</option>
-                    <option>hospitality</option>
-                    <option>salon / beauty</option>
-                    <option>education</option>
-                    <option>sales / growth</option>
                     <option>other</option>
                   </select>
                   {errors.sector ? (
@@ -316,11 +276,6 @@ export function ContactSection({ headingLevel = "h2" }: ContactSectionProps) {
                     suppressHydrationWarning
                   />
                 </div>
-                {errors.form ? (
-                  <p className="site-field-error mt-3" role="alert">
-                    {errors.form}
-                  </p>
-                ) : null}
                 <button type="submit" disabled={busy} className="site-btn site-btn--full mt-4" suppressHydrationWarning>
                   {busy ? (
                     <>
