@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 
-import { CONTACT_EMAIL, CONTACT_PHONE_E164 } from "@/lib/site-contact";
+import { CONTACT_EMAIL, CONTACT_PHONE_E164 } from "./site-contact.ts";
 
-export const DEFAULT_SITE_URL = "https://agentomatic.com";
+/** Canonical production origin — always `.in` (never `.com`). */
+export const DEFAULT_SITE_URL = "https://www.agentomatic.in";
 
 export const SITE_NAME = "agentomatic";
 
-export { CONTACT_EMAIL } from "@/lib/site-contact";
+export { CONTACT_EMAIL } from "./site-contact.ts";
 
 export const DEFAULT_TITLE = "agentomatic — ai frontdesk";
 
@@ -25,6 +26,22 @@ export const STATIC_ROUTES = [
   "/privacy",
 ] as const;
 
+/**
+ * File-stable lastmod per static route (ISO date). Bump a value when that
+ * route’s public content ships. Never use `new Date()` at sitemap generate time.
+ */
+export const STATIC_ROUTE_LASTMOD = {
+  "/": "2026-08-18",
+  "/solutions": "2026-08-12",
+  "/vision": "2026-08-12",
+  "/about": "2026-07-28",
+  "/pricing": "2026-08-05",
+  "/blog": "2026-08-15",
+  "/contact": "2026-08-01",
+  "/agents": "2026-08-12",
+  "/privacy": "2026-06-15",
+} as const satisfies Record<(typeof STATIC_ROUTES)[number], string>;
+
 const DEFAULT_OG_IMAGE = {
   url: "/opengraph-image",
   width: 1200,
@@ -36,6 +53,31 @@ export function getSiteUrl(): URL {
   const raw = process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_SITE_URL;
   const normalized = raw.endsWith("/") ? raw.slice(0, -1) : raw;
   return new URL(normalized);
+}
+
+/** Origin without trailing slash — safe for `${origin}/path` joins. */
+export function getSiteOrigin(): string {
+  // Never use URL.href/toString() here — those include a trailing slash and
+  // produce broken joins like `https://www.agentomatic.in//icon`.
+  return getSiteUrl().origin.replace(/\/$/, "");
+}
+
+/**
+ * Absolute canonical URL for a site path.
+ * Homepage `/` keeps the trailing slash; every other path is origin + path with
+ * no trailing slash. Emit this string (not a relative `/`) so Next 16
+ * metadataBase composition cannot drop the homepage slash.
+ */
+export function canonicalUrl(path: string): string {
+  const origin = getSiteOrigin();
+  const withSlash = path.startsWith("/") ? path : `/${path}`;
+  const pathname = withSlash.replace(/\/+$/, "") || "/";
+
+  if (pathname === "/") {
+    return `${origin}/`;
+  }
+
+  return `${origin}${pathname}`;
 }
 
 type PageMetadataOptions = {
@@ -56,15 +98,16 @@ export function pageMetadata({
   robots,
 }: PageMetadataOptions): Metadata {
   const images = twitterImages ?? [DEFAULT_OG_IMAGE.url];
+  const url = canonicalUrl(path);
 
   return {
     title,
     description,
-    alternates: { canonical: path },
+    alternates: { canonical: url },
     openGraph: {
       type: "website",
       locale: "en_US",
-      url: path,
+      url,
       siteName: SITE_NAME,
       title,
       description,
@@ -89,12 +132,12 @@ export const rootMetadata: Metadata = {
   },
   description: DEFAULT_DESCRIPTION,
   alternates: {
-    canonical: "/",
+    canonical: canonicalUrl("/"),
   },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "/",
+    url: canonicalUrl("/"),
     siteName: SITE_NAME,
     title: DEFAULT_TITLE,
     description: DEFAULT_DESCRIPTION,
@@ -117,33 +160,34 @@ export const rootMetadata: Metadata = {
 };
 
 export function organizationJsonLd() {
-  const siteUrl = getSiteUrl().toString();
+  const origin = getSiteOrigin();
+  const url = canonicalUrl("/");
 
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: SITE_NAME,
-    url: siteUrl,
+    url,
     email: CONTACT_EMAIL,
     description: DEFAULT_DESCRIPTION,
-    logo: `${siteUrl}/icon`,
+    logo: `${origin}/icon`,
     ...(CONTACT_PHONE_E164 ? { telephone: CONTACT_PHONE_E164 } : {}),
   };
 }
 
 export function websiteJsonLd() {
-  const siteUrl = getSiteUrl().toString();
+  const url = canonicalUrl("/");
 
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: SITE_NAME,
-    url: siteUrl,
+    url,
     description: DEFAULT_DESCRIPTION,
     publisher: {
       "@type": "Organization",
       name: SITE_NAME,
-      url: siteUrl,
+      url,
     },
   };
 }
@@ -153,6 +197,7 @@ export function articleJsonLd({
   description,
   slug,
   publishedAt,
+  dateModified,
   authorName,
   imageUrl,
 }: {
@@ -160,11 +205,12 @@ export function articleJsonLd({
   description?: string;
   slug: string;
   publishedAt: string;
+  dateModified?: string;
   authorName?: string;
   imageUrl?: string;
 }) {
-  const siteUrl = getSiteUrl().toString();
-  const url = `${siteUrl}/blog/${slug}`;
+  const origin = getSiteOrigin();
+  const url = canonicalUrl(`/blog/${slug}`);
 
   return {
     "@context": "https://schema.org",
@@ -172,6 +218,7 @@ export function articleJsonLd({
     headline: title,
     description,
     datePublished: publishedAt,
+    dateModified: dateModified ?? publishedAt,
     url,
     ...(imageUrl ? { image: [imageUrl] } : {}),
     ...(authorName
@@ -185,10 +232,10 @@ export function articleJsonLd({
     publisher: {
       "@type": "Organization",
       name: SITE_NAME,
-      url: siteUrl,
+      url: canonicalUrl("/"),
       logo: {
         "@type": "ImageObject",
-        url: `${siteUrl}/icon`,
+        url: `${origin}/icon`,
       },
     },
     mainEntityOfPage: {

@@ -17,10 +17,16 @@ export interface PostListItem {
   coverImage?: SanityCoverImage;
 }
 
+export interface PostSitemapEntry {
+  slug: string;
+  _updatedAt: string;
+}
+
 export interface PostDetail extends PostListItem {
   body: PortableTextBlock[];
   seoTitle?: string;
   seoDescription?: string;
+  _updatedAt?: string;
 }
 
 export const postsQuery = groq`
@@ -41,6 +47,13 @@ export const postSlugsQuery = groq`
   *[_type == "post" && published == true && defined(slug.current)][].slug.current
 `;
 
+export const postSitemapQuery = groq`
+  *[_type == "post" && published == true && defined(slug.current)]{
+    "slug": slug.current,
+    _updatedAt
+  }
+`;
+
 export const postBySlugQuery = groq`
   *[_type == "post" && published == true && slug.current == $slug][0] {
     _id,
@@ -48,6 +61,7 @@ export const postBySlugQuery = groq`
     "slug": slug.current,
     excerpt,
     publishedAt,
+    _updatedAt,
     authorName,
     categories,
     coverImage { ..., alt },
