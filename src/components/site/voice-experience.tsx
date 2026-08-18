@@ -2,19 +2,23 @@
 
 import { interpolate } from "@helios-project/core";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Loader2, Mic, Pause, Phone, Volume2 } from "lucide-react";
+import { Loader2, Mic, Pause, Phone, Square } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useCinemaScroll } from "@/lib/helios/use-cinema-scroll";
 import { useHeliosVoice } from "@/lib/helios/helios-provider";
 import { useVideoFrame } from "@/lib/helios/use-video-frame";
+import { heliosFromRealtimeVoice } from "@/lib/voice/demo-web-voice-errors";
+import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
 import { cn } from "@/lib/utils";
 
-const voiceStates = {
+const voiceCopy = {
   idle: { line: "Tap to greet" },
+  connecting: { line: "Connecting" },
   listening: { line: "Listening" },
   speaking: { line: "Live" },
+  error: { line: "Allow mic, or Call me" },
 } as const;
 
 const scrollBeats = [
@@ -24,14 +28,7 @@ const scrollBeats = [
   { until: 1, line: "Ready to help." },
 ] as const;
 
-type VoiceState = keyof typeof voiceStates;
 type OutboundUiState = "idle" | "loading" | "success" | "error";
-
-const voiceEnergy: Record<VoiceState, number> = {
-  idle: 0.18,
-  listening: 0.62,
-  speaking: 1,
-};
 
 function beatLine(scene: number) {
   return scrollBeats.find((b) => scene <= b.until)?.line ?? scrollBeats.at(-1)!.line;
@@ -41,7 +38,6 @@ export function VoiceExperience() {
   const cinemaRef = useRef<HTMLElement>(null);
   useCinemaScroll(cinemaRef);
 
-  const [state, setState] = useState<VoiceState>("idle");
   const [phone, setPhone] = useState("");
   const [outboundState, setOutboundState] = useState<OutboundUiState>("idle");
   const [outboundMessage, setOutboundMessage] = useState("");
@@ -49,18 +45,22 @@ export function VoiceExperience() {
   const { helios, setVoiceInput } = useHeliosVoice();
   const { currentFrame, fps, inputProps } = useVideoFrame(helios);
   const scene = inputProps.sceneProgress ?? 0;
-  const active = state !== "idle";
-  const copy = voiceStates[state];
+  const { status, error, isAgentSpeaking, transcripts, start, stop } = useDemoWebVoice();
+  const heliosVoice = heliosFromRealtimeVoice({ status, isAgentSpeaking });
+  const live = status === "connecting" || status === "listening";
+  const hudKey = isAgentSpeaking ? "speaking" : status;
+  const copy = voiceCopy[hudKey];
   const seated = scene >= 0.78;
   const beat = beatLine(scene);
   const titleOpacity = interpolate(scene, [0, 0.12, 0.28], [1, 1, 0], { extrapolateRight: "clamp" });
   const hudOpacity = interpolate(scene, [0.68, 0.82], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const recent = transcripts.slice(-4);
 
   useEffect(() => {
-    setVoiceInput({ voiceState: state, energy: voiceEnergy[state] });
-  }, [setVoiceInput, state]);
+    setVoiceInput({ voiceState: heliosVoice.voiceState, energy: heliosVoice.energy });
+  }, [setVoiceInput, heliosVoice.voiceState, heliosVoice.energy]);
 
-  const hudFloat = interpolate(currentFrame % (fps * 4), [0, fps * 2, fps * 4], [0, active ? -5 : 0, 0]);
+  const hudFloat = interpolate(currentFrame % (fps * 4), [0, fps * 2, fps * 4], [0, live ? -5 : 0, 0]);
 
   async function onOutboundSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -86,17 +86,31 @@ export function VoiceExperience() {
     }
   }
 
-  const nextAction = useMemo(() => {
-    if (state === "idle") return { icon: Mic, label: "Start", next: "listening" as const };
-    if (state === "listening") return { icon: Volume2, label: "Respond", next: "speaking" as const };
-    return { icon: Pause, label: "Reset", next: "idle" as const };
-  }, [state]);
+  async function onMic() {
+    if (live) {
+      stop();
+      return;
+    }
+    await start();
+  }
 
-  const Icon = nextAction.icon;
+  const MicIcon = status === "connecting" ? Loader2 : live ? Square : status === "error" ? Pause : Mic;
 
   return (
     <section ref={cinemaRef} className="site-3d__cinema" aria-label="Front desk story">
       <div className="site-3d__cinema-sticky">
+        <button
+          type="button"
+          className={cn("site-3d__talk-chip", live && "site-3d__talk-chip--live")}
+          data-testid="cinema-talk-chip"
+          onClick={() => void onMic()}
+          aria-pressed={live}
+          aria-label={live ? "End talk" : "Talk now"}
+        >
+          <Mic className="size-3.5" strokeWidth={1.75} aria-hidden />
+          {live ? "End" : "Talk"}
+        </button>
+
         <motion.div
           className="site-3d__hero-title"
           style={{ opacity: reduceMotion ? 1 : titleOpacity }}
@@ -124,7 +138,7 @@ export function VoiceExperience() {
         </div>
 
         <motion.div
-          id="experience"
+          id="experience-hud"
           className="site-3d__cinema-hud"
           style={{ opacity: reduceMotion ? (seated ? 1 : 0) : hudOpacity, pointerEvents: seated ? "auto" : "none" }}
         >
@@ -132,29 +146,25 @@ export function VoiceExperience() {
             className="voice-hud site-3d__hud"
             style={{ transform: reduceMotion ? undefined : `translateY(${hudFloat}px)` }}
           >
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={copy.line}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                className="voice-hud__status mb-5"
-              >
-                {copy.line}
-              </motion.p>
-            </AnimatePresence>
+            <p className="voice-hud__status mb-5" aria-live="polite">
+              {error ?? copy.line}
+            </p>
 
             <div className="relative">
-              <div className={cn("voice-hud__orbit", active && "voice-hud__orbit--live")} aria-hidden />
-              <div className={cn("voice-hud__orbit voice-hud__orbit--b", active && "voice-hud__orbit--live")} aria-hidden />
+              <div className={cn("voice-hud__orbit", live && "voice-hud__orbit--live")} aria-hidden />
+              <div className={cn("voice-hud__orbit voice-hud__orbit--b", live && "voice-hud__orbit--live")} aria-hidden />
               <button
                 type="button"
-                onClick={() => setState(nextAction.next)}
-                className={cn("voice-hud__mic", active && "voice-hud__mic--live")}
-                aria-label={nextAction.label}
+                onClick={() => void onMic()}
+                className={cn("voice-hud__mic", live && "voice-hud__mic--live")}
+                aria-pressed={live}
+                aria-label={live ? "End talk" : "Talk"}
               >
                 <span className="voice-hud__mic-glow" aria-hidden />
-                <Icon className="relative z-10 size-9" strokeWidth={1.5} />
+                <MicIcon
+                  className={cn("relative z-10 size-9", status === "connecting" && "animate-spin")}
+                  strokeWidth={1.5}
+                />
               </button>
             </div>
 
@@ -162,21 +172,31 @@ export function VoiceExperience() {
               {Array.from({ length: 32 }, (_, i) => (
                 <span
                   key={i}
-                  className={cn(active && "voice-hud__wave-bar--live")}
+                  className={cn(live && "voice-hud__wave-bar--live")}
                   style={{
                     animationDelay: `${i * 55}ms`,
-                    height: active ? `${28 + (i % 5) * 14}%` : "18%",
+                    height: live ? `${28 + (i % 5) * 14}%` : "18%",
                   }}
                 />
               ))}
             </div>
+
+            {recent.length > 0 ? (
+              <ol className="voice-hud__transcript" aria-live="polite">
+                {recent.map((line) => (
+                  <li key={line.id}>
+                    <span>{line.role === "assistant" ? "Desk" : "You"}</span> {line.text}
+                  </li>
+                ))}
+              </ol>
+            ) : null}
           </motion.div>
 
           <Link href="/vision" className="voice-hud__book">
             Book
           </Link>
 
-          <form id="call-demo" onSubmit={onOutboundSubmit} className="voice-hud__call site-3d__call">
+          <form id="call-demo-cinema" onSubmit={onOutboundSubmit} className="voice-hud__call site-3d__call">
             <label className="sr-only" htmlFor="outbound-phone">
               Phone
             </label>

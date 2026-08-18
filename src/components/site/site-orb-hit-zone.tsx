@@ -3,6 +3,7 @@
 import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { openDemoCall } from "@/lib/demo-call/open-demo-call";
+import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
 import { cn } from "@/lib/utils";
 
 import { FrontdeskVoiceOrb } from "./frontdesk-voice-orb";
@@ -14,16 +15,19 @@ type SiteOrbHitZoneProps = {
 
 export function SiteOrbHitZone({ variant, className }: SiteOrbHitZoneProps) {
   const reduceMotion = usePrefersReducedMotion();
+  const { start } = useDemoWebVoice();
 
   function handleClick() {
     openDemoCall();
+    void start();
   }
 
   return (
     <button
       type="button"
       className={cn("site-orb-hit", `site-orb-hit--${variant}`, className)}
-      aria-label="Start a live demo call"
+      aria-label="Talk to Agent"
+      data-testid="site-orb-talk"
       onClick={handleClick}
     >
       {variant === "floating" ? (
@@ -42,7 +46,7 @@ export function SiteOrbHitZone({ variant, className }: SiteOrbHitZoneProps) {
           </svg>
         </span>
       ) : null}
-      <span className="site-orb-hit__label">tap to try</span>
+      <span className="site-orb-hit__label">Talk</span>
     </button>
   );
 }

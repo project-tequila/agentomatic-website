@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 import { DemoCallProvider, useDemoCall } from "@/lib/demo-call/demo-call-context";
+import { DemoWebVoiceProvider } from "@/lib/voice/demo-web-voice-context";
 
 import { DemoCallPanel } from "./demo-call-panel";
 import { SiteMagneticEnhancer } from "./site-magnetic-enhancer";
@@ -19,10 +20,12 @@ export function SiteDemoCallRoot({ children }: SiteDemoCallRootProps) {
 
   return (
     <DemoCallProvider>
-      <SiteMagneticEnhancer />
-      {children}
-      <DemoCallPanel />
-      {!isHome ? <SiteOrbHitZone variant="floating" /> : null}
+      <DemoWebVoiceProvider>
+        <SiteMagneticEnhancer />
+        {children}
+        <DemoCallPanel />
+        {!isHome ? <SiteOrbHitZone variant="floating" /> : null}
+      </DemoWebVoiceProvider>
     </DemoCallProvider>
   );
 }
