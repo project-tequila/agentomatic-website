@@ -18,8 +18,10 @@ const navItems = [
   { href: "/vision", label: "vision" },
   { href: "/pricing", label: "pricing" },
   { href: "/blog", label: "blog" },
-  { href: "/contact", label: "contact" },
 ] as const;
+
+const CONTACT_HREF = "/contact";
+const CONTACT_LABEL = "contact us";
 
 const RUMIK_EASE = [0.22, 0.7, 0.18, 1] as const;
 
@@ -85,11 +87,15 @@ function MotionChromeLink({
   className,
   onClick,
   children,
+  "data-testid": testId,
+  "aria-current": ariaCurrent,
 }: {
   href: string;
   className?: string;
   onClick?: () => void;
   children: ReactNode;
+  "data-testid"?: string;
+  "aria-current"?: "page" | undefined;
 }) {
   const reduceMotion = useReducedMotion();
 
@@ -98,6 +104,8 @@ function MotionChromeLink({
       href={href}
       className={className}
       onClick={onClick}
+      data-testid={testId}
+      aria-current={ariaCurrent}
       whileHover={reduceMotion ? undefined : { y: -1 }}
       whileTap={reduceMotion ? undefined : { scale: 0.98 }}
       transition={{ duration: 0.22, ease: RUMIK_EASE }}
@@ -127,6 +135,7 @@ export function SiteChrome() {
   }, [menuOpen]);
 
   const ctaLabel = "Talk to Agent";
+  const contactActive = navActive(pathname, CONTACT_HREF);
   const { start } = useDemoWebVoice();
 
   function onTalkToAgent() {
@@ -158,6 +167,17 @@ export function SiteChrome() {
               <span className="whitespace-nowrap">agentomatic</span>
             </HomeLogoLink>
           </motion.div>
+
+          <div className="site-chrome__mobile-contact">
+            <MotionChromeLink
+              href={CONTACT_HREF}
+              className="site-chrome-action-btn site-chrome-cta site-chrome-contact"
+              data-testid="chrome-contact-us-mobile"
+              aria-current={contactActive ? "page" : undefined}
+            >
+              {CONTACT_LABEL}
+            </MotionChromeLink>
+          </div>
 
           <motion.button
             type="button"
@@ -207,6 +227,14 @@ export function SiteChrome() {
             </MotionChromeLink>
             <MotionChromeLink href={BOOKER_SIGNUP_ROUTE} className="site-chrome-action-btn site-chrome-sign-up">
               sign up
+            </MotionChromeLink>
+            <MotionChromeLink
+              href={CONTACT_HREF}
+              className="site-chrome-action-btn site-chrome-cta site-chrome-contact"
+              data-testid="chrome-contact-us"
+              aria-current={contactActive ? "page" : undefined}
+            >
+              {CONTACT_LABEL}
             </MotionChromeLink>
             <MotionChromeCta
               className="site-chrome-action-btn site-chrome-cta"
@@ -277,6 +305,15 @@ export function SiteChrome() {
               delay: menuOpen && !reduceMotion ? 0.28 : 0,
             }}
           >
+            <MotionChromeLink
+              href={CONTACT_HREF}
+              className="site-chrome-action-btn site-chrome-action-btn--full site-chrome-cta site-chrome-contact"
+              data-testid="chrome-contact-us-drawer"
+              aria-current={contactActive ? "page" : undefined}
+              onClick={() => setMenuOpen(false)}
+            >
+              {CONTACT_LABEL}
+            </MotionChromeLink>
             <MotionChromeCta
               className="site-chrome-action-btn site-chrome-action-btn--full site-chrome-cta"
               data-testid="chrome-talk-to-agent-mobile"
