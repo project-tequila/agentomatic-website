@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 
 import { SiteChrome } from "@/components/site/chrome";
-import { ContactSection } from "@/components/site/contact-section";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SkipLink } from "@/components/site/skip-link";
 import { cn } from "@/lib/utils";
@@ -10,19 +9,23 @@ type SitePageShellProps = {
   children: ReactNode;
   showSiteChrome?: boolean;
   showContactAndFooter?: boolean;
+  showFooter?: boolean;
   immersive3d?: boolean;
   theme?: "dark" | "light";
   /** @deprecated Light theme removed — dark rumik is the default sitewide. */
 };
 
-/** Shared wrapper: optional chrome, page body, optional contact block + footer. */
+/** Shared wrapper: optional chrome, page body, optional footer. Contact form lives only on `/contact`. */
 export function SitePageShell({
   children,
   showSiteChrome = true,
-  showContactAndFooter = true,
+  showContactAndFooter,
+  showFooter,
   immersive3d = false,
   theme = "dark",
 }: SitePageShellProps) {
+  const footerVisible = showFooter ?? showContactAndFooter ?? true;
+
   return (
     <div
       className={cn(
@@ -35,12 +38,7 @@ export function SitePageShell({
       <SkipLink />
       {showSiteChrome ? <SiteChrome /> : null}
       {children}
-      {showContactAndFooter ? (
-        <>
-          <ContactSection />
-          <SiteFooter />
-        </>
-      ) : null}
+      {footerVisible ? <SiteFooter /> : null}
     </div>
   );
 }

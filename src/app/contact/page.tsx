@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import { ContactSection } from "@/components/site/contact-section";
 import { SitePageShell } from "@/components/site/site-page-shell";
-import { SiteFooter } from "@/components/site/site-footer";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -14,9 +13,10 @@ export const metadata: Metadata = pageMetadata({
 
 export default function ContactPage() {
   return (
-    <SitePageShell showContactAndFooter={false}>
-      <ContactSection headingLevel="h1" />
-      <SiteFooter />
+    <SitePageShell>
+      <main id="main-content" className="site-main site-main--contact" tabIndex={-1}>
+        <ContactSection headingLevel="h1" />
+      </main>
     </SitePageShell>
   );
 }
