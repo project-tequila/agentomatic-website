@@ -13,7 +13,7 @@ export const metadata: Metadata = pageMetadata({
 
 export default function Home() {
   return (
-    <SitePageShell immersive3d showContactAndFooter={false}>
+    <SitePageShell immersive3d showFooter={false}>
       <HomeSeoContent />
       <HomeImmersiveExperience />
     </SitePageShell>
