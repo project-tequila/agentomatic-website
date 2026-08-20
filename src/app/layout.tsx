@@ -8,6 +8,7 @@ import { SiteDemoCallRoot } from "@/components/site/site-demo-call-root";
 import { organizationJsonLd, rootMetadata, websiteJsonLd } from "@/lib/seo";
 
 import "./globals.css";
+import "./contact-cta.css";
 
 const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-sans",
