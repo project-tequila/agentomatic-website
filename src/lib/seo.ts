@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
 
-import { CONTACT_EMAIL, CONTACT_PHONE_E164 } from "./site-contact.ts";
+import { CONTACT_PHONE_E164 } from "./site-contact.ts";
 
 /** Canonical production origin — always `.in` (never `.com`). */
 export const DEFAULT_SITE_URL = "https://www.agentomatic.in";
 
 export const SITE_NAME = "agentomatic";
-
-export { CONTACT_EMAIL } from "./site-contact.ts";
 
 export const DEFAULT_TITLE = "agentomatic — ai frontdesk";
 
@@ -168,7 +166,6 @@ export function organizationJsonLd() {
     "@type": "Organization",
     name: SITE_NAME,
     url,
-    email: CONTACT_EMAIL,
     description: DEFAULT_DESCRIPTION,
     logo: `${origin}/icon`,
     ...(CONTACT_PHONE_E164 ? { telephone: CONTACT_PHONE_E164 } : {}),
