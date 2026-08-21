@@ -57,7 +57,7 @@ export async function POST(request: Request) {
 
   if (!process.env.HUBSPOT_ACCESS_TOKEN?.trim()) {
     return NextResponse.json(
-      { error: "Lead capture is temporarily unavailable. Email pranay@agentomatic.in." },
+      { error: "Lead capture is temporarily unavailable. Please try again, or use the form later." },
       { status: 503 },
     );
   }
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
     const message = error instanceof Error ? error.message : "Could not create lead.";
     console.error("[api/leads/hubspot]", message);
     return NextResponse.json(
-      { error: "Could not save your request. Please try again or email pranay@agentomatic.in." },
+      { error: "Could not save your request. Please try again, or use the form later." },
       { status: 502 },
     );
   }

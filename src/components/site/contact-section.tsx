@@ -3,12 +3,23 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
+import { SiteSelect } from "@/components/site/site-select";
 import {
-  CONTACT_EMAIL,
   CONTACT_PHONE_E164,
   contactPhoneTelHref,
   formatContactPhoneDisplay,
 } from "@/lib/site-contact";
+
+const CONTACT_SECTORS = [
+  "healthcare / clinic",
+  "legal / professional services",
+  "home services",
+  "hospitality",
+  "salon / beauty",
+  "education",
+  "sales / growth",
+  "other",
+] as const;
 
 type FieldErrors = Record<string, string>;
 
@@ -58,15 +69,19 @@ export function ContactSection({ headingLevel = "h1" }: ContactSectionProps) {
     return next;
   }
 
-  function onBlur(e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
-    const name = e.target.name === "organization" ? "company" : e.target.name;
-    const msg = validateField(name, e.target.value);
+  function applyFieldError(fieldName: string, fieldValue: string) {
+    const name = fieldName === "organization" ? "company" : fieldName;
+    const msg = validateField(name, fieldValue);
     setErrors((prev) => {
       const next = { ...prev };
       if (msg) next[name] = msg;
       else delete next[name];
       return next;
     });
+  }
+
+  function onBlur(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    applyFieldError(e.target.name, e.target.value);
   }
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -135,33 +150,40 @@ export function ContactSection({ headingLevel = "h1" }: ContactSectionProps) {
       <div className="site-container">
         <div className="site-contact-section__grid">
           <div className="site-contact-section__copy">
-            <p className="site-kicker">contact</p>
+            <p className="site-kicker">the line is open</p>
             <HeadingTag className="site-display site-contact-section__title">
-              we&apos;ll pick up from here.
+              write us here.
+              <span className="site-contact-section__title-line">we call back.</span>
             </HeadingTag>
             <p className="site-lead">
-              tell us where calls, leads, or visitor questions get stuck. we&apos;ll shape a voice-agent
-              flow around that moment.
+              tell us where calls, bookings, or front-desk questions get stuck. a person on our
+              side reads it and follows up.
             </p>
-            <ul className="site-contact-section__details">
+            <dl className="site-contact-section__details">
               {CONTACT_PHONE_E164 ? (
-                <li>
-                  <a className="site-link" href={contactPhoneTelHref(CONTACT_PHONE_E164)}>
-                    {contactPhoneDisplay}
-                  </a>
-                </li>
+                <div className="site-contact-section__detail">
+                  <dt>phone</dt>
+                  <dd>
+                    <a className="site-link" href={contactPhoneTelHref(CONTACT_PHONE_E164)}>
+                      {contactPhoneDisplay}
+                    </a>
+                  </dd>
+                </div>
               ) : null}
-              <li>
-                <a className="site-link" href={`mailto:${CONTACT_EMAIL}`}>
-                  {CONTACT_EMAIL}
-                </a>
-              </li>
-            </ul>
+              <div className="site-contact-section__detail">
+                <dt>write</dt>
+                <dd>use the form — we follow up from there.</dd>
+              </div>
+            </dl>
           </div>
 
           <div className="site-panel site-contact-section__form">
             {!sent ? (
               <form onSubmit={onSubmit} className="space-y-0" noValidate suppressHydrationWarning>
+                <div className="site-contact-section__form-head">
+                  <p className="site-contact-section__form-kicker">the desk</p>
+                  <p className="site-contact-section__form-title">request a voice demo</p>
+                </div>
                 <div className="site-form-grid-2">
                   <div className="site-field">
                     <label htmlFor="contact-fname" className="site-label">
@@ -234,26 +256,15 @@ export function ContactSection({ headingLevel = "h1" }: ContactSectionProps) {
                   <label htmlFor="contact-sector" className="site-label">
                     sector *
                   </label>
-                  <select
+                  <SiteSelect
                     id="contact-sector"
                     name="sector"
-                    defaultValue=""
-                    className="site-select"
-                    aria-invalid={!!errors.sector}
-                    aria-describedby={errors.sector ? "contact-sector-error" : undefined}
-                    onBlur={onBlur}
-                    suppressHydrationWarning
-                  >
-                    <option value="">select sector</option>
-                    <option>healthcare / clinic</option>
-                    <option>legal / professional services</option>
-                    <option>home services</option>
-                    <option>hospitality</option>
-                    <option>salon / beauty</option>
-                    <option>education</option>
-                    <option>sales / growth</option>
-                    <option>other</option>
-                  </select>
+                    placeholder="select sector"
+                    options={CONTACT_SECTORS}
+                    invalid={!!errors.sector}
+                    describedBy={errors.sector ? "contact-sector-error" : undefined}
+                    onBlurField={applyFieldError}
+                  />
                   {errors.sector ? (
                     <p id="contact-sector-error" className="site-field-error" role="alert">
                       {errors.sector}
@@ -272,6 +283,7 @@ export function ContactSection({ headingLevel = "h1" }: ContactSectionProps) {
                       inputMode="email"
                       autoComplete="email"
                       placeholder="you@company.com"
+                      spellCheck={false}
                       className="site-input"
                       aria-invalid={!!errors.email}
                       aria-describedby={errors.email ? "contact-email-error" : undefined}
@@ -338,7 +350,11 @@ export function ContactSection({ headingLevel = "h1" }: ContactSectionProps) {
                 </button>
               </form>
             ) : (
-              <div className="site-toast site-toast--success py-6 text-center" role="status">
+              <div
+                className="site-toast site-toast--success py-6 text-center"
+                role="status"
+                aria-live="polite"
+              >
                 <p className="font-medium">request received.</p>
                 <p className="mt-1 text-sm opacity-80">we&apos;ll follow up with a voice-agent walkthrough.</p>
               </div>

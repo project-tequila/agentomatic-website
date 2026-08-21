@@ -1,12 +1,6 @@
 /** Public Twilio / business line in E.164 (e.g. +14155551234). Set in NEXT_PUBLIC_CONTACT_PHONE. */
 export const CONTACT_PHONE_E164 = process.env.NEXT_PUBLIC_CONTACT_PHONE?.trim() ?? "";
 
-/** Public contact email shown on the site. Override with NEXT_PUBLIC_CONTACT_EMAIL. */
-export const DEFAULT_CONTACT_EMAIL = "pranay@agentomatic.in";
-
-export const CONTACT_EMAIL =
-  process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() || DEFAULT_CONTACT_EMAIL;
-
 /** Human-readable label for the contact phone (falls back to raw E.164). */
 export function formatContactPhoneDisplay(e164: string): string {
   if (!e164) return "";
@@ -24,6 +18,7 @@ export function formatContactPhoneDisplay(e164: string): string {
   return e164;
 }
 
+/** `tel:` href for the public contact number. */
 export function contactPhoneTelHref(e164: string): string {
   return `tel:${e164}`;
 }

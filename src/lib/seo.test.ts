@@ -27,6 +27,10 @@ test("organizationJsonLd().url matches the homepage canonical character-for-char
   assert.equal(organizationJsonLd().url, HOMEPAGE);
 });
 
+test("organizationJsonLd does not expose a contact email", () => {
+  assert.equal("email" in organizationJsonLd(), false);
+});
+
 test("websiteJsonLd().url matches the homepage canonical character-for-character", () => {
   assert.equal(websiteJsonLd().url, canonicalUrl("/"));
   assert.equal(websiteJsonLd().url, HOMEPAGE);
