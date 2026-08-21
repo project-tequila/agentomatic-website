@@ -10,6 +10,7 @@ import {
   resolveMagneticConfig,
   type MagneticConfig,
 } from "./magnetic";
+import { magneticTransformTarget } from "./magnetic-dom";
 
 type MagneticSurface = "inner" | "surface" | "orb-pin";
 
@@ -58,25 +59,7 @@ function applySurfaceTransform(
     return;
   }
 
-  const inner = el.querySelector<HTMLElement>(":scope > .magnetic-inner");
-  if (inner) {
-    inner.style.transform = `translate(${x}px, ${y + lift}px)`;
-  }
-}
-
-function ensureInnerWrapper(el: HTMLElement): HTMLElement {
-  const existing = el.querySelector<HTMLElement>(":scope > .magnetic-inner");
-  if (existing) return existing;
-
-  const inner = document.createElement("span");
-  inner.className = "magnetic-inner";
-  inner.setAttribute("aria-hidden", "true");
-
-  while (el.firstChild) {
-    inner.appendChild(el.firstChild);
-  }
-  el.appendChild(inner);
-  return inner;
+  magneticTransformTarget(el).style.transform = `translate(${x}px, ${y + lift}px)`;
 }
 
 /** Attach magnetic pointer attraction to a single interactive element. */
@@ -189,14 +172,10 @@ export function useMagneticEffect<T extends HTMLElement = HTMLElement>(
 
       if (!node || disabled || reduceMotion) return;
 
-      if (surface === "inner") {
-        ensureInnerWrapper(node);
-      }
-
       document.addEventListener("pointermove", onPointerMove, { passive: true });
       node.addEventListener("pointerleave", onPointerLeave);
     },
-    [disabled, onPointerLeave, onPointerMove, reduceMotion, stopLoop, surface],
+    [disabled, onPointerLeave, onPointerMove, reduceMotion, stopLoop],
   );
 
   useEffect(() => () => {
