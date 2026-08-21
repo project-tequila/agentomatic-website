@@ -18,9 +18,6 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   async redirects() {
     return [
-      // Consolidate crawl equity on www.agentomatic.in (apex + legacy .com).
-      // Prefer 308/permanent so Google consolidates signals (Vercel domain
-      // redirect for apex is often 307 — this is a belt-and-suspenders layer).
       {
         source: "/:path*",
         has: [{ type: "host", value: "agentomatic.in" }],
