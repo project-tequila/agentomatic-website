@@ -9,6 +9,7 @@ import {
   resolveMagneticConfig,
   type MagneticConfig,
 } from "@/lib/motion/magnetic";
+import { magneticTransformTarget } from "@/lib/motion/magnetic-dom";
 import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 const MAGNETIC_SELECTOR = [
@@ -64,16 +65,6 @@ function hoverLiftFor(el: HTMLElement): number {
   return 0;
 }
 
-function ensureInnerWrapper(el: HTMLElement) {
-  if (el.querySelector(":scope > .magnetic-inner")) return;
-  const inner = document.createElement("span");
-  inner.className = "magnetic-inner";
-  while (el.firstChild) {
-    inner.appendChild(el.firstChild);
-  }
-  el.appendChild(inner);
-}
-
 function applyTransform(entry: Entry) {
   const { el, mode, currentX, currentY, hoverLiftY } = entry;
   const lift = el.matches(":hover") ? hoverLiftY : 0;
@@ -89,10 +80,7 @@ function applyTransform(entry: Entry) {
     return;
   }
 
-  const inner = el.querySelector<HTMLElement>(":scope > .magnetic-inner");
-  if (inner) {
-    inner.style.transform = `translate(${currentX}px, ${currentY}px)`;
-  }
+  magneticTransformTarget(el).style.transform = `translate(${currentX}px, ${currentY}px)`;
 }
 
 function resetTransform(entry: Entry) {
@@ -112,8 +100,7 @@ function resetTransform(entry: Entry) {
     return;
   }
 
-  const inner = entry.el.querySelector<HTMLElement>(":scope > .magnetic-inner");
-  if (inner) inner.style.transform = "";
+  magneticTransformTarget(entry.el).style.transform = "";
 }
 
 /** Site-wide magnetic pointer attraction for buttons, nav links, and the orb. */
@@ -137,7 +124,6 @@ export function SiteMagneticEnhancer() {
       if (!el.matches(MAGNETIC_SELECTOR)) return;
 
       const mode = surfaceModeFor(el);
-      if (mode === "inner") ensureInnerWrapper(el);
 
       el.setAttribute(ENHANCED_ATTR, "true");
       entries.set(el, {
