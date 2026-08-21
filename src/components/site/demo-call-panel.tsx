@@ -5,9 +5,11 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { X } from "lucide-react";
 
 import { useDemoCall } from "@/lib/demo-call/demo-call-context";
+import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
 import { cn } from "@/lib/utils";
 
 import { DemoCallForm } from "./demo-call-form";
+import { DemoWebVoiceTalk } from "./demo-web-voice-talk";
 
 const popMotion = {
   hidden: {
@@ -43,6 +45,7 @@ const backdropMotion = {
 export function DemoCallPanel() {
   const reduceMotion = useReducedMotion();
   const { isOpen, scrollReveal, closeDemoCall } = useDemoCall();
+  const { stop, status } = useDemoWebVoice();
 
   const scrollVisible = scrollReveal > 0.08;
   const show = isOpen || scrollVisible;
@@ -54,7 +57,12 @@ export function DemoCallPanel() {
 
   const panelOpacity = isOpen ? 1 : scrollOpacity;
   const pointerEvents = interactive ? "auto" : "none";
-  const stripLive = !reduceMotion && (isOpen || scrollReveal > 0.35);
+  const stripLive = !reduceMotion && (isOpen || scrollReveal > 0.35 || status === "listening");
+
+  function onClose() {
+    stop();
+    closeDemoCall();
+  }
 
   return (
     <AnimatePresence>
@@ -69,7 +77,7 @@ export function DemoCallPanel() {
               initial="hidden"
               animate="visible"
               exit="exit"
-              onClick={closeDemoCall}
+              onClick={onClose}
             />
           ) : null}
 
@@ -79,7 +87,7 @@ export function DemoCallPanel() {
           >
             <motion.aside
               id="experience"
-              aria-label="Demo call"
+              aria-label="Talk to the front desk"
               role="dialog"
               aria-modal={isOpen}
               aria-labelledby="demo-call-title"
@@ -95,22 +103,24 @@ export function DemoCallPanel() {
               exit="exit"
             >
               {isOpen ? (
-                <button type="button" className="demo-call-panel__close demo-call-panel__close--strip" onClick={closeDemoCall} aria-label="Close">
+                <button type="button" className="demo-call-panel__close demo-call-panel__close--strip" onClick={onClose} aria-label="Close">
                   <X className="size-3" strokeWidth={2.25} aria-hidden />
                 </button>
               ) : null}
 
               <div className={cn("demo-call-strip-bar__inner", isOpen && "demo-call-strip-bar__inner--open")}>
                 <p id="demo-call-title" className="demo-call-strip-bar__title">
-                  Try it live
+                  Talk to Agent
                 </p>
                 <p id="demo-call-desc" className="demo-call-strip-bar__hint">
-                  Enter your number — we&apos;ll call you.
+                  Talk in the browser, or enter a number and we&apos;ll call you.
                 </p>
+
+                <DemoWebVoiceTalk />
 
                 <DemoCallForm
                   layout="bar"
-                  autoFocus={isOpen}
+                  autoFocus={false}
                   showPulse={isOpen || scrollReveal > 0.75}
                   animateIn={false}
                   className="demo-call-strip-bar__form"

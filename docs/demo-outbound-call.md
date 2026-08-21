@@ -10,6 +10,8 @@ Visitors on the marketing site can request a live voice-agent call with **no log
 
 Authentication is **not** required for visitors. Abuse is limited by a **server-only** shared secret (`DEMO_OUTBOUND_API_KEY`) sent as `X-Demo-Api-Key` from the Next.js route to the gateway.
 
+In-browser mic demo (no phone): [demo-web-voice.md](./demo-web-voice.md).
+
 ## Environment variables (agentomatic-next)
 
 Copy [`.env.example`](../.env.example) to `.env.local`:

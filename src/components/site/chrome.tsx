@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import { HomeLogoLink } from "@/components/site/home-logo-link";
 import { BOOKER_ROUTE, BOOKER_SIGNUP_ROUTE } from "@/lib/booker/booker-session";
 import { openDemoCall } from "@/lib/demo-call/open-demo-call";
+import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -57,9 +58,10 @@ type MotionChromeButtonProps = {
   className?: string;
   onClick: () => void;
   children: ReactNode;
+  "data-testid"?: string;
 };
 
-function MotionChromeCta({ className, onClick, children }: MotionChromeButtonProps) {
+function MotionChromeCta({ className, onClick, children, "data-testid": testId }: MotionChromeButtonProps) {
   const reduceMotion = useReducedMotion();
 
   return (
@@ -67,6 +69,8 @@ function MotionChromeCta({ className, onClick, children }: MotionChromeButtonPro
       type="button"
       className={className}
       onClick={onClick}
+      data-testid={testId}
+      aria-label="Talk to Agent"
       whileHover={reduceMotion ? undefined : { y: -1 }}
       whileTap={reduceMotion ? undefined : { scale: 0.98 }}
       transition={{ duration: 0.22, ease: RUMIK_EASE }}
@@ -122,10 +126,12 @@ export function SiteChrome() {
     };
   }, [menuOpen]);
 
-  const ctaLabel = "try it live";
+  const ctaLabel = "Talk to Agent";
+  const { start } = useDemoWebVoice();
 
   function onTalkToAgent() {
     openDemoCall();
+    void start();
     setMenuOpen(false);
   }
 
@@ -202,7 +208,11 @@ export function SiteChrome() {
             <MotionChromeLink href={BOOKER_SIGNUP_ROUTE} className="site-chrome-action-btn site-chrome-sign-up">
               sign up
             </MotionChromeLink>
-            <MotionChromeCta className="site-chrome-action-btn site-chrome-cta" onClick={onTalkToAgent}>
+            <MotionChromeCta
+              className="site-chrome-action-btn site-chrome-cta"
+              data-testid="chrome-talk-to-agent"
+              onClick={onTalkToAgent}
+            >
               {ctaLabel}
             </MotionChromeCta>
           </div>
@@ -269,6 +279,7 @@ export function SiteChrome() {
           >
             <MotionChromeCta
               className="site-chrome-action-btn site-chrome-action-btn--full site-chrome-cta"
+              data-testid="chrome-talk-to-agent-mobile"
               onClick={onTalkToAgent}
             >
               {ctaLabel}

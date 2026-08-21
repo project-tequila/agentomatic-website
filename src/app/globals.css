@@ -669,6 +669,57 @@
   pointer-events: auto;
 }
 
+.site-3d__talk-chip {
+  position: absolute;
+  top: 5.65rem;
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  z-index: 12;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid rgba(140, 255, 210, 0.35);
+  border-radius: 999px;
+  background: rgba(8, 12, 14, 0.72);
+  color: #e8fff6;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.site-3d__talk-chip:focus-visible {
+  outline: 2px solid #8cffd2;
+  outline-offset: 2px;
+}
+
+.site-3d__talk-chip--live {
+  border-color: #8cffd2;
+  box-shadow: 0 0 18px rgba(140, 255, 210, 0.28);
+}
+
+.voice-hud__transcript {
+  margin: 0.85rem 0 0;
+  padding: 0;
+  width: min(100%, 18rem);
+  list-style: none;
+  text-align: left;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.voice-hud__transcript li {
+  margin-top: 0.25rem;
+}
+
+.voice-hud__transcript span {
+  color: #8cffd2;
+  margin-right: 0.3rem;
+}
+
+
 .site-3d__scroll-cue {
   position: absolute;
   bottom: 1.5rem;
@@ -8542,6 +8593,77 @@
   min-width: 0;
   position: relative;
 }
+
+.demo-web-voice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.demo-web-voice__row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.demo-web-voice__talk {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+  border: 1.5px solid #0a0a0a;
+  border-radius: 0.5rem;
+  background: #0a0a0a;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.demo-web-voice__talk:focus-visible {
+  outline: 2px solid #0a0a0a;
+  outline-offset: 2px;
+}
+
+.demo-web-voice__talk--live {
+  background: #ffffff;
+  color: #0a0a0a;
+}
+
+.demo-web-voice__status {
+  margin: 0;
+  min-width: 0;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--call-panel-muted);
+}
+
+.demo-web-voice__transcript {
+  margin: 0;
+  padding: 0.35rem 0 0;
+  list-style: none;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  color: var(--call-panel-ink);
+}
+
+.demo-web-voice__line {
+  margin-top: 0.15rem;
+}
+
+.demo-web-voice__who {
+  font-weight: 650;
+  margin-right: 0.35rem;
+  color: var(--call-panel-muted);
+}
+
 
 .demo-call-strip-bar .demo-call-panel__close--strip {
   top: var(--demo-call-strip-space);
