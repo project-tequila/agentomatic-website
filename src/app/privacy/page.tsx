@@ -3,7 +3,6 @@ import Link from "next/link";
 
 import { SiteMain } from "@/components/site/marketing-page";
 import { SitePageShell } from "@/components/site/site-page-shell";
-import { CONTACT_EMAIL } from "@/lib/site-contact";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -41,10 +40,11 @@ export default function PrivacyPage() {
               teams.
             </p>
             <p className="site-blog-prose__paragraph">
-              Privacy contact:{" "}
-              <a className="site-link" href={`mailto:${CONTACT_EMAIL}`}>
-                {CONTACT_EMAIL}
-              </a>
+              Privacy questions: use the{" "}
+              <Link className="site-link" href="/contact">
+                contact form
+              </Link>
+              .
             </p>
 
             <h2 className="site-blog-prose__heading">2. Scope</h2>
@@ -168,11 +168,11 @@ export default function PrivacyPage() {
             <p className="site-blog-prose__paragraph">
               Depending on applicable law, you may request access, correction, deletion, or
               restriction of your personal information, or object to certain processing. You may
-              opt out of marketing emails using the unsubscribe link or by emailing us. To exercise
-              rights, contact{" "}
-              <a className="site-link" href={`mailto:${CONTACT_EMAIL}`}>
-                {CONTACT_EMAIL}
-              </a>
+              opt out of marketing emails using the unsubscribe link or by writing us through the
+              form. To exercise rights, use the{" "}
+              <Link className="site-link" href="/contact">
+                contact form
+              </Link>
               . We may need to verify your identity before responding.
             </p>
 
@@ -198,10 +198,11 @@ export default function PrivacyPage() {
                 https://www.agentomatic.in
               </a>
               <br />
-              Email:{" "}
-              <a className="site-link" href={`mailto:${CONTACT_EMAIL}`}>
-                {CONTACT_EMAIL}
-              </a>
+              Reach us through the{" "}
+              <Link className="site-link" href="/contact">
+                contact form
+              </Link>
+              .
             </p>
             <p className="site-blog-prose__paragraph">
               Prefer a human conversation?{" "}
