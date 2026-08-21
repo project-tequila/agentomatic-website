@@ -37,11 +37,12 @@ function validateField(name: string, value: string): string {
 }
 
 type ContactSectionProps = {
-  /** Use `h1` on `/contact`. Embedded blocks (home, page shell) stay `h2`. */
+  /** Document heading on the dedicated `/contact` page. */
   headingLevel?: "h1" | "h2";
 };
 
-export function ContactSection({ headingLevel = "h2" }: ContactSectionProps) {
+/** Dedicated contact form. Submit posts to `/api/leads/hubspot` — do not change that path. */
+export function ContactSection({ headingLevel = "h1" }: ContactSectionProps) {
   const HeadingTag = headingLevel;
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -68,9 +69,10 @@ export function ContactSection({ headingLevel = "h2" }: ContactSectionProps) {
     });
   }
 
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const fd = new FormData(e.currentTarget);
+    const form = e.currentTarget;
+    const fd = new FormData(form);
     const nextErrors = validateForm(fd);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
@@ -86,39 +88,78 @@ export function ContactSection({ headingLevel = "h2" }: ContactSectionProps) {
       document.getElementById(idMap[firstId] ?? "")?.focus();
       return;
     }
+
     setBusy(true);
-    window.setTimeout(() => {
-      setBusy(false);
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next.form;
+      return next;
+    });
+
+    try {
+      const res = await fetch("/api/leads/hubspot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: String(fd.get("fname") ?? ""),
+          lastName: String(fd.get("lname") ?? ""),
+          company: String(fd.get("organization") ?? ""),
+          sector: String(fd.get("sector") ?? ""),
+          email: String(fd.get("email") ?? ""),
+          phone: String(fd.get("phone") ?? ""),
+          query: String(fd.get("query") ?? ""),
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        setErrors((prev) => ({
+          ...prev,
+          form: data.error || "Could not send your request. Please try again.",
+        }));
+        return;
+      }
       setSent(true);
-    }, 900);
+      form.reset();
+    } catch {
+      setErrors((prev) => ({
+        ...prev,
+        form: "Could not send your request. Please try again.",
+      }));
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
-    <section id="contact" className="site-contact-section">
+    <section id="contact" className="site-contact-section site-contact-section--page">
       <div className="site-container">
         <div className="site-contact-section__grid">
-          <div>
+          <div className="site-contact-section__copy">
             <p className="site-kicker">contact</p>
-            <HeadingTag className="site-display text-[clamp(1.75rem,calc(3.5vw + 0.5rem),3rem)]">
-              let your visitors speak first.
+            <HeadingTag className="site-display site-contact-section__title">
+              we&apos;ll pick up from here.
             </HeadingTag>
             <p className="site-lead">
-              tell us where calls, leads, or visitor questions get stuck. we&apos;ll shape a voice-agent flow around that
-              moment.
+              tell us where calls, leads, or visitor questions get stuck. we&apos;ll shape a voice-agent
+              flow around that moment.
             </p>
-            <ul className="mt-8 space-y-3">
+            <ul className="site-contact-section__details">
               {CONTACT_PHONE_E164 ? (
-                <li className="site-lead !mt-0 !text-[0.82rem]">
+                <li>
                   <a className="site-link" href={contactPhoneTelHref(CONTACT_PHONE_E164)}>
                     {contactPhoneDisplay}
                   </a>
                 </li>
               ) : null}
-              <li className="site-lead !mt-0 !text-[0.82rem]">{CONTACT_EMAIL}</li>
+              <li>
+                <a className="site-link" href={`mailto:${CONTACT_EMAIL}`}>
+                  {CONTACT_EMAIL}
+                </a>
+              </li>
             </ul>
           </div>
 
-          <div className="site-panel p-[clamp(1rem,3vw,1.5rem)]">
+          <div className="site-panel site-contact-section__form">
             {!sent ? (
               <form onSubmit={onSubmit} className="space-y-0" noValidate suppressHydrationWarning>
                 <div className="site-form-grid-2">
@@ -204,9 +245,13 @@ export function ContactSection({ headingLevel = "h2" }: ContactSectionProps) {
                     suppressHydrationWarning
                   >
                     <option value="">select sector</option>
-                    <option>sales / growth</option>
                     <option>healthcare / clinic</option>
                     <option>legal / professional services</option>
+                    <option>home services</option>
+                    <option>hospitality</option>
+                    <option>salon / beauty</option>
+                    <option>education</option>
+                    <option>sales / growth</option>
                     <option>other</option>
                   </select>
                   {errors.sector ? (
@@ -276,6 +321,11 @@ export function ContactSection({ headingLevel = "h2" }: ContactSectionProps) {
                     suppressHydrationWarning
                   />
                 </div>
+                {errors.form ? (
+                  <p className="site-field-error mt-3" role="alert">
+                    {errors.form}
+                  </p>
+                ) : null}
                 <button type="submit" disabled={busy} className="site-btn site-btn--full mt-4" suppressHydrationWarning>
                   {busy ? (
                     <>

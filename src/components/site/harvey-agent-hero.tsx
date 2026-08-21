@@ -17,7 +17,7 @@ const HARVEY_NAV_LINKS = [
   { href: "/about", label: "about" },
   { href: "/pricing", label: "pricing" },
   { href: "/blog", label: "blog" },
-  { href: "/contact", label: "contact" },
+  { href: "/contact", label: "contact us" },
 ] as const;
 
 const FRONTDESK_STEPS = [

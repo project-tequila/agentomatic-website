@@ -35,7 +35,7 @@ export function SiteFooter() {
             blog
           </Link>
           <Link className="site-footer__link" href="/contact">
-            contact
+            contact us
           </Link>
           <Link className="site-footer__link" href="/privacy">
             privacy
