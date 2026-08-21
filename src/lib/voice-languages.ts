@@ -1,10 +1,16 @@
 /**
  * Selectable demo/call languages (mirrors appointment-booker ai_service indic_config).
  *
- * English plus Indic STT/TTS matrix. Legacy `or` normalizes to canonical `od`.
+ * Deepgram duplex locales first, then Indic. Legacy `or` normalizes to canonical `od`.
  */
 export const VOICE_LANGUAGE_OPTIONS = [
   { value: "en", label: "English" },
+  { value: "es", label: "Spanish" },
+  { value: "fr", label: "French" },
+  { value: "de", label: "German" },
+  { value: "nl", label: "Dutch" },
+  { value: "it", label: "Italian" },
+  { value: "ja", label: "Japanese" },
   { value: "hi", label: "Hindi" },
   { value: "bn", label: "Bengali" },
   { value: "ta", label: "Tamil" },
