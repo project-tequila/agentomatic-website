@@ -6,7 +6,7 @@ import { openDemoCall } from "@/lib/demo-call/open-demo-call";
 import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
 import { cn } from "@/lib/utils";
 
-import { VoiceAgenticOrb } from "./voice-agentic-orb";
+import { FrontdeskVoiceOrb } from "./frontdesk-voice-orb";
 
 type SiteOrbHitZoneProps = {
   variant: "immersive" | "floating";
@@ -32,12 +32,18 @@ export function SiteOrbHitZone({ variant, className }: SiteOrbHitZoneProps) {
     >
       {variant === "floating" ? (
         <span className="site-orb-hit__orb" aria-hidden>
-          <VoiceAgenticOrb
-            voiceState="idle"
-            energy={0.72}
-            reduceMotion={!!reduceMotion}
-            size="100%"
-          />
+          <svg viewBox="300 150 120 140" className="site-orb-hit__orb-svg" fill="none" preserveAspectRatio="xMidYMid meet">
+            <FrontdeskVoiceOrb
+              cx={360}
+              cy={220}
+              pointerX={0}
+              pointerY={0}
+              reduceMotion={!!reduceMotion}
+              intensity={0.85}
+              mode="cta"
+              idSuffix="float"
+            />
+          </svg>
         </span>
       ) : null}
       <span className="site-orb-hit__label">Talk</span>
