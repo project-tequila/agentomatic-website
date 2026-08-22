@@ -9,7 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { useCinemaScroll } from "@/lib/helios/use-cinema-scroll";
 import { useHeliosVoice } from "@/lib/helios/helios-provider";
 import { useVideoFrame } from "@/lib/helios/use-video-frame";
-import { beginVoiceDemo } from "@/lib/demo-call/open-demo-call";
+import { useBeginVoiceDemo } from "@/lib/demo-call/use-begin-voice-demo";
 import { heliosFromRealtimeVoice } from "@/lib/voice/demo-web-voice-errors";
 import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
 import { cn } from "@/lib/utils";
@@ -47,6 +47,7 @@ export function VoiceExperience() {
   const { currentFrame, fps, inputProps } = useVideoFrame(helios);
   const scene = inputProps.sceneProgress ?? 0;
   const { status, error, isAgentSpeaking, transcripts, stop } = useDemoWebVoice();
+  const beginVoiceDemo = useBeginVoiceDemo();
   const heliosVoice = heliosFromRealtimeVoice({ status, isAgentSpeaking });
   const live = status === "connecting" || status === "listening";
   const hudKey = isAgentSpeaking ? "speaking" : status;

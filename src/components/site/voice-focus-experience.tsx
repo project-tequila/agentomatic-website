@@ -5,7 +5,6 @@ import { Loader2, Square, X } from "lucide-react";
 import { useCallback, useEffect } from "react";
 
 import { useDemoCall } from "@/lib/demo-call/demo-call-context";
-import { BEGIN_VOICE_DEMO_EVENT } from "@/lib/demo-call/open-demo-call";
 import { heliosFromRealtimeVoice } from "@/lib/voice/demo-web-voice-errors";
 import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
 import { cn } from "@/lib/utils";
@@ -16,11 +15,19 @@ function orbIntensity(voiceActive: boolean, energy: number) {
   return Math.min(1, Math.max(0.45, energy * (voiceActive ? 0.85 : 0.65)));
 }
 
-function statusLine(status: string, isAgentSpeaking: boolean, error: string | null): string {
+function statusLine(
+  status: string,
+  isAgentSpeaking: boolean,
+  error: string | null,
+  focusOpen: boolean,
+): string {
   if (error) return error;
   if (status === "connecting") return "Connecting…";
   if (isAgentSpeaking) return "Agent speaking — jump in anytime";
   if (status === "listening") return "Listening…";
+  if (focusOpen && status === "idle") {
+    return "Allow microphone when prompted, or tap Talk again";
+  }
   return "Starting…";
 }
 
@@ -30,8 +37,8 @@ function statusLine(status: string, isAgentSpeaking: boolean, error: string | nu
  */
 export function VoiceFocusExperience() {
   const reduceMotion = useReducedMotion();
-  const { isOpen, openDemoCall, closeDemoCall } = useDemoCall();
-  const { status, error, isAgentSpeaking, transcripts, start, stop } = useDemoWebVoice();
+  const { isOpen, closeDemoCall } = useDemoCall();
+  const { status, error, isAgentSpeaking, transcripts, stop } = useDemoWebVoice();
 
   const voiceActive =
     status === "connecting" || status === "listening" || isAgentSpeaking;
@@ -42,15 +49,6 @@ export function VoiceFocusExperience() {
     stop();
     closeDemoCall();
   }, [stop, closeDemoCall]);
-
-  useEffect(() => {
-    const onBegin = () => {
-      openDemoCall();
-      void start();
-    };
-    window.addEventListener(BEGIN_VOICE_DEMO_EVENT, onBegin);
-    return () => window.removeEventListener(BEGIN_VOICE_DEMO_EVENT, onBegin);
-  }, [openDemoCall, start]);
 
   useEffect(() => {
     document.body.classList.toggle("voice-focus-open", visible);
@@ -69,7 +67,7 @@ export function VoiceFocusExperience() {
   const mapped = heliosFromRealtimeVoice({ status, isAgentSpeaking });
   const voiceState =
     isAgentSpeaking ? "speaking" : status === "connecting" ? "connecting" : status === "listening" ? "listening" : "idle";
-  const line = statusLine(status, isAgentSpeaking, error);
+  const line = statusLine(status, isAgentSpeaking, error, isOpen);
   const intensity = orbIntensity(voiceActive, mapped.energy);
 
   return (

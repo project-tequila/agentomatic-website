@@ -365,8 +365,6 @@ export function useRealtimeVoice(
     setStatusSafe("connecting");
 
     try {
-      await unlockAudioContexts();
-
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,
@@ -375,6 +373,8 @@ export function useRealtimeVoice(
         },
       });
       mediaStreamRef.current = mediaStream;
+
+      await unlockAudioContexts();
 
       const wsUrl = await mintDemoWebVoiceSession(language);
 
@@ -404,10 +404,9 @@ export function useRealtimeVoice(
       wsRef.current = ws;
 
       ws.onopen = () => {
-        void (async () => {
-          await resumePlaybackContext();
-          setStatusSafe("listening");
-          ws.send(JSON.stringify({ event: "start", sampleRate: TARGET_SAMPLE_RATE }));
+        setStatusSafe("listening");
+        ws.send(JSON.stringify({ event: "start", sampleRate: TARGET_SAMPLE_RATE }));
+        void resumePlaybackContext();
 
         const sourceNode = captureCtx.createMediaStreamSource(mediaStream);
         sourceNodeRef.current = sourceNode;
@@ -433,7 +432,6 @@ export function useRealtimeVoice(
         sink.gain.value = 0;
         workletNode.connect(sink);
         sink.connect(captureCtx.destination);
-        })();
       };
 
       ws.onmessage = (event: MessageEvent) => {
@@ -456,9 +454,11 @@ export function useRealtimeVoice(
       };
 
       ws.onclose = () => {
-        if (statusRef.current !== "error") {
-          setStatusSafe("idle");
+        if (statusRef.current === "error") {
+          return;
         }
+        cleanup();
+        setStatusSafe("idle");
       };
     } catch (err) {
       const httpStatus =

@@ -2,7 +2,7 @@
 
 import { Loader2, Mic, Square } from "lucide-react";
 
-import { beginVoiceDemo } from "@/lib/demo-call/open-demo-call";
+import { useBeginVoiceDemo } from "@/lib/demo-call/use-begin-voice-demo";
 import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +22,8 @@ type DemoWebVoiceTalkProps = {
  * Primary in-browser Talk control for the demo strip. Call me stays as fallback.
  */
 export function DemoWebVoiceTalk({ className }: DemoWebVoiceTalkProps) {
-  const { status, error, isAgentSpeaking, transcripts, start, stop } = useDemoWebVoice();
+  const { status, error, isAgentSpeaking, transcripts, stop } = useDemoWebVoice();
+  const beginVoiceDemo = useBeginVoiceDemo();
   const live = status === "connecting" || status === "listening";
   const recent = transcripts.slice(-4);
 

@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 
 import { HomeLogoLink } from "@/components/site/home-logo-link";
 import { BOOKER_ROUTE, BOOKER_SIGNUP_ROUTE } from "@/lib/booker/booker-session";
-import { beginVoiceDemo } from "@/lib/demo-call/open-demo-call";
+import { useBeginVoiceDemo } from "@/lib/demo-call/use-begin-voice-demo";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -118,6 +118,7 @@ export function SiteChrome() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const reduceMotion = useReducedMotion();
+  const beginVoiceDemo = useBeginVoiceDemo();
 
   useEffect(() => {
     if (!menuOpen) return;
