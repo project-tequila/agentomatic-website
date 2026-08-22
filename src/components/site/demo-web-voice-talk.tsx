@@ -2,6 +2,7 @@
 
 import { Loader2, Mic, Square } from "lucide-react";
 
+import { beginVoiceDemo } from "@/lib/demo-call/open-demo-call";
 import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +31,7 @@ export function DemoWebVoiceTalk({ className }: DemoWebVoiceTalkProps) {
       stop();
       return;
     }
-    await start();
+    beginVoiceDemo();
   }
 
   return (

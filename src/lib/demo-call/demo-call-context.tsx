@@ -28,15 +28,6 @@ export function DemoCallProvider({ children }: { children: ReactNode }) {
   }, [openDemoCall]);
 
   useEffect(() => {
-    if (!isOpen) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeDemoCall();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [isOpen, closeDemoCall]);
-
-  useEffect(() => {
     document.body.classList.toggle("demo-call-strip-open", isOpen);
     return () => document.body.classList.remove("demo-call-strip-open");
   }, [isOpen]);

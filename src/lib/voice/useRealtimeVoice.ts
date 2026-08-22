@@ -112,6 +112,15 @@ function int16BytesToFloat32(buffer: ArrayBuffer): Float32Array {
   return output;
 }
 
+function base64ToArrayBuffer(base64: string): ArrayBuffer {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
 async function mintDemoWebVoiceSession(language: string): Promise<string> {
   const res = await fetch("/api/demo/web-voice", {
     method: "POST",
@@ -194,9 +203,25 @@ export function useRealtimeVoice(
     setIsAgentSpeaking(false);
   }, []);
 
-  const scheduleAudioChunk = useCallback((pcm: Float32Array) => {
+  const resumePlaybackContext = useCallback(async () => {
+    const ctx = playbackCtxRef.current;
+    if (!ctx || ctx.state !== "suspended") {
+      return;
+    }
+    try {
+      await ctx.resume();
+    } catch {
+      // Browser blocked playback — user may need another gesture.
+    }
+  }, []);
+
+  const scheduleAudioChunk = useCallback(async (pcm: Float32Array) => {
     const ctx = playbackCtxRef.current;
     if (!ctx || pcm.length === 0) {
+      return;
+    }
+    await resumePlaybackContext();
+    if (ctx.state === "suspended") {
       return;
     }
     const audioBuffer = ctx.createBuffer(1, pcm.length, TARGET_SAMPLE_RATE);
@@ -222,7 +247,7 @@ export function useRealtimeVoice(
         setIsAgentSpeaking(false);
       }
     };
-  }, []);
+  }, [resumePlaybackContext]);
 
   const cleanup = useCallback(() => {
     if (workletNodeRef.current) {
@@ -277,6 +302,20 @@ export function useRealtimeVoice(
         stopPlayback();
         return;
       }
+      if (data.event === "media") {
+        const media = data.media;
+        const payload =
+          media &&
+          typeof media === "object" &&
+          "payload" in media &&
+          typeof (media as { payload?: unknown }).payload === "string"
+            ? (media as { payload: string }).payload
+            : null;
+        if (payload) {
+          void scheduleAudioChunk(int16BytesToFloat32(base64ToArrayBuffer(payload)));
+        }
+        return;
+      }
       if (data.type === "transcript") {
         const role = data.role === "assistant" ? "assistant" : "user";
         const text = typeof data.text === "string" ? data.text : "";
@@ -291,7 +330,7 @@ export function useRealtimeVoice(
         });
       }
     },
-    [appendTranscript, stopPlayback],
+    [appendTranscript, scheduleAudioChunk, stopPlayback],
   );
 
   const stop = useCallback(() => {
@@ -299,6 +338,23 @@ export function useRealtimeVoice(
     setStatusSafe("idle");
     setIsAgentSpeaking(false);
   }, [cleanup, setStatusSafe]);
+
+  const unlockAudioContexts = useCallback(async () => {
+    if (!captureCtxRef.current) {
+      captureCtxRef.current = new AudioContext();
+    }
+    if (!playbackCtxRef.current) {
+      const playbackCtx = new AudioContext();
+      playbackCtxRef.current = playbackCtx;
+      playheadRef.current = playbackCtx.currentTime;
+    }
+    const captureCtx = captureCtxRef.current;
+    const playbackCtx = playbackCtxRef.current;
+    await Promise.all([
+      captureCtx.state === "suspended" ? captureCtx.resume() : Promise.resolve(),
+      playbackCtx.state === "suspended" ? playbackCtx.resume() : Promise.resolve(),
+    ]);
+  }, []);
 
   const start = useCallback(async () => {
     if (statusRef.current === "connecting" || statusRef.current === "listening") {
@@ -309,6 +365,8 @@ export function useRealtimeVoice(
     setStatusSafe("connecting");
 
     try {
+      await unlockAudioContexts();
+
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,
@@ -320,9 +378,14 @@ export function useRealtimeVoice(
 
       const wsUrl = await mintDemoWebVoiceSession(language);
 
-      const captureCtx = new AudioContext();
+      await unlockAudioContexts();
+
+      const captureCtx = captureCtxRef.current ?? new AudioContext();
       captureCtxRef.current = captureCtx;
       const inRate = captureCtx.sampleRate;
+      if (captureCtx.state === "suspended") {
+        await captureCtx.resume().catch(() => undefined);
+      }
 
       const workletBlob = new Blob([CAPTURE_WORKLET_SOURCE], {
         type: "application/javascript",
@@ -331,20 +394,20 @@ export function useRealtimeVoice(
       await captureCtx.audioWorklet.addModule(workletUrl);
       URL.revokeObjectURL(workletUrl);
 
-      const playbackCtx = new AudioContext();
+      const playbackCtx = playbackCtxRef.current ?? new AudioContext();
       playbackCtxRef.current = playbackCtx;
       playheadRef.current = playbackCtx.currentTime;
-      if (playbackCtx.state === "suspended") {
-        await playbackCtx.resume().catch(() => undefined);
-      }
+      await resumePlaybackContext();
 
       const ws = new WebSocket(wsUrl);
       ws.binaryType = "arraybuffer";
       wsRef.current = ws;
 
       ws.onopen = () => {
-        setStatusSafe("listening");
-        ws.send(JSON.stringify({ event: "start", sampleRate: TARGET_SAMPLE_RATE }));
+        void (async () => {
+          await resumePlaybackContext();
+          setStatusSafe("listening");
+          ws.send(JSON.stringify({ event: "start", sampleRate: TARGET_SAMPLE_RATE }));
 
         const sourceNode = captureCtx.createMediaStreamSource(mediaStream);
         sourceNodeRef.current = sourceNode;
@@ -370,11 +433,18 @@ export function useRealtimeVoice(
         sink.gain.value = 0;
         workletNode.connect(sink);
         sink.connect(captureCtx.destination);
+        })();
       };
 
       ws.onmessage = (event: MessageEvent) => {
         if (event.data instanceof ArrayBuffer) {
-          scheduleAudioChunk(int16BytesToFloat32(event.data));
+          void scheduleAudioChunk(int16BytesToFloat32(event.data));
+          return;
+        }
+        if (event.data instanceof Blob) {
+          void event.data.arrayBuffer().then((buffer) => {
+            void scheduleAudioChunk(int16BytesToFloat32(buffer));
+          });
           return;
         }
         handleServerMessage(event.data);
@@ -403,7 +473,15 @@ export function useRealtimeVoice(
       setStatusSafe("error");
       cleanup();
     }
-  }, [cleanup, handleServerMessage, language, scheduleAudioChunk, setStatusSafe]);
+  }, [
+    cleanup,
+    handleServerMessage,
+    language,
+    resumePlaybackContext,
+    scheduleAudioChunk,
+    setStatusSafe,
+    unlockAudioContexts,
+  ]);
 
   useEffect(() => {
     return () => {
