@@ -11,6 +11,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { mapDemoWebVoiceError } from "./demo-web-voice-errors";
+import {
+  parseHumanTransferEvent,
+  type HumanTransferStatus,
+} from "./human-transfer";
 
 const TARGET_SAMPLE_RATE = 16000;
 
@@ -34,6 +38,8 @@ export interface UseRealtimeVoiceResult {
   error: string | null;
   isAgentSpeaking: boolean;
   transcripts: VoiceTranscriptEntry[];
+  /** Live Twilio human-transfer phase from the voice WS, or idle. */
+  humanTransferStatus: HumanTransferStatus | null;
   start: () => Promise<void>;
   stop: () => void;
 }
@@ -112,15 +118,6 @@ function int16BytesToFloat32(buffer: ArrayBuffer): Float32Array {
   return output;
 }
 
-function base64ToArrayBuffer(base64: string): ArrayBuffer {
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i += 1) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes.buffer;
-}
-
 async function mintDemoWebVoiceSession(language: string): Promise<string> {
   const res = await fetch("/api/demo/web-voice", {
     method: "POST",
@@ -161,6 +158,8 @@ export function useRealtimeVoice(
   const [error, setError] = useState<string | null>(null);
   const [isAgentSpeaking, setIsAgentSpeaking] = useState(false);
   const [transcripts, setTranscripts] = useState<VoiceTranscriptEntry[]>([]);
+  const [humanTransferStatus, setHumanTransferStatus] =
+    useState<HumanTransferStatus | null>(null);
 
   const statusRef = useRef<VoiceConnectionStatus>("idle");
   const wsRef = useRef<WebSocket | null>(null);
@@ -203,25 +202,9 @@ export function useRealtimeVoice(
     setIsAgentSpeaking(false);
   }, []);
 
-  const resumePlaybackContext = useCallback(async () => {
-    const ctx = playbackCtxRef.current;
-    if (!ctx || ctx.state !== "suspended") {
-      return;
-    }
-    try {
-      await ctx.resume();
-    } catch {
-      // Browser blocked playback — user may need another gesture.
-    }
-  }, []);
-
-  const scheduleAudioChunk = useCallback(async (pcm: Float32Array) => {
+  const scheduleAudioChunk = useCallback((pcm: Float32Array) => {
     const ctx = playbackCtxRef.current;
     if (!ctx || pcm.length === 0) {
-      return;
-    }
-    await resumePlaybackContext();
-    if (ctx.state === "suspended") {
       return;
     }
     const audioBuffer = ctx.createBuffer(1, pcm.length, TARGET_SAMPLE_RATE);
@@ -247,7 +230,7 @@ export function useRealtimeVoice(
         setIsAgentSpeaking(false);
       }
     };
-  }, [resumePlaybackContext]);
+  }, []);
 
   const cleanup = useCallback(() => {
     if (workletNodeRef.current) {
@@ -298,22 +281,13 @@ export function useRealtimeVoice(
         return;
       }
 
-      if (data.event === "clear") {
-        stopPlayback();
+      const transferEvent = parseHumanTransferEvent(data);
+      if (transferEvent) {
+        setHumanTransferStatus(transferEvent.status);
         return;
       }
-      if (data.event === "media") {
-        const media = data.media;
-        const payload =
-          media &&
-          typeof media === "object" &&
-          "payload" in media &&
-          typeof (media as { payload?: unknown }).payload === "string"
-            ? (media as { payload: string }).payload
-            : null;
-        if (payload) {
-          void scheduleAudioChunk(int16BytesToFloat32(base64ToArrayBuffer(payload)));
-        }
+      if (data.event === "clear") {
+        stopPlayback();
         return;
       }
       if (data.type === "transcript") {
@@ -330,31 +304,15 @@ export function useRealtimeVoice(
         });
       }
     },
-    [appendTranscript, scheduleAudioChunk, stopPlayback],
+    [appendTranscript, stopPlayback],
   );
 
   const stop = useCallback(() => {
     cleanup();
     setStatusSafe("idle");
     setIsAgentSpeaking(false);
+    setHumanTransferStatus(null);
   }, [cleanup, setStatusSafe]);
-
-  const unlockAudioContexts = useCallback(async () => {
-    if (!captureCtxRef.current) {
-      captureCtxRef.current = new AudioContext();
-    }
-    if (!playbackCtxRef.current) {
-      const playbackCtx = new AudioContext();
-      playbackCtxRef.current = playbackCtx;
-      playheadRef.current = playbackCtx.currentTime;
-    }
-    const captureCtx = captureCtxRef.current;
-    const playbackCtx = playbackCtxRef.current;
-    await Promise.all([
-      captureCtx.state === "suspended" ? captureCtx.resume() : Promise.resolve(),
-      playbackCtx.state === "suspended" ? playbackCtx.resume() : Promise.resolve(),
-    ]);
-  }, []);
 
   const start = useCallback(async () => {
     if (statusRef.current === "connecting" || statusRef.current === "listening") {
@@ -362,9 +320,23 @@ export function useRealtimeVoice(
     }
     setError(null);
     setTranscripts([]);
+    setHumanTransferStatus(null);
     setStatusSafe("connecting");
 
     try {
+      // Open both audio graphs on the user gesture before any network await.
+      const captureCtx = new AudioContext();
+      captureCtxRef.current = captureCtx;
+      const playbackCtx = new AudioContext();
+      playbackCtxRef.current = playbackCtx;
+      playheadRef.current = playbackCtx.currentTime;
+      if (captureCtx.state === "suspended") {
+        await captureCtx.resume().catch(() => undefined);
+      }
+      if (playbackCtx.state === "suspended") {
+        await playbackCtx.resume().catch(() => undefined);
+      }
+
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,
@@ -374,18 +346,9 @@ export function useRealtimeVoice(
       });
       mediaStreamRef.current = mediaStream;
 
-      await unlockAudioContexts();
-
       const wsUrl = await mintDemoWebVoiceSession(language);
 
-      await unlockAudioContexts();
-
-      const captureCtx = captureCtxRef.current ?? new AudioContext();
-      captureCtxRef.current = captureCtx;
       const inRate = captureCtx.sampleRate;
-      if (captureCtx.state === "suspended") {
-        await captureCtx.resume().catch(() => undefined);
-      }
 
       const workletBlob = new Blob([CAPTURE_WORKLET_SOURCE], {
         type: "application/javascript",
@@ -394,11 +357,6 @@ export function useRealtimeVoice(
       await captureCtx.audioWorklet.addModule(workletUrl);
       URL.revokeObjectURL(workletUrl);
 
-      const playbackCtx = playbackCtxRef.current ?? new AudioContext();
-      playbackCtxRef.current = playbackCtx;
-      playheadRef.current = playbackCtx.currentTime;
-      await resumePlaybackContext();
-
       const ws = new WebSocket(wsUrl);
       ws.binaryType = "arraybuffer";
       wsRef.current = ws;
@@ -406,7 +364,6 @@ export function useRealtimeVoice(
       ws.onopen = () => {
         setStatusSafe("listening");
         ws.send(JSON.stringify({ event: "start", sampleRate: TARGET_SAMPLE_RATE }));
-        void resumePlaybackContext();
 
         const sourceNode = captureCtx.createMediaStreamSource(mediaStream);
         sourceNodeRef.current = sourceNode;
@@ -436,13 +393,7 @@ export function useRealtimeVoice(
 
       ws.onmessage = (event: MessageEvent) => {
         if (event.data instanceof ArrayBuffer) {
-          void scheduleAudioChunk(int16BytesToFloat32(event.data));
-          return;
-        }
-        if (event.data instanceof Blob) {
-          void event.data.arrayBuffer().then((buffer) => {
-            void scheduleAudioChunk(int16BytesToFloat32(buffer));
-          });
+          scheduleAudioChunk(int16BytesToFloat32(event.data));
           return;
         }
         handleServerMessage(event.data);
@@ -453,11 +404,16 @@ export function useRealtimeVoice(
         setStatusSafe("error");
       };
 
-      ws.onclose = () => {
+      ws.onclose = (event) => {
         if (statusRef.current === "error") {
           return;
         }
-        cleanup();
+        if (event.code !== 1000 && statusRef.current === "listening") {
+          setError(mapDemoWebVoiceError({ httpStatus: 502 }));
+          setStatusSafe("error");
+          cleanup();
+          return;
+        }
         setStatusSafe("idle");
       };
     } catch (err) {
@@ -473,15 +429,7 @@ export function useRealtimeVoice(
       setStatusSafe("error");
       cleanup();
     }
-  }, [
-    cleanup,
-    handleServerMessage,
-    language,
-    resumePlaybackContext,
-    scheduleAudioChunk,
-    setStatusSafe,
-    unlockAudioContexts,
-  ]);
+  }, [cleanup, handleServerMessage, language, scheduleAudioChunk, setStatusSafe]);
 
   useEffect(() => {
     return () => {
@@ -489,5 +437,13 @@ export function useRealtimeVoice(
     };
   }, [cleanup]);
 
-  return { status, error, isAgentSpeaking, transcripts, start, stop };
+  return {
+    status,
+    error,
+    isAgentSpeaking,
+    transcripts,
+    humanTransferStatus,
+    start,
+    stop,
+  };
 }

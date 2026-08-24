@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --test src/lib/*.test.ts",
+    "test": "node --experimental-strip-types --test src/lib/*.test.ts src/lib/voice/*.test.ts",
     "sanity:deploy": "sanity deploy",
     "sanity:manage": "sanity manage",
     "sanity:login": "sanity login",

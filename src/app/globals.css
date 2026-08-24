@@ -8791,6 +8791,17 @@ body.voice-focus-open {
   color: var(--call-panel-muted);
 }
 
+.demo-web-voice__transfer {
+  margin: 0;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  color: var(--call-panel-ink);
+}
+
+.demo-web-voice__transfer--failed {
+  color: #b42318;
+}
+
 .demo-web-voice__transcript {
   margin: 0;
   padding: 0.35rem 0 0;

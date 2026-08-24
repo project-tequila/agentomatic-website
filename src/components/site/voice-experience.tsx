@@ -9,9 +9,12 @@ import { useEffect, useRef, useState } from "react";
 import { useCinemaScroll } from "@/lib/helios/use-cinema-scroll";
 import { useHeliosVoice } from "@/lib/helios/helios-provider";
 import { useVideoFrame } from "@/lib/helios/use-video-frame";
-import { useBeginVoiceDemo } from "@/lib/demo-call/use-begin-voice-demo";
 import { heliosFromRealtimeVoice } from "@/lib/voice/demo-web-voice-errors";
 import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
+import {
+  getVoiceDemoStatusCopy,
+  resolveVoiceDemoUiStatus,
+} from "@/lib/voice/voice-demo-status";
 import { cn } from "@/lib/utils";
 
 const voiceCopy = {
@@ -46,12 +49,24 @@ export function VoiceExperience() {
   const { helios, setVoiceInput } = useHeliosVoice();
   const { currentFrame, fps, inputProps } = useVideoFrame(helios);
   const scene = inputProps.sceneProgress ?? 0;
-  const { status, error, isAgentSpeaking, transcripts, stop } = useDemoWebVoice();
-  const beginVoiceDemo = useBeginVoiceDemo();
+  const { status, error, isAgentSpeaking, transcripts, humanTransferStatus, start, stop } =
+    useDemoWebVoice();
   const heliosVoice = heliosFromRealtimeVoice({ status, isAgentSpeaking });
   const live = status === "connecting" || status === "listening";
+  const uiStatus = resolveVoiceDemoUiStatus({
+    hookStatus: status,
+    isAgentSpeaking,
+    hasError: Boolean(error),
+    humanTransferStatus,
+  });
+  const transferCopy = getVoiceDemoStatusCopy(uiStatus, error);
   const hudKey = isAgentSpeaking ? "speaking" : status;
-  const copy = voiceCopy[hudKey];
+  const copy =
+    uiStatus === "transferring" ||
+    uiStatus === "transfer-connected" ||
+    uiStatus === "transfer-failed"
+      ? { line: transferCopy.label }
+      : voiceCopy[hudKey];
   const seated = scene >= 0.78;
   const beat = beatLine(scene);
   const titleOpacity = interpolate(scene, [0, 0.12, 0.28], [1, 1, 0], { extrapolateRight: "clamp" });
@@ -88,12 +103,12 @@ export function VoiceExperience() {
     }
   }
 
-  function onMic() {
+  async function onMic() {
     if (live) {
       stop();
       return;
     }
-    beginVoiceDemo();
+    await start();
   }
 
   const MicIcon = status === "connecting" ? Loader2 : live ? Square : status === "error" ? Pause : Mic;
@@ -151,6 +166,20 @@ export function VoiceExperience() {
             <p className="voice-hud__status mb-5" aria-live="polite">
               {error ?? copy.line}
             </p>
+            {humanTransferStatus === "transferring" ||
+            humanTransferStatus === "connected" ||
+            humanTransferStatus === "failed" ? (
+              <p
+                className={cn(
+                  "voice-hud__transfer mb-4 text-sm",
+                  humanTransferStatus === "failed" ? "text-rose-300" : "text-[#8cffd2]/85",
+                )}
+                role={humanTransferStatus === "failed" ? "alert" : "status"}
+                aria-live="polite"
+              >
+                {transferCopy.detail}
+              </p>
+            ) : null}
 
             <div className="relative">
               <div className={cn("voice-hud__orbit", live && "voice-hud__orbit--live")} aria-hidden />
