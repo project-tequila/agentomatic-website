@@ -9,6 +9,7 @@ import { DemoWebVoiceProvider } from "@/lib/voice/demo-web-voice-context";
 import { DemoCallPanel } from "./demo-call-panel";
 import { SiteMagneticEnhancer } from "./site-magnetic-enhancer";
 import { SiteOrbHitZone } from "./site-orb-hit-zone";
+import { VoiceFocusExperience } from "./voice-focus-experience";
 
 type SiteDemoCallRootProps = {
   children: React.ReactNode;
@@ -23,6 +24,7 @@ export function SiteDemoCallRoot({ children }: SiteDemoCallRootProps) {
       <DemoWebVoiceProvider>
         <SiteMagneticEnhancer />
         {children}
+        <VoiceFocusExperience />
         <DemoCallPanel />
         {!isHome ? <SiteOrbHitZone variant="floating" /> : null}
       </DemoWebVoiceProvider>

@@ -2,8 +2,7 @@
 
 import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
-import { openDemoCall } from "@/lib/demo-call/open-demo-call";
-import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
+import { useBeginVoiceDemo } from "@/lib/demo-call/use-begin-voice-demo";
 import { cn } from "@/lib/utils";
 
 import { FrontdeskVoiceOrb } from "./frontdesk-voice-orb";
@@ -15,11 +14,9 @@ type SiteOrbHitZoneProps = {
 
 export function SiteOrbHitZone({ variant, className }: SiteOrbHitZoneProps) {
   const reduceMotion = usePrefersReducedMotion();
-  const { start } = useDemoWebVoice();
-
+  const beginVoiceDemo = useBeginVoiceDemo();
   function handleClick() {
-    openDemoCall();
-    void start();
+    beginVoiceDemo();
   }
 
   return (

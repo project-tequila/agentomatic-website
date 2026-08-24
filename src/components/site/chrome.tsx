@@ -7,8 +7,7 @@ import { usePathname } from "next/navigation";
 
 import { HomeLogoLink } from "@/components/site/home-logo-link";
 import { BOOKER_ROUTE, BOOKER_SIGNUP_ROUTE } from "@/lib/booker/booker-session";
-import { openDemoCall } from "@/lib/demo-call/open-demo-call";
-import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
+import { useBeginVoiceDemo } from "@/lib/demo-call/use-begin-voice-demo";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -119,6 +118,7 @@ export function SiteChrome() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const reduceMotion = useReducedMotion();
+  const beginVoiceDemo = useBeginVoiceDemo();
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -136,11 +136,8 @@ export function SiteChrome() {
 
   const ctaLabel = "Talk to Agent";
   const contactActive = navActive(pathname, CONTACT_HREF);
-  const { start } = useDemoWebVoice();
-
   function onTalkToAgent() {
-    openDemoCall();
-    void start();
+    beginVoiceDemo();
     setMenuOpen(false);
   }
 
