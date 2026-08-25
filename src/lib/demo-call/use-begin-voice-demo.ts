@@ -14,7 +14,7 @@ export function useBeginVoiceDemo() {
   const { start } = useDemoWebVoice();
 
   return useCallback(() => {
-    openDemoCall();
     void start();
+    openDemoCall();
   }, [openDemoCall, start]);
 }

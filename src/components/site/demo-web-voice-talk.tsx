@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 
 function statusLine(status: string, isAgentSpeaking: boolean): string {
+  if (status === "requesting-mic") return "Allow microphone when prompted";
   if (status === "connecting") return "Connecting";
   if (status === "error") return "Talk unavailable";
   if (isAgentSpeaking) return "Live";
@@ -31,7 +32,8 @@ export function DemoWebVoiceTalk({ className }: DemoWebVoiceTalkProps) {
   const { status, error, isAgentSpeaking, transcripts, language, setLanguage, stop } =
     useDemoWebVoice();
   const beginVoiceDemo = useBeginVoiceDemo();
-  const live = status === "connecting" || status === "listening";
+  const live =
+    status === "requesting-mic" || status === "connecting" || status === "listening";
   const languageEditable = canChangeDemoWebVoiceLanguage(status);
   const recent = transcripts.slice(-4);
 
@@ -74,14 +76,22 @@ export function DemoWebVoiceTalk({ className }: DemoWebVoiceTalkProps) {
           aria-pressed={live}
           aria-label={live ? "End talk" : "Talk now"}
         >
-          {status === "connecting" ? (
+          {status === "connecting" || status === "requesting-mic" ? (
             <Loader2 className="size-4 animate-spin" aria-hidden />
           ) : live ? (
             <Square className="size-3.5" strokeWidth={2} aria-hidden />
           ) : (
             <Mic className="size-4" strokeWidth={1.75} aria-hidden />
           )}
-          <span>{status === "connecting" ? "Connecting" : live ? "End" : "Talk now"}</span>
+          <span>
+            {status === "connecting"
+              ? "Connecting"
+              : status === "requesting-mic"
+                ? "Allow mic"
+                : live
+                  ? "End"
+                  : "Talk now"}
+          </span>
         </button>
       </div>
 

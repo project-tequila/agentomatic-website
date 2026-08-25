@@ -16,7 +16,12 @@ import { mapDemoWebVoiceError } from "./demo-web-voice-errors";
 
 const TARGET_SAMPLE_RATE = 16000;
 
-export type VoiceConnectionStatus = "idle" | "connecting" | "listening" | "error";
+export type VoiceConnectionStatus =
+  | "idle"
+  | "requesting-mic"
+  | "connecting"
+  | "listening"
+  | "error";
 
 export type VoiceTranscriptRole = "user" | "assistant";
 
@@ -173,6 +178,8 @@ export function useRealtimeVoice(
   const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const playheadRef = useRef<number>(0);
   const scheduledSourcesRef = useRef<AudioBufferSourceNode[]>([]);
+  const isStartingRef = useRef(false);
+  const userStoppedRef = useRef(false);
 
   const setStatusSafe = useCallback((next: VoiceConnectionStatus) => {
     statusRef.current = next;
@@ -336,59 +343,61 @@ export function useRealtimeVoice(
   );
 
   const stop = useCallback(() => {
+    userStoppedRef.current = true;
+    isStartingRef.current = false;
     cleanup();
     setStatusSafe("idle");
     setIsAgentSpeaking(false);
   }, [cleanup, setStatusSafe]);
 
-  const unlockAudioContexts = useCallback(async () => {
-    if (!captureCtxRef.current) {
-      captureCtxRef.current = new AudioContext();
+  const start = useCallback(async () => {
+    if (
+      isStartingRef.current ||
+      statusRef.current === "requesting-mic" ||
+      statusRef.current === "connecting" ||
+      statusRef.current === "listening"
+    ) {
+      return;
     }
-    if (!playbackCtxRef.current) {
+
+    userStoppedRef.current = false;
+    isStartingRef.current = true;
+    setError(null);
+    setTranscripts([]);
+    setStatusSafe("requesting-mic");
+
+    try {
+      // Unlock playback/capture on the click gesture before any permission or network await.
+      const captureCtx = new AudioContext();
+      captureCtxRef.current = captureCtx;
       const playbackCtx = new AudioContext();
       playbackCtxRef.current = playbackCtx;
       playheadRef.current = playbackCtx.currentTime;
-    }
-    const captureCtx = captureCtxRef.current;
-    const playbackCtx = playbackCtxRef.current;
-    await Promise.all([
-      captureCtx.state === "suspended" ? captureCtx.resume() : Promise.resolve(),
-      playbackCtx.state === "suspended" ? playbackCtx.resume() : Promise.resolve(),
-    ]);
-  }, []);
+      await Promise.all([
+        captureCtx.state === "suspended" ? captureCtx.resume() : Promise.resolve(),
+        playbackCtx.state === "suspended" ? playbackCtx.resume() : Promise.resolve(),
+      ]);
 
-  const start = useCallback(async () => {
-    if (statusRef.current === "connecting" || statusRef.current === "listening") {
-      return;
-    }
-    setError(null);
-    setTranscripts([]);
-    setStatusSafe("connecting");
-
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          channelCount: 1,
-          echoCancellation: true,
-          noiseSuppression: true,
-        },
-      });
+      const [mediaStream, wsUrl] = await Promise.all([
+        navigator.mediaDevices.getUserMedia({
+          audio: {
+            channelCount: 1,
+            echoCancellation: true,
+            noiseSuppression: true,
+          },
+        }),
+        mintDemoWebVoiceSession(language),
+      ]);
       mediaStreamRef.current = mediaStream;
 
-      await unlockAudioContexts();
-
-      const wsUrl = await mintDemoWebVoiceSession(language);
-
-      await unlockAudioContexts();
-
-      const captureCtx = captureCtxRef.current ?? new AudioContext();
-      captureCtxRef.current = captureCtx;
-      const inRate = captureCtx.sampleRate;
-      if (captureCtx.state === "suspended") {
-        await captureCtx.resume().catch(() => undefined);
+      if (userStoppedRef.current) {
+        cleanup();
+        return;
       }
 
+      setStatusSafe("connecting");
+
+      const inRate = captureCtx.sampleRate;
       const workletBlob = new Blob([CAPTURE_WORKLET_SOURCE], {
         type: "application/javascript",
       });
@@ -396,9 +405,6 @@ export function useRealtimeVoice(
       await captureCtx.audioWorklet.addModule(workletUrl);
       URL.revokeObjectURL(workletUrl);
 
-      const playbackCtx = playbackCtxRef.current ?? new AudioContext();
-      playbackCtxRef.current = playbackCtx;
-      playheadRef.current = playbackCtx.currentTime;
       await resumePlaybackContext();
 
       const ws = new WebSocket(wsUrl);
@@ -406,6 +412,7 @@ export function useRealtimeVoice(
       wsRef.current = ws;
 
       ws.onopen = () => {
+        isStartingRef.current = false;
         setStatusSafe("listening");
         ws.send(JSON.stringify({ event: "start", sampleRate: TARGET_SAMPLE_RATE }));
         void resumePlaybackContext();
@@ -451,18 +458,35 @@ export function useRealtimeVoice(
       };
 
       ws.onerror = () => {
+        isStartingRef.current = false;
         setError(mapDemoWebVoiceError({ httpStatus: 502 }));
         setStatusSafe("error");
       };
 
-      ws.onclose = () => {
-        if (statusRef.current === "error") {
+      ws.onclose = (event) => {
+        isStartingRef.current = false;
+        if (userStoppedRef.current) {
+          cleanup();
+          setStatusSafe("idle");
           return;
         }
+        if (statusRef.current === "error") {
+          cleanup();
+          return;
+        }
+        const endedUnexpectedly =
+          event.code !== 1000 &&
+          (statusRef.current === "connecting" || statusRef.current === "listening");
         cleanup();
+        if (endedUnexpectedly) {
+          setError(mapDemoWebVoiceError({ httpStatus: 502 }));
+          setStatusSafe("error");
+          return;
+        }
         setStatusSafe("idle");
       };
     } catch (err) {
+      isStartingRef.current = false;
       const httpStatus =
         err && typeof err === "object" && "httpStatus" in err
           ? Number((err as { httpStatus?: number }).httpStatus)
@@ -482,7 +506,6 @@ export function useRealtimeVoice(
     resumePlaybackContext,
     scheduleAudioChunk,
     setStatusSafe,
-    unlockAudioContexts,
   ]);
 
   useEffect(() => {

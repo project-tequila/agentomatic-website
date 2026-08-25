@@ -7,6 +7,11 @@ import { useCallback, useEffect } from "react";
 import { useDemoCall } from "@/lib/demo-call/demo-call-context";
 import { heliosFromRealtimeVoice } from "@/lib/voice/demo-web-voice-errors";
 import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
+import { canChangeDemoWebVoiceLanguage } from "@/lib/voice/demo-web-voice-language";
+import {
+  VOICE_LANGUAGE_OPTIONS,
+  type VoiceLanguageCode,
+} from "@/lib/voice-languages";
 import { cn } from "@/lib/utils";
 
 import { FrontdeskVoiceOrb } from "./frontdesk-voice-orb";
@@ -19,30 +24,33 @@ function statusLine(
   status: string,
   isAgentSpeaking: boolean,
   error: string | null,
-  focusOpen: boolean,
 ): string {
   if (error) return error;
+  if (status === "requesting-mic") return "Allow microphone when prompted";
   if (status === "connecting") return "Connecting…";
   if (isAgentSpeaking) return "Agent speaking — jump in anytime";
   if (status === "listening") return "Listening…";
-  if (focusOpen && status === "idle") {
-    return "Allow microphone when prompted, or tap Talk again";
-  }
+  if (status === "idle") return "Tap Talk to Agent to start";
   return "Starting…";
 }
 
 /**
- * Full-screen voice focus: blurred backdrop, orb as hero, minimal controls.
+ * Full-screen voice focus: blurred backdrop, orb as hero, language + controls.
  * Shown when the demo opens or a live session is active.
  */
 export function VoiceFocusExperience() {
   const reduceMotion = useReducedMotion();
   const { isOpen, closeDemoCall } = useDemoCall();
-  const { status, error, isAgentSpeaking, transcripts, stop } = useDemoWebVoice();
+  const { status, error, isAgentSpeaking, transcripts, language, setLanguage, stop } =
+    useDemoWebVoice();
 
   const voiceActive =
-    status === "connecting" || status === "listening" || isAgentSpeaking;
+    status === "requesting-mic" ||
+    status === "connecting" ||
+    status === "listening" ||
+    isAgentSpeaking;
   const visible = isOpen || voiceActive;
+  const languageEditable = canChangeDemoWebVoiceLanguage(status);
   const recent = transcripts.slice(-4);
 
   const onEnd = useCallback(() => {
@@ -65,9 +73,14 @@ export function VoiceFocusExperience() {
   }, [visible, onEnd]);
 
   const mapped = heliosFromRealtimeVoice({ status, isAgentSpeaking });
-  const voiceState =
-    isAgentSpeaking ? "speaking" : status === "connecting" ? "connecting" : status === "listening" ? "listening" : "idle";
-  const line = statusLine(status, isAgentSpeaking, error, isOpen);
+  const voiceState = isAgentSpeaking
+    ? "speaking"
+    : status === "connecting" || status === "requesting-mic"
+      ? "connecting"
+      : status === "listening"
+        ? "listening"
+        : "idle";
+  const line = statusLine(status, isAgentSpeaking, error);
   const intensity = orbIntensity(voiceActive, mapped.energy);
 
   return (
@@ -115,8 +128,28 @@ export function VoiceFocusExperience() {
               </svg>
             </div>
 
+            <label className="voice-focus__language" htmlFor="voice-focus-language">
+              <span className="sr-only">Conversation language</span>
+              <select
+                id="voice-focus-language"
+                name="language"
+                data-testid="voice-focus-language"
+                value={language}
+                disabled={!languageEditable}
+                onChange={(event) => setLanguage(event.target.value as VoiceLanguageCode)}
+                className="voice-focus__language-select"
+                aria-label="Conversation language"
+              >
+                {VOICE_LANGUAGE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
             <p className="voice-focus__status" aria-live="polite">
-              {status === "connecting" ? (
+              {status === "connecting" || status === "requesting-mic" ? (
                 <Loader2 className="voice-focus__status-icon animate-spin" aria-hidden />
               ) : null}
               {line}
@@ -145,7 +178,7 @@ export function VoiceFocusExperience() {
               onClick={onEnd}
               aria-label="End talk"
             >
-              {status === "connecting" ? (
+              {status === "connecting" || status === "requesting-mic" ? (
                 <Loader2 className="size-4 animate-spin" aria-hidden />
               ) : (
                 <Square className="size-3.5" strokeWidth={2} aria-hidden />

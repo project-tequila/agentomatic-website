@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 
 const voiceCopy = {
   idle: { line: "Tap to greet" },
+  "requesting-mic": { line: "Allow microphone" },
   connecting: { line: "Connecting" },
   listening: { line: "Listening" },
   speaking: { line: "Live" },
@@ -49,7 +50,8 @@ export function VoiceExperience() {
   const { status, error, isAgentSpeaking, transcripts, stop } = useDemoWebVoice();
   const beginVoiceDemo = useBeginVoiceDemo();
   const heliosVoice = heliosFromRealtimeVoice({ status, isAgentSpeaking });
-  const live = status === "connecting" || status === "listening";
+  const live =
+    status === "requesting-mic" || status === "connecting" || status === "listening";
   const hudKey = isAgentSpeaking ? "speaking" : status;
   const copy = voiceCopy[hudKey];
   const seated = scene >= 0.78;
@@ -96,7 +98,14 @@ export function VoiceExperience() {
     beginVoiceDemo();
   }
 
-  const MicIcon = status === "connecting" ? Loader2 : live ? Square : status === "error" ? Pause : Mic;
+  const MicIcon =
+    status === "connecting" || status === "requesting-mic"
+      ? Loader2
+      : live
+        ? Square
+        : status === "error"
+          ? Pause
+          : Mic;
 
   return (
     <section ref={cinemaRef} className="site-3d__cinema" aria-label="Front desk story">
