@@ -10,6 +10,8 @@
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { normalizeVoiceLanguage } from "@/lib/voice-languages";
+
 import { mapDemoWebVoiceError } from "./demo-web-voice-errors";
 
 const TARGET_SAMPLE_RATE = 16000;
@@ -155,7 +157,7 @@ async function mintDemoWebVoiceSession(language: string): Promise<string> {
 export function useRealtimeVoice(
   options: UseRealtimeVoiceOptions = {},
 ): UseRealtimeVoiceResult {
-  const language = options.language ?? "en";
+  const language = normalizeVoiceLanguage(options.language);
 
   const [status, setStatus] = useState<VoiceConnectionStatus>("idle");
   const [error, setError] = useState<string | null>(null);
