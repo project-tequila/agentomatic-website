@@ -92,6 +92,10 @@ export async function placeDemoOutboundCall(params: {
 export async function mintDemoWebVoiceSession(params?: {
   language?: string;
 }): Promise<DemoWebVoiceSessionResult> {
+  if (process.env.DEMO_WEB_VOICE_ENABLED !== "true") {
+    throw new Error("Demo web voice is disabled (set DEMO_WEB_VOICE_ENABLED=true).");
+  }
+
   const apiKey = process.env.DEMO_OUTBOUND_API_KEY?.trim();
   if (!apiKey) {
     throw new Error("Demo web voice is not configured (missing DEMO_OUTBOUND_API_KEY).");
@@ -114,7 +118,7 @@ export async function mintDemoWebVoiceSession(params?: {
   if (!response.ok) {
     if (response.status === 404) {
       throw new Error(
-        "Demo web-voice endpoint not found on the API gateway. Deploy the latest AI service (appointment-booker) with POST /api/v1/ai/demo/web-voice-session and set DEMO_VOICE_TENANT_ID plus VOICE_STREAM_BASE_URL on Railway.",
+        "Demo web voice endpoint not found on the API gateway. Deploy the latest AI service (appointment-booker) with POST /api/v1/ai/demo/web-voice-session and set DEMO_VOICE_TENANT_ID plus VOICE_STREAM_BASE_URL on Railway.",
       );
     }
     throw new Error(formatGatewayError(data, response.status));

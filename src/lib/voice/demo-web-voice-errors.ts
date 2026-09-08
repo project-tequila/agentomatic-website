@@ -54,14 +54,24 @@ export function mapDemoWebVoiceError(input: {
  * Helios voiceState + energy from the realtime hook, not a fake cycle.
  */
 export function heliosFromRealtimeVoice(input: {
-  status: "idle" | "connecting" | "listening" | "error";
+  status: "idle" | "requesting-mic" | "connecting" | "listening" | "error";
   isAgentSpeaking: boolean;
 }): { voiceState: "idle" | "listening" | "speaking"; energy: number } {
   if (input.isAgentSpeaking) {
     return { voiceState: "speaking", energy: 1 };
   }
-  if (input.status === "listening" || input.status === "connecting") {
-    return { voiceState: "listening", energy: input.status === "connecting" ? 0.4 : 0.62 };
+  if (
+    input.status === "requesting-mic" ||
+    input.status === "listening" ||
+    input.status === "connecting"
+  ) {
+    const energy =
+      input.status === "listening"
+        ? 0.62
+        : input.status === "connecting"
+          ? 0.4
+          : 0.28;
+    return { voiceState: "listening", energy };
   }
   return { voiceState: "idle", energy: 0.18 };
 }

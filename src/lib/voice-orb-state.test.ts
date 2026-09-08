@@ -29,16 +29,17 @@ test("mapVoiceEnergyOrbState returns speaking when the agent is speaking", () =>
   );
 });
 
-test("mapVoiceEnergyOrbState returns connecting before listening", () => {
+test("mapVoiceEnergyOrbState treats requesting-mic as connecting", () => {
   assert.equal(
     mapVoiceEnergyOrbState({
-      status: "connecting",
+      status: "requesting-mic",
       isAgentSpeaking: false,
       transcripts: [],
     }),
     "connecting",
   );
 });
+
 
 test("mapVoiceEnergyOrbState returns thinking after a final user turn", () => {
   assert.equal(

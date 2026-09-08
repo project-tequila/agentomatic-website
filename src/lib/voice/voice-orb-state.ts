@@ -16,7 +16,7 @@ export type VoiceEnergyOrbTranscriptHint = {
 };
 
 export type VoiceEnergyOrbStateInput = {
-  status: "idle" | "connecting" | "listening" | "error";
+  status: "idle" | "requesting-mic" | "connecting" | "listening" | "error";
   isAgentSpeaking: boolean;
   transcripts: readonly VoiceEnergyOrbTranscriptHint[];
 };
@@ -35,7 +35,7 @@ function clamp01(value: number): number {
 export function mapVoiceEnergyOrbState(input: VoiceEnergyOrbStateInput): VoiceEnergyOrbState {
   if (input.status === "error") return "error";
   if (input.isAgentSpeaking) return "speaking";
-  if (input.status === "connecting") return "connecting";
+  if (input.status === "connecting" || input.status === "requesting-mic") return "connecting";
   if (input.status === "listening") {
     const last = input.transcripts[input.transcripts.length - 1];
     if (last?.role === "user" && last.final) return "thinking";

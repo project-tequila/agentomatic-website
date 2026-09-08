@@ -10,6 +10,10 @@ type WebVoiceBody = {
 };
 
 export async function POST(request: Request) {
+  if (process.env.DEMO_WEB_VOICE_ENABLED !== "true") {
+    return NextResponse.json({ error: "Demo web voice is disabled" }, { status: 503 });
+  }
+
   const ip = clientIpFromHeaders(request.headers);
   if (!demoWebVoiceLimiter.tryConsume(ip)) {
     return NextResponse.json(
