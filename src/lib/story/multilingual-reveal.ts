@@ -10,6 +10,7 @@ export {
   MULTILINGUAL_AVAILABILITY_SCRIPTS,
   MULTILINGUAL_DUPLEX_LANGUAGE_CODES,
   MULTILINGUAL_LANGUAGE_COUNT,
+  MULTILINGUAL_LANGUAGE_ROSTER,
   MULTILINGUAL_LANGUAGES,
   MULTILINGUAL_PROVIDER_BADGE,
   MULTILINGUAL_PROVIDER_BADGE_WIDTH,
@@ -109,11 +110,10 @@ export function multilingualOrbPath(card: { x: number; y: number; width: number;
   return `M ${sx} ${sy} Q ${cx} ${cy} ${ex} ${ey}`;
 }
 
-/** 0–1 — card visible and hero script on line 2 has finished its first typed pass. */
+/** 0–1 — headline is on, body may start. Independent of the old polyglot card. */
 export function multilingualTitleCompleteReveal(progress: number, reduceMotion = false) {
-  const card = multilingualCardReveal(progress);
-  const { typingReveal } = multilingualLanguageSegment(progress, reduceMotion);
-  return Math.min(card, typingReveal);
+  if (reduceMotion) return progress > 0.06 ? 1 : 0;
+  return interpolate(progress, [0.08, 0.36], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 }
 
 export function multilingualBodyReveal(progress: number, reduceMotion = false) {

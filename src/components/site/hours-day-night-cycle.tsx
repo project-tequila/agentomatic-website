@@ -1,6 +1,6 @@
 "use client";
 
-import { hoursDayNightMix } from "@/lib/story/hours-day-night";
+import { useHoursDayNightMix } from "@/lib/story/use-hours-day-night-loop";
 import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 import { PERSISTENT_ORB, storyStageViewBoxForWidth } from "@/lib/story/persistent-orb";
@@ -18,7 +18,7 @@ export function HoursDayNightCycle({ story, sceneOpacity }: HoursDayNightCyclePr
   const reduceMotion = usePrefersReducedMotion();
   const spatial = useStorySpatialLayout();
   const ORBIT_R = spatial.hours.orbitRadius;
-  const mix = hoursDayNightMix(story);
+  const mix = useHoursDayNightMix(story, !!reduceMotion);
   if (!mix || sceneOpacity < 0.02) return null;
 
   const { angle, sunWeight, moonWeight, nightSky, dayGlow } = mix;

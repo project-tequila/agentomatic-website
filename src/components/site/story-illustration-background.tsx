@@ -6,7 +6,7 @@ import { useHeliosVoice } from "@/lib/helios/helios-provider";
 import { useVideoFrame } from "@/lib/helios/use-video-frame";
 import { act1BeatOpacity } from "@/lib/story/act1-band-progress";
 import { featureBandOpacitySequential } from "@/lib/story/feature-band-progress";
-import { hoursDayNightMix } from "@/lib/story/hours-day-night";
+import { useHoursDayNightMix } from "@/lib/story/use-hours-day-night-loop";
 import { illustrationAtmosphere, visibleIllustrationScenes } from "@/lib/story/illustration-scenes";
 import { storyToSceneProgress } from "@/lib/story/chapters";
 import { persistentOrbMode } from "@/lib/story/persistent-orb";
@@ -40,7 +40,7 @@ export function StoryIllustrationBackground() {
   const scenes = visibleIllustrationScenes(story);
   const hoursScene = scenes.find((s) => s.id === "hours");
   const hoursOpacity = hoursScene?.opacity ?? 0;
-  const hoursMix = hoursOpacity > 0.02 ? hoursDayNightMix(story) : null;
+  const hoursMix = useHoursDayNightMix(story, !!reduceMotion);
   const integrationsOpacity = featureBandOpacitySequential(story, "integrations");
   const multilingualOpacity = featureBandOpacitySequential(story, "multilingual");
   const handoffOpacity = featureBandOpacitySequential(story, "handoff");

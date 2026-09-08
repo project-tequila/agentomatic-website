@@ -1,5 +1,7 @@
 import { Clock, Globe, PhoneOff, UserCheck } from "lucide-react";
 
+import { MULTILINGUAL_LANGUAGE_COUNT } from "@/lib/story/multilingual-reveal";
+
 const stats = [
   {
     id: "availability",
@@ -10,7 +12,7 @@ const stats = [
   {
     id: "languages",
     icon: Globe,
-    label: "17+ languages",
+    label: `${MULTILINGUAL_LANGUAGE_COUNT} languages`,
     detail: "callers hear your desk in their language.",
   },
   {
