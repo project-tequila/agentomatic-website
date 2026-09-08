@@ -194,7 +194,7 @@ export function VoiceExperience() {
             ) : null}
           </motion.div>
 
-          <Link href="/vision" className="voice-hud__book">
+          <Link href="/solutions" className="voice-hud__book">
             Book
           </Link>
 

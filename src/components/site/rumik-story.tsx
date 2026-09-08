@@ -39,6 +39,7 @@ import {
   activeStoryChapter,
   isAct1,
 } from "@/lib/story/chapters";
+import { STORY_SLIDE_COUNT } from "@/lib/story/story-slides";
 import { DemoCallScrollReveal } from "@/components/site/site-demo-call-root";
 import { CommandCenterConsole } from "@/components/site/command-center-console";
 import { cn } from "@/lib/utils";
@@ -105,8 +106,8 @@ export function RumikStory() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const seen = sessionStorage.getItem(SCROLL_SEEN_KEY);
-    if (!seen && story < 0.02) queueMicrotask(() => setShowFirstVisitCue(true));
-  }, [story]);
+    if (!seen) queueMicrotask(() => setShowFirstVisitCue(true));
+  }, []);
 
   useEffect(() => {
     const scrollEl = scrollRef.current;
@@ -117,11 +118,18 @@ export function RumikStory() {
       setShowFirstVisitCue(false);
     };
 
-    scrollEl.addEventListener("scroll", dismiss, { passive: true, once: true });
+    scrollEl.addEventListener("wheel", dismiss, { passive: true, once: true });
+    scrollEl.addEventListener("touchstart", dismiss, { passive: true, once: true });
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "ArrowDown" || event.key === "PageDown" || event.key === " ") dismiss();
+    };
+    window.addEventListener("keydown", onKey);
     const timer = window.setTimeout(dismiss, 4000);
 
     return () => {
-      scrollEl.removeEventListener("scroll", dismiss);
+      scrollEl.removeEventListener("wheel", dismiss);
+      scrollEl.removeEventListener("touchstart", dismiss);
+      window.removeEventListener("keydown", onKey);
       window.clearTimeout(timer);
     };
   }, [scrollRef, showFirstVisitCue]);
@@ -132,6 +140,7 @@ export function RumikStory() {
     <section
       ref={storyRef}
       className={cn("rumik-story", inCta && "rumik-story--cta", feature?.id === "dashboard" && "rumik-story--dashboard")}
+      style={{ ["--story-scroll-height" as string]: `calc(${STORY_SLIDE_COUNT} * 100dvh)` }}
       aria-label="Frontdesk story"
     >
       <DemoCallScrollReveal reveal={panelReveal} />
@@ -163,10 +172,10 @@ export function RumikStory() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={chapterKey}
-                initial={false}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.35, ease: [0.22, 0.7, 0.18, 1] }}
+                initial={motionOff ? false : { opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={motionOff ? { opacity: 0 } : { opacity: 0, y: -14 }}
+                transition={{ duration: 0.55, ease: [0.22, 0.7, 0.18, 1] }}
                 className="rumik-story__chapter"
               >
                 <div className="rumik-story__headline">
@@ -230,12 +239,12 @@ export function RumikStory() {
                 )}
               >
                 <ChevronDown className="rumik-story__scroll-chevron" aria-hidden strokeWidth={2} />
-                scroll to explore
+                scroll to continue
               </span>
             ) : story < 0.06 ? (
-              <span className="rumik-story__scroll-hint">scroll to explore</span>
+              <span className="rumik-story__scroll-hint">scroll to continue</span>
             ) : inAct1 ? (
-              <span className="rumik-story__scroll-hint">keep scrolling</span>
+              <span className="rumik-story__scroll-hint">scroll for the next scene</span>
             ) : approachingCta ? (
               <motion.span
                 className="rumik-story__scroll-hint rumik-story__scroll-hint--cta"
@@ -247,7 +256,7 @@ export function RumikStory() {
             ) : inCta ? (
               <span className="rumik-story__scroll-hint">tap the orb to hear it live</span>
             ) : (
-              <span className="rumik-story__scroll-hint">explore features</span>
+              <span className="rumik-story__scroll-hint">scroll for the next scene</span>
             )}
           </div>
         </div>

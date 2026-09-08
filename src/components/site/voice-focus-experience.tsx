@@ -5,15 +5,11 @@ import { Loader2, Square, X } from "lucide-react";
 import { useCallback, useEffect } from "react";
 
 import { useDemoCall } from "@/lib/demo-call/demo-call-context";
-import { heliosFromRealtimeVoice } from "@/lib/voice/demo-web-voice-errors";
 import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
+import { mapVoiceEnergyOrbState } from "@/lib/voice/voice-orb-state";
 import { cn } from "@/lib/utils";
 
-import { FrontdeskVoiceOrb } from "./frontdesk-voice-orb";
-
-function orbIntensity(voiceActive: boolean, energy: number) {
-  return Math.min(1, Math.max(0.45, energy * (voiceActive ? 0.85 : 0.65)));
-}
+import { AudioReactiveFrontdeskOrb } from "./audio-reactive-frontdesk-orb";
 
 function statusLine(
   status: string,
@@ -38,7 +34,8 @@ function statusLine(
 export function VoiceFocusExperience() {
   const reduceMotion = useReducedMotion();
   const { isOpen, closeDemoCall } = useDemoCall();
-  const { status, error, isAgentSpeaking, transcripts, stop } = useDemoWebVoice();
+  const { status, error, isAgentSpeaking, transcripts, stop, getInputVolume, getOutputVolume } =
+    useDemoWebVoice();
 
   const voiceActive =
     status === "connecting" || status === "listening" || isAgentSpeaking;
@@ -64,11 +61,8 @@ export function VoiceFocusExperience() {
     return () => document.removeEventListener("keydown", onKey);
   }, [visible, onEnd]);
 
-  const mapped = heliosFromRealtimeVoice({ status, isAgentSpeaking });
-  const voiceState =
-    isAgentSpeaking ? "speaking" : status === "connecting" ? "connecting" : status === "listening" ? "listening" : "idle";
+  const agentState = mapVoiceEnergyOrbState({ status, isAgentSpeaking, transcripts });
   const line = statusLine(status, isAgentSpeaking, error, isOpen);
-  const intensity = orbIntensity(voiceActive, mapped.energy);
 
   return (
     <AnimatePresence>
@@ -79,7 +73,7 @@ export function VoiceFocusExperience() {
           role="dialog"
           aria-modal="true"
           aria-label="Talk to the agent"
-          data-voice-state={voiceState}
+          data-voice-state={agentState}
           initial={reduceMotion ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={reduceMotion ? undefined : { opacity: 0 }}
@@ -97,22 +91,13 @@ export function VoiceFocusExperience() {
           </button>
 
           <div className="voice-focus__stage">
-            <div className="voice-focus__orb" data-voice-state={voiceState} aria-hidden>
-              <svg
-                viewBox="260 120 200 200"
-                className="voice-focus__orb-svg"
-                fill="none"
-                preserveAspectRatio="xMidYMid meet"
-              >
-                <FrontdeskVoiceOrb
-                  cx={360}
-                  cy={220}
-                  intensity={intensity}
-                  mode="cta"
-                  idSuffix="focus"
-                  reduceMotion={!!reduceMotion}
-                />
-              </svg>
+            <div className="voice-focus__orb" data-voice-state={agentState} aria-hidden>
+              <AudioReactiveFrontdeskOrb
+                agentState={agentState}
+                getInputVolume={getInputVolume}
+                getOutputVolume={getOutputVolume}
+                reduceMotion={!!reduceMotion}
+              />
             </div>
 
             <p className="voice-focus__status" aria-live="polite">

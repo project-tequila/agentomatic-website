@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from "react";
 
-import { hoursDayNightMix } from "@/lib/story/hours-day-night";
+import { useHoursDayNightMix } from "@/lib/story/use-hours-day-night-loop";
 import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion";
 
 type HoursSkyAtmosphereProps = {
@@ -81,7 +81,7 @@ const STARS = buildStars();
 
 export function HoursSkyAtmosphere({ story, sceneOpacity }: HoursSkyAtmosphereProps) {
   const reduceMotion = usePrefersReducedMotion();
-  const mix = hoursDayNightMix(story);
+  const mix = useHoursDayNightMix(story, !!reduceMotion);
 
   if (!mix || sceneOpacity < 0.02) return null;
 

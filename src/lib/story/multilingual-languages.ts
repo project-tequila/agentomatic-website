@@ -204,6 +204,8 @@ export function multilingualAvailabilityScript(languageId: string): string {
   return MULTILINGUAL_AVAILABILITY_SCRIPTS[languageId] ?? MULTILINGUAL_AVAILABILITY_PHRASE_EN;
 }
 
-export const MULTILINGUAL_PROVIDER_HEADLINE = `${MULTILINGUAL_LANGUAGE_COUNT}+ languages.`;
-export const MULTILINGUAL_PROVIDER_BADGE = `${MULTILINGUAL_LANGUAGE_COUNT}+ langs`;
+export const MULTILINGUAL_PROVIDER_HEADLINE = `${MULTILINGUAL_LANGUAGE_COUNT} languages.`;
+export const MULTILINGUAL_PROVIDER_BADGE = `${MULTILINGUAL_LANGUAGE_COUNT} langs`;
 export const MULTILINGUAL_PROVIDER_BADGE_WIDTH = 54;
+
+export const MULTILINGUAL_LANGUAGE_ROSTER = MULTILINGUAL_LANGUAGES.map((language) => language.label).join("  ·  ");

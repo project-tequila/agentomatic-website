@@ -17,8 +17,8 @@ test("canonicalUrl('/') is the homepage with a trailing slash", () => {
 });
 
 test("canonicalUrl strips trailing slashes on non-home paths", () => {
-  assert.equal(canonicalUrl("/agents"), "https://www.agentomatic.in/agents");
-  assert.equal(canonicalUrl("/agents/"), "https://www.agentomatic.in/agents");
+  assert.equal(canonicalUrl("/solutions"), "https://www.agentomatic.in/solutions");
+  assert.equal(canonicalUrl("/solutions/"), "https://www.agentomatic.in/solutions");
   assert.equal(canonicalUrl("/blog/hello-world"), "https://www.agentomatic.in/blog/hello-world");
 });
 

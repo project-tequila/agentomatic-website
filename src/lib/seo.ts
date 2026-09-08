@@ -15,12 +15,10 @@ export const DEFAULT_DESCRIPTION =
 export const STATIC_ROUTES = [
   "/",
   "/solutions",
-  "/vision",
   "/about",
   "/pricing",
   "/blog",
   "/contact",
-  "/agents",
   "/privacy",
 ] as const;
 
@@ -31,12 +29,10 @@ export const STATIC_ROUTES = [
 export const STATIC_ROUTE_LASTMOD = {
   "/": "2026-08-18",
   "/solutions": "2026-08-12",
-  "/vision": "2026-08-12",
   "/about": "2026-07-28",
   "/pricing": "2026-08-05",
   "/blog": "2026-08-15",
   "/contact": "2026-08-01",
-  "/agents": "2026-08-12",
   "/privacy": "2026-06-15",
 } as const satisfies Record<(typeof STATIC_ROUTES)[number], string>;
 

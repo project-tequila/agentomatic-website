@@ -36,6 +36,10 @@ export interface UseRealtimeVoiceResult {
   transcripts: VoiceTranscriptEntry[];
   start: () => Promise<void>;
   stop: () => void;
+  /** Mic energy 0–1. Sync, cheap; safe to call every animation frame. */
+  getInputVolume: () => number;
+  /** TTS playback energy 0–1. Sync, cheap; safe to call every animation frame. */
+  getOutputVolume: () => number;
 }
 
 type MintResponse = {
@@ -112,6 +116,40 @@ function int16BytesToFloat32(buffer: ArrayBuffer): Float32Array {
   return output;
 }
 
+const ANALYSER_FFT_SIZE = 256;
+const VOLUME_ATTACK = 0.45;
+const VOLUME_RELEASE = 0.12;
+
+/**
+ * RMS of analyser time-domain samples, or 0 if the node has no buffer yet.
+ */
+function analyserRms(analyser: AnalyserNode, buffer: Float32Array): number {
+  analyser.getFloatTimeDomainData(buffer as Float32Array<ArrayBuffer>);
+  let sum = 0;
+  for (let i = 0; i < buffer.length; i += 1) {
+    const sample = buffer[i] ?? 0;
+    sum += sample * sample;
+  }
+  return Math.sqrt(sum / buffer.length);
+}
+
+/**
+ * Fast-attack / slow-release envelope, clamped to 0–1.
+ */
+function smoothVolume(previous: number, next: number): number {
+  const coeff = next > previous ? VOLUME_ATTACK : VOLUME_RELEASE;
+  const mixed = previous + (next - previous) * coeff;
+  return Math.max(0, Math.min(1, mixed));
+}
+
+function createPlaybackAnalyser(ctx: AudioContext): AnalyserNode {
+  const analyser = ctx.createAnalyser();
+  analyser.fftSize = ANALYSER_FFT_SIZE;
+  analyser.smoothingTimeConstant = 0;
+  analyser.connect(ctx.destination);
+  return analyser;
+}
+
 function base64ToArrayBuffer(base64: string): ArrayBuffer {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
@@ -171,6 +209,12 @@ export function useRealtimeVoice(
   const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const playheadRef = useRef<number>(0);
   const scheduledSourcesRef = useRef<AudioBufferSourceNode[]>([]);
+  const captureAnalyserRef = useRef<AnalyserNode | null>(null);
+  const playbackAnalyserRef = useRef<AnalyserNode | null>(null);
+  const captureTimeDomainRef = useRef<Float32Array | null>(null);
+  const playbackTimeDomainRef = useRef<Float32Array | null>(null);
+  const inputVolumeRef = useRef(0);
+  const outputVolumeRef = useRef(0);
 
   const setStatusSafe = useCallback((next: VoiceConnectionStatus) => {
     statusRef.current = next;
@@ -229,7 +273,12 @@ export function useRealtimeVoice(
 
     const source = ctx.createBufferSource();
     source.buffer = audioBuffer;
-    source.connect(ctx.destination);
+    const playbackAnalyser = playbackAnalyserRef.current;
+    if (playbackAnalyser) {
+      source.connect(playbackAnalyser);
+    } else {
+      source.connect(ctx.destination);
+    }
 
     const startAt = Math.max(ctx.currentTime, playheadRef.current);
     source.start(startAt);
@@ -259,6 +308,12 @@ export function useRealtimeVoice(
       sourceNodeRef.current.disconnect();
       sourceNodeRef.current = null;
     }
+    if (captureAnalyserRef.current) {
+      captureAnalyserRef.current.disconnect();
+      captureAnalyserRef.current = null;
+    }
+    captureTimeDomainRef.current = null;
+    inputVolumeRef.current = 0;
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach((track) => track.stop());
       mediaStreamRef.current = null;
@@ -268,6 +323,12 @@ export function useRealtimeVoice(
       captureCtxRef.current = null;
     }
     stopPlayback();
+    if (playbackAnalyserRef.current) {
+      playbackAnalyserRef.current.disconnect();
+      playbackAnalyserRef.current = null;
+    }
+    playbackTimeDomainRef.current = null;
+    outputVolumeRef.current = 0;
     if (playbackCtxRef.current) {
       playbackCtxRef.current.close().catch(() => undefined);
       playbackCtxRef.current = null;
@@ -350,6 +411,11 @@ export function useRealtimeVoice(
     }
     const captureCtx = captureCtxRef.current;
     const playbackCtx = playbackCtxRef.current;
+    if (playbackCtx && !playbackAnalyserRef.current) {
+      const playbackAnalyser = createPlaybackAnalyser(playbackCtx);
+      playbackAnalyserRef.current = playbackAnalyser;
+      playbackTimeDomainRef.current = new Float32Array(playbackAnalyser.fftSize);
+    }
     await Promise.all([
       captureCtx.state === "suspended" ? captureCtx.resume() : Promise.resolve(),
       playbackCtx.state === "suspended" ? playbackCtx.resume() : Promise.resolve(),
@@ -397,6 +463,11 @@ export function useRealtimeVoice(
       const playbackCtx = playbackCtxRef.current ?? new AudioContext();
       playbackCtxRef.current = playbackCtx;
       playheadRef.current = playbackCtx.currentTime;
+      if (!playbackAnalyserRef.current) {
+        const playbackAnalyser = createPlaybackAnalyser(playbackCtx);
+        playbackAnalyserRef.current = playbackAnalyser;
+        playbackTimeDomainRef.current = new Float32Array(playbackAnalyser.fftSize);
+      }
       await resumePlaybackContext();
 
       const ws = new WebSocket(wsUrl);
@@ -410,6 +481,12 @@ export function useRealtimeVoice(
 
         const sourceNode = captureCtx.createMediaStreamSource(mediaStream);
         sourceNodeRef.current = sourceNode;
+        const captureAnalyser = captureCtx.createAnalyser();
+        captureAnalyser.fftSize = ANALYSER_FFT_SIZE;
+        captureAnalyser.smoothingTimeConstant = 0;
+        captureAnalyserRef.current = captureAnalyser;
+        captureTimeDomainRef.current = new Float32Array(captureAnalyser.fftSize);
+        sourceNode.connect(captureAnalyser);
         const workletNode = new AudioWorkletNode(captureCtx, "capture-processor");
         workletNodeRef.current = workletNode;
 
@@ -483,11 +560,44 @@ export function useRealtimeVoice(
     unlockAudioContexts,
   ]);
 
+  const getInputVolume = useCallback(() => {
+    const analyser = captureAnalyserRef.current;
+    const buffer = captureTimeDomainRef.current;
+    if (!analyser || !buffer) {
+      inputVolumeRef.current = 0;
+      return 0;
+    }
+    const next = smoothVolume(inputVolumeRef.current, analyserRms(analyser, buffer));
+    inputVolumeRef.current = next;
+    return next;
+  }, []);
+
+  const getOutputVolume = useCallback(() => {
+    const analyser = playbackAnalyserRef.current;
+    const buffer = playbackTimeDomainRef.current;
+    if (!analyser || !buffer) {
+      outputVolumeRef.current = 0;
+      return 0;
+    }
+    const next = smoothVolume(outputVolumeRef.current, analyserRms(analyser, buffer));
+    outputVolumeRef.current = next;
+    return next;
+  }, []);
+
   useEffect(() => {
     return () => {
       cleanup();
     };
   }, [cleanup]);
 
-  return { status, error, isAgentSpeaking, transcripts, start, stop };
+  return {
+    status,
+    error,
+    isAgentSpeaking,
+    transcripts,
+    start,
+    stop,
+    getInputVolume,
+    getOutputVolume,
+  };
 }

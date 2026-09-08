@@ -29,14 +29,14 @@ const sceneBands: SceneBand[] = [
 const BLEND = 0.018;
 
 export function sceneIllustrationOpacity(story: number, start: number, end: number) {
-  const inStart = start;
+  if (story <= start || story >= end) return 0;
   const inEnd = start + BLEND;
-  const outStart = end - BLEND;
-  const outEnd = end;
-
-  if (story <= inStart || story >= outEnd) return 0;
-  if (story < inEnd) return interpolate(story, [inStart, inEnd], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-  if (story > outStart) return interpolate(story, [outStart, outEnd], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  if (story < inEnd) {
+    return interpolate(story, [start, inEnd], [0, 1], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    });
+  }
   return 1;
 }
 

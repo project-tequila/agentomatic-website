@@ -1,4 +1,4 @@
-import { MULTILINGUAL_AVAILABILITY_PHRASE_EN, MULTILINGUAL_PROVIDER_HEADLINE } from "./multilingual-languages";
+import { MULTILINGUAL_AVAILABILITY_PHRASE_EN, MULTILINGUAL_PROVIDER_HEADLINE } from "./multilingual-languages.ts";
 
 /** Act 1 ends here — editorial story + background motion. Act 2 holds stable “ready” state. */
 export const ACT1_END = 0.35;
