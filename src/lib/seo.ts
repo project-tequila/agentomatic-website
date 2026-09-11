@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { CONTACT_PHONE_E164 } from "./site-contact.ts";
+import { CONTACT_PHONE_E164, LEGAL_ENTITY } from "./site-contact.ts";
 
 /** Canonical production origin — always `.in` (never `.com`). */
 export const DEFAULT_SITE_URL = "https://www.agentomatic.in";
@@ -20,6 +20,7 @@ export const STATIC_ROUTES = [
   "/blog",
   "/contact",
   "/privacy",
+  "/terms",
 ] as const;
 
 /**
@@ -33,7 +34,8 @@ export const STATIC_ROUTE_LASTMOD = {
   "/pricing": "2026-08-05",
   "/blog": "2026-08-15",
   "/contact": "2026-08-01",
-  "/privacy": "2026-06-15",
+  "/privacy": "2026-09-11",
+  "/terms": "2026-09-11",
 } as const satisfies Record<(typeof STATIC_ROUTES)[number], string>;
 
 const DEFAULT_OG_IMAGE = {
@@ -161,6 +163,7 @@ export function organizationJsonLd() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: SITE_NAME,
+    legalName: LEGAL_ENTITY,
     url,
     description: DEFAULT_DESCRIPTION,
     logo: `${origin}/icon`,

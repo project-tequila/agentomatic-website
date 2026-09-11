@@ -58,7 +58,7 @@ const components: PortableTextComponents = {
         <figure className="site-blog-prose__figure">
           <Image
             src={imageUrl}
-            alt={value.alt || ""}
+            alt={typeof value.alt === "string" && value.alt.trim() ? value.alt.trim() : "shop talk illustration"}
             width={1200}
             height={675}
             className="h-auto w-full"
