@@ -86,6 +86,7 @@ const nextConfig: NextConfig = {
   },
   transpilePackages: ["@helios-project/core", "sanity"],
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
         protocol: "https",

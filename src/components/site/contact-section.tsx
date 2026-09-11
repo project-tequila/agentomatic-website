@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 import { SiteSelect } from "@/components/site/site-select";
@@ -55,7 +56,7 @@ type ContactSectionProps = {
 /** Dedicated contact form. Submit posts to `/api/leads/hubspot` — do not change that path. */
 export function ContactSection({ headingLevel = "h1" }: ContactSectionProps) {
   const HeadingTag = headingLevel;
-  const [sent, setSent] = useState(false);
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const contactPhoneDisplay = formatContactPhoneDisplay(CONTACT_PHONE_E164);
@@ -133,8 +134,8 @@ export function ContactSection({ headingLevel = "h1" }: ContactSectionProps) {
         }));
         return;
       }
-      setSent(true);
       form.reset();
+      router.push("/contact/thanks");
     } catch {
       setErrors((prev) => ({
         ...prev,
@@ -178,7 +179,6 @@ export function ContactSection({ headingLevel = "h1" }: ContactSectionProps) {
           </div>
 
           <div className="site-panel site-contact-section__form">
-            {!sent ? (
               <form onSubmit={onSubmit} className="space-y-0" noValidate suppressHydrationWarning>
                 <div className="site-contact-section__form-head">
                   <p className="site-contact-section__form-kicker">the desk</p>
@@ -349,16 +349,6 @@ export function ContactSection({ headingLevel = "h1" }: ContactSectionProps) {
                   )}
                 </button>
               </form>
-            ) : (
-              <div
-                className="site-toast site-toast--success py-6 text-center"
-                role="status"
-                aria-live="polite"
-              >
-                <p className="font-medium">request received.</p>
-                <p className="mt-1 text-sm opacity-80">we&apos;ll follow up with a voice-agent walkthrough.</p>
-              </div>
-            )}
           </div>
         </div>
       </div>

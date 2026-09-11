@@ -1,9 +1,9 @@
 import { Analytics } from "@vercel/analytics/next";
-import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, IBM_Plex_Mono, Newsreader } from "next/font/google";
 
 import { JsonLd } from "@/components/site/json-ld";
+import { SiteBottomNotices } from "@/components/site/site-bottom-notices";
 import { SiteDemoCallRoot } from "@/components/site/site-demo-call-root";
 import { organizationJsonLd, rootMetadata, websiteJsonLd } from "@/lib/seo";
 
@@ -52,9 +52,11 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-[var(--brand-ink)] text-[var(--rumik-text)]" suppressHydrationWarning>
         <JsonLd data={organizationJsonLd()} />
         <JsonLd data={websiteJsonLd()} />
-        <SiteDemoCallRoot>{children}</SiteDemoCallRoot>
+        <SiteDemoCallRoot>
+          {children}
+          <SiteBottomNotices />
+        </SiteDemoCallRoot>
         <Analytics />
-        <GoogleAnalytics gaId="G-DTVTGE7GB6" />
       </body>
     </html>
   );

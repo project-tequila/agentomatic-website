@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { SiteMain } from "@/components/site/marketing-page";
 import { SitePageShell } from "@/components/site/site-page-shell";
+import { LEGAL_ENTITY } from "@/lib/site-contact";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -12,7 +13,7 @@ export const metadata: Metadata = pageMetadata({
   path: "/privacy",
 });
 
-const LAST_UPDATED = "12 August 2026";
+const LAST_UPDATED = "11 September 2026";
 
 export default function PrivacyPage() {
   return (
@@ -98,12 +99,12 @@ export default function PrivacyPage() {
 
             <h2 className="site-blog-prose__heading">5. Cookies and similar technologies</h2>
             <p className="site-blog-prose__paragraph">
-              Our site may use essential cookies and similar technologies required for security and
-              basic functionality, plus privacy-respecting analytics (including Vercel Analytics) to
-              understand aggregate traffic and performance. Third-party platforms you interact with
-              (for example Meta or LinkedIn) may set their own cookies subject to their policies.
-              You can control cookies through your browser settings; blocking some cookies may
-              affect site features.
+              Essential cookies and similar technologies keep the site secure and usable. You can
+              accept or decline Google Analytics from the cookie banner; we do not load that
+              analytics script until you accept. Vercel Analytics measures aggregate traffic without
+              a marketing cookie. Third-party platforms you interact with (for example Meta or
+              LinkedIn) may set their own cookies subject to their policies. You can also control
+              cookies through your browser settings; blocking some cookies may affect site features.
             </p>
 
             <h2 className="site-blog-prose__heading">6. Sharing and processors</h2>
@@ -191,7 +192,7 @@ export default function PrivacyPage() {
 
             <h2 className="site-blog-prose__heading">13. Contact</h2>
             <p className="site-blog-prose__paragraph">
-              Agentomatic Innovation Labs Pvt. Ltd.
+              {LEGAL_ENTITY}
               <br />
               Website:{" "}
               <a className="site-link" href="https://www.agentomatic.in">

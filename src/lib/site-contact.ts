@@ -1,6 +1,9 @@
 /** Public Twilio / business line in E.164 (e.g. +14155551234). Set in NEXT_PUBLIC_CONTACT_PHONE. */
 export const CONTACT_PHONE_E164 = process.env.NEXT_PUBLIC_CONTACT_PHONE?.trim() ?? "";
 
+/** Legal entity name used on privacy and terms. */
+export const LEGAL_ENTITY = "Agentomatic Innovation Labs Pvt. Ltd.";
+
 /** Human-readable label for the contact phone (falls back to raw E.164). */
 export function formatContactPhoneDisplay(e164: string): string {
   if (!e164) return "";
