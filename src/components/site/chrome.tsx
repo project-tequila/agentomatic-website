@@ -163,81 +163,83 @@ export function SiteChrome() {
             </HomeLogoLink>
           </motion.div>
 
-          <div className="site-chrome__mobile-contact">
-            <MotionChromeLink
-              href={CONTACT_HREF}
-              className="site-chrome-action-btn site-chrome-cta site-chrome-contact"
-              data-testid="chrome-contact-us-mobile"
-              aria-current={contactActive ? "page" : undefined}
-            >
-              {CONTACT_LABEL}
-            </MotionChromeLink>
-          </div>
+          <div className="site-chrome__rail">
+            <div className="site-chrome__mobile-contact">
+              <MotionChromeLink
+                href={CONTACT_HREF}
+                className="site-chrome-action-btn site-chrome-cta site-chrome-contact"
+                data-testid="chrome-contact-us-mobile"
+                aria-current={contactActive ? "page" : undefined}
+              >
+                {CONTACT_LABEL}
+              </MotionChromeLink>
+            </div>
 
-          <motion.button
-            type="button"
-            className="site-chrome-menu-btn"
-            aria-expanded={menuOpen}
-            aria-controls="site-nav-drawer"
-            onClick={() => setMenuOpen((o) => !o)}
-            whileTap={reduceMotion ? undefined : { scale: 0.96 }}
-            transition={{ duration: 0.18, ease: RUMIK_EASE }}
-          >
-            <span className="sr-only">{menuOpen ? "Close menu" : "Open menu"}</span>
-            <svg
-              className={cn("size-[22px]", menuOpen && "hidden")}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              aria-hidden
+            <motion.button
+              type="button"
+              className="site-chrome-menu-btn"
+              aria-expanded={menuOpen}
+              aria-controls="site-nav-drawer"
+              onClick={() => setMenuOpen((o) => !o)}
+              whileTap={reduceMotion ? undefined : { scale: 0.96 }}
+              transition={{ duration: 0.18, ease: RUMIK_EASE }}
             >
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <svg
-              className={cn("size-[22px]", !menuOpen && "hidden")}
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              aria-hidden
-            >
-              <path d="M6 6l12 12M18 6 6 18" />
-            </svg>
-          </motion.button>
+              <span className="sr-only">{menuOpen ? "Close menu" : "Open menu"}</span>
+              <svg
+                className={cn("size-[22px]", menuOpen && "hidden")}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden
+              >
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <svg
+                className={cn("size-[22px]", !menuOpen && "hidden")}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                aria-hidden
+              >
+                <path d="M6 6l12 12M18 6 6 18" />
+              </svg>
+            </motion.button>
 
-          <nav aria-label="Main" className="site-chrome__nav">
-            <ul className="site-chrome__nav-list">
-              {navItems.map((item) => (
-                <ChromeNavLink key={item.href} href={item.href} label={item.label} active={navActive(pathname, item.href)} />
-              ))}
-            </ul>
-          </nav>
+            <nav aria-label="Main" className="site-chrome__nav">
+              <ul className="site-chrome__nav-list">
+                {navItems.map((item) => (
+                  <ChromeNavLink key={item.href} href={item.href} label={item.label} active={navActive(pathname, item.href)} />
+                ))}
+              </ul>
+            </nav>
 
-          <div className="site-chrome__actions">
-            <MotionChromeLink href={BOOKER_ROUTE} className="site-chrome-action-btn site-chrome-sign-up">
-              log in
-            </MotionChromeLink>
-            <MotionChromeLink href={BOOKER_SIGNUP_ROUTE} className="site-chrome-action-btn site-chrome-sign-up">
-              sign up
-            </MotionChromeLink>
-            <MotionChromeLink
-              href={CONTACT_HREF}
-              className="site-chrome-action-btn site-chrome-cta site-chrome-contact"
-              data-testid="chrome-contact-us"
-              aria-current={contactActive ? "page" : undefined}
-            >
-              {CONTACT_LABEL}
-            </MotionChromeLink>
-            <MotionChromeCta
-              className="site-chrome-action-btn site-chrome-cta"
-              data-testid="chrome-talk-to-agent"
-              onClick={onTalkToAgent}
-            >
-              {ctaLabel}
-            </MotionChromeCta>
+            <div className="site-chrome__actions">
+              <MotionChromeLink href={BOOKER_ROUTE} className="site-chrome-action-btn site-chrome-sign-up">
+                log in
+              </MotionChromeLink>
+              <MotionChromeLink href={BOOKER_SIGNUP_ROUTE} className="site-chrome-action-btn site-chrome-sign-up">
+                sign up
+              </MotionChromeLink>
+              <MotionChromeLink
+                href={CONTACT_HREF}
+                className="site-chrome-action-btn site-chrome-cta site-chrome-contact"
+                data-testid="chrome-contact-us"
+                aria-current={contactActive ? "page" : undefined}
+              >
+                {CONTACT_LABEL}
+              </MotionChromeLink>
+              <MotionChromeCta
+                className="site-chrome-action-btn site-chrome-cta"
+                data-testid="chrome-talk-to-agent"
+                onClick={onTalkToAgent}
+              >
+                {ctaLabel}
+              </MotionChromeCta>
+            </div>
           </div>
         </div>
       </motion.header>
