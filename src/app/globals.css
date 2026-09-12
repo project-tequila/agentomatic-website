@@ -2049,7 +2049,44 @@
 }
 
 .site-chrome__brand {
+  position: relative;
+  z-index: 2;
   flex-shrink: 0;
+}
+
+.site-chrome__rail {
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  align-items: center;
+  transform: translate3d(0, -120%, 0);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--site-chrome-reveal-duration) var(--rumik-ease),
+    opacity calc(var(--site-chrome-reveal-duration) * 0.85) var(--rumik-ease);
+}
+
+.site-chrome:hover .site-chrome__rail,
+.site-chrome:focus-within .site-chrome__rail,
+.site-chrome--menu-open .site-chrome__rail {
+  transform: none;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-chrome__rail {
+    transform: none;
+  }
+}
+
+@media (hover: none) {
+  .site-chrome__rail {
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .site-chrome__nav {
@@ -4511,6 +4548,17 @@
   height: 100%;
   z-index: 2;
   filter: brightness(1.1) contrast(1.06);
+}
+
+.frontdesk-voice-orb foreignObject {
+  overflow: visible;
+  pointer-events: none;
+}
+
+.waveform-ring,
+.waveform-ring canvas {
+  display: block;
+  pointer-events: none;
 }
 
 .frontdesk-voice-orb__wave {

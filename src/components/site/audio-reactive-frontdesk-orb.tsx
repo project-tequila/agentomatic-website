@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { FrontdeskVoiceOrb } from "@/components/site/frontdesk-voice-orb";
+import { FRONTDESK_ORB_VIEWBOX, FrontdeskVoiceOrb } from "@/components/site/frontdesk-voice-orb";
 import {
   orbAudioEnergy,
   orbIntensityFromEnergy,
@@ -17,7 +17,7 @@ type AudioReactiveFrontdeskOrbProps = {
 };
 
 /**
- * Same SVG glass orb as the live site, driven by mic/TTS meters.
+ * Waveform-ring orb in the same SVG slot, driven by mic/TTS meters.
  */
 export function AudioReactiveFrontdeskOrb({
   agentState,
@@ -26,6 +26,7 @@ export function AudioReactiveFrontdeskOrb({
   reduceMotion,
 }: AudioReactiveFrontdeskOrbProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
+  const levelRef = useRef(0);
   const stateRef = useRef(agentState);
   const inputRef = useRef(getInputVolume);
   const outputRef = useRef(getOutputVolume);
@@ -39,6 +40,7 @@ export function AudioReactiveFrontdeskOrb({
     const node = wrapRef.current;
     if (reduceMotion) {
       setIntensity(0.7);
+      levelRef.current = 0;
       node?.style.setProperty("--voice-orb-energy", "0");
       return;
     }
@@ -48,6 +50,7 @@ export function AudioReactiveFrontdeskOrb({
 
     const tick = () => {
       const energy = orbAudioEnergy(stateRef.current, inputRef.current(), outputRef.current());
+      levelRef.current = energy;
       wrapRef.current?.style.setProperty("--voice-orb-energy", energy.toFixed(3));
       const quant = Math.round(energy * 14) / 14;
       if (quant !== lastQuant) {
@@ -64,7 +67,7 @@ export function AudioReactiveFrontdeskOrb({
   return (
     <div ref={wrapRef} className="voice-focus__orb-reactive">
       <svg
-        viewBox="260 120 200 200"
+        viewBox={FRONTDESK_ORB_VIEWBOX}
         className="voice-focus__orb-svg"
         fill="none"
         preserveAspectRatio="xMidYMid meet"
@@ -77,6 +80,8 @@ export function AudioReactiveFrontdeskOrb({
           mode="cta"
           idSuffix="focus"
           reduceMotion={reduceMotion}
+          agentState={agentState}
+          levelRef={levelRef}
         />
       </svg>
     </div>

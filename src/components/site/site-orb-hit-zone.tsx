@@ -5,7 +5,7 @@ import { usePrefersReducedMotion } from "@/lib/story/use-prefers-reduced-motion"
 import { useBeginVoiceDemo } from "@/lib/demo-call/use-begin-voice-demo";
 import { cn } from "@/lib/utils";
 
-import { FrontdeskVoiceOrb } from "./frontdesk-voice-orb";
+import { FRONTDESK_ORB_VIEWBOX, FrontdeskVoiceOrb } from "./frontdesk-voice-orb";
 
 type SiteOrbHitZoneProps = {
   variant: "immersive" | "floating";
@@ -29,7 +29,7 @@ export function SiteOrbHitZone({ variant, className }: SiteOrbHitZoneProps) {
     >
       {variant === "floating" ? (
         <span className="site-orb-hit__orb" aria-hidden>
-          <svg viewBox="300 150 120 140" className="site-orb-hit__orb-svg" fill="none" preserveAspectRatio="xMidYMid meet">
+          <svg viewBox={FRONTDESK_ORB_VIEWBOX} className="site-orb-hit__orb-svg" fill="none" preserveAspectRatio="xMidYMid meet">
             <FrontdeskVoiceOrb
               cx={360}
               cy={220}
