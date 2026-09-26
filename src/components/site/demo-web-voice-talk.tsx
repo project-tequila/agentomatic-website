@@ -2,13 +2,9 @@
 
 import { Loader2, Mic, Square } from "lucide-react";
 
+import { DemoVoiceEngineControls } from "@/components/site/demo-voice-engine-controls";
 import { useBeginVoiceDemo } from "@/lib/demo-call/use-begin-voice-demo";
 import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
-import { canChangeDemoWebVoiceLanguage } from "@/lib/voice/demo-web-voice-language";
-import {
-  VOICE_LANGUAGE_OPTIONS,
-  type VoiceLanguageCode,
-} from "@/lib/voice-languages";
 import { cn } from "@/lib/utils";
 
 function statusLine(status: string, isAgentSpeaking: boolean): string {
@@ -26,15 +22,13 @@ type DemoWebVoiceTalkProps = {
 
 /**
  * Primary in-browser Talk control for the demo strip. Call me stays as fallback.
- * Language is selected before starting a session (same list as phone outbound).
+ * Speech LLM and cascaded LLM each have their own language speaker.
  */
 export function DemoWebVoiceTalk({ className }: DemoWebVoiceTalkProps) {
-  const { status, error, isAgentSpeaking, transcripts, language, setLanguage, stop } =
-    useDemoWebVoice();
+  const { status, error, isAgentSpeaking, transcripts, stop } = useDemoWebVoice();
   const beginVoiceDemo = useBeginVoiceDemo();
   const live =
     status === "requesting-mic" || status === "connecting" || status === "listening";
-  const languageEditable = canChangeDemoWebVoiceLanguage(status);
   const recent = transcripts.slice(-4);
 
   async function onTalk() {
@@ -48,25 +42,7 @@ export function DemoWebVoiceTalk({ className }: DemoWebVoiceTalkProps) {
   return (
     <div className={cn("demo-web-voice", className)}>
       <div className="demo-web-voice__controls">
-        <label className="demo-web-voice__language" htmlFor="demo-web-voice-language">
-          <span className="sr-only">Conversation language</span>
-          <select
-            id="demo-web-voice-language"
-            name="language"
-            data-testid="demo-web-voice-language"
-            value={language}
-            disabled={!languageEditable}
-            onChange={(event) => setLanguage(event.target.value as VoiceLanguageCode)}
-            className="demo-web-voice__language-select"
-            aria-label="Conversation language"
-          >
-            {VOICE_LANGUAGE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <DemoVoiceEngineControls variant="strip" />
 
         <button
           type="button"
