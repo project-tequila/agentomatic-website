@@ -26,10 +26,12 @@ Header: `X-Demo-Api-Key: <DEMO_OUTBOUND_API_KEY>` (reuse outbound secret; do not
 Request:
 
 ```json
-{ "language": "en" }
+{ "language": "en", "speech_path": "speech_llm" }
 ```
 
 `language` optional. Default tenant language / `en`.
+
+`speech_path` optional. `speech_llm` or `cascade`. The marketing demo sends the visitor's choice. Omitted keeps the web-demo speech-LLM pin. `cascade` stays on the text LLM plus STT/TTS. The speech path uses the Gemini Live language speaker. Cascade uses the Deepgram/Sarvam language speaker.
 
 Success `200`:
 

@@ -32,6 +32,7 @@ export interface VoiceTranscriptEntry {
 
 export interface UseRealtimeVoiceOptions {
   language?: string;
+  speechPath?: "speech_llm" | "cascade";
 }
 
 export interface UseRealtimeVoiceResult {
@@ -164,11 +165,14 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
   return bytes.buffer;
 }
 
-async function mintDemoWebVoiceSession(language: string): Promise<string> {
+async function mintDemoWebVoiceSession(
+  language: string,
+  speechPath: "speech_llm" | "cascade",
+): Promise<string> {
   const res = await fetch("/api/demo/web-voice", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ language }),
+    body: JSON.stringify({ language, speech_path: speechPath }),
   });
 
   let data: MintResponse = {};
@@ -199,6 +203,7 @@ export function useRealtimeVoice(
   options: UseRealtimeVoiceOptions = {},
 ): UseRealtimeVoiceResult {
   const language = options.language ?? "en";
+  const speechPath = options.speechPath ?? "speech_llm";
 
   const [status, setStatus] = useState<VoiceConnectionStatus>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -447,7 +452,7 @@ export function useRealtimeVoice(
             noiseSuppression: true,
           },
         }),
-        mintDemoWebVoiceSession(language),
+        mintDemoWebVoiceSession(language, speechPath),
       ]);
       mediaStreamRef.current = mediaStream;
 
@@ -571,6 +576,7 @@ export function useRealtimeVoice(
     cleanup,
     handleServerMessage,
     language,
+    speechPath,
     resumePlaybackContext,
     scheduleAudioChunk,
     setStatusSafe,

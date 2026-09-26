@@ -91,6 +91,7 @@ export async function placeDemoOutboundCall(params: {
  */
 export async function mintDemoWebVoiceSession(params?: {
   language?: string;
+  speechPath?: "speech_llm" | "cascade";
 }): Promise<DemoWebVoiceSessionResult> {
   if (process.env.DEMO_WEB_VOICE_ENABLED !== "true") {
     throw new Error("Demo web voice is disabled (set DEMO_WEB_VOICE_ENABLED=true).");
@@ -110,6 +111,7 @@ export async function mintDemoWebVoiceSession(params?: {
     },
     body: JSON.stringify({
       language: params?.language,
+      ...(params?.speechPath ? { speech_path: params.speechPath } : {}),
     }),
     cache: "no-store",
   });

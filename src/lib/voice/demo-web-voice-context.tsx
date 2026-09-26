@@ -10,8 +10,14 @@ import {
 } from "react";
 
 import {
+  CASCADE_VOICE_LANGUAGE_OPTIONS,
+  DEFAULT_DEMO_VOICE_ENGINE,
   DEFAULT_DEMO_VOICE_LANGUAGE,
+  normalizeSpeechLlmLanguage,
   normalizeVoiceLanguage,
+  SPEECH_LLM_LANGUAGE_OPTIONS,
+  type DemoVoiceEngine,
+  type SpeechLlmLanguageCode,
   type VoiceLanguageCode,
 } from "@/lib/voice-languages";
 
@@ -22,44 +28,69 @@ import {
 } from "./useRealtimeVoice";
 
 export type DemoWebVoiceContextValue = UseRealtimeVoiceResult & {
-  language: VoiceLanguageCode;
-  setLanguage: (language: VoiceLanguageCode) => void;
+  engine: DemoVoiceEngine;
+  setEngine: (engine: DemoVoiceEngine) => void;
+  language: string;
+  setLanguage: (language: string) => void;
+  languageOptions: ReadonlyArray<{ value: string; label: string }>;
 };
 
 const DemoWebVoiceContext = createContext<DemoWebVoiceContextValue | null>(null);
 
 /**
  * One shared demo voice session for chrome, orb, HUD, and the call strip.
- * Language is chosen before connect and locked while a session is live.
+ * Engine and language are chosen before connect and locked while a session is live.
+ * Speech LLM and cascaded LLM keep separate language selections.
  */
 export function DemoWebVoiceProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<VoiceLanguageCode>(DEFAULT_DEMO_VOICE_LANGUAGE);
-  const voice = useRealtimeVoice({ language });
+  const [engine, setEngineState] = useState<DemoVoiceEngine>(DEFAULT_DEMO_VOICE_ENGINE);
+  const [speechLanguage, setSpeechLanguage] = useState<SpeechLlmLanguageCode>("en");
+  const [cascadeLanguage, setCascadeLanguage] = useState<VoiceLanguageCode>(
+    DEFAULT_DEMO_VOICE_LANGUAGE,
+  );
+  const language = engine === "speech_llm" ? speechLanguage : cascadeLanguage;
+  const voice = useRealtimeVoice({ language, speechPath: engine });
 
-  const setLanguage = useCallback(
-    (nextLanguage: VoiceLanguageCode) => {
-      if (!canChangeDemoWebVoiceLanguage(voice.status)) {
-        return;
-      }
-      setLanguageState(normalizeVoiceLanguage(nextLanguage));
+  const setEngine = useCallback(
+    (nextEngine: DemoVoiceEngine) => {
+      if (!canChangeDemoWebVoiceLanguage(voice.status)) return;
+      setEngineState(nextEngine);
     },
     [voice.status],
   );
 
+  const setLanguage = useCallback(
+    (nextLanguage: string) => {
+      if (!canChangeDemoWebVoiceLanguage(voice.status)) return;
+      if (engine === "speech_llm") {
+        setSpeechLanguage(normalizeSpeechLlmLanguage(nextLanguage));
+        return;
+      }
+      setCascadeLanguage(normalizeVoiceLanguage(nextLanguage));
+    },
+    [engine, voice.status],
+  );
+
+  const languageOptions =
+    engine === "speech_llm" ? SPEECH_LLM_LANGUAGE_OPTIONS : CASCADE_VOICE_LANGUAGE_OPTIONS;
+
   const value = useMemo(
     () => ({
       ...voice,
+      engine,
+      setEngine,
       language,
       setLanguage,
+      languageOptions,
     }),
-    [voice, language, setLanguage],
+    [voice, engine, setEngine, language, setLanguage, languageOptions],
   );
 
   return <DemoWebVoiceContext.Provider value={value}>{children}</DemoWebVoiceContext.Provider>;
 }
 
 /**
- * Shared demo web-voice session + language selection.
+ * Shared demo web-voice session, engine, and language selection.
  */
 export function useDemoWebVoice(): DemoWebVoiceContextValue {
   const ctx = useContext(DemoWebVoiceContext);

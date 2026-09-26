@@ -4,14 +4,10 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Loader2, Square, X } from "lucide-react";
 import { useCallback, useEffect } from "react";
 
+import { DemoVoiceEngineControls } from "@/components/site/demo-voice-engine-controls";
 import { useDemoCall } from "@/lib/demo-call/demo-call-context";
 import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
-import { canChangeDemoWebVoiceLanguage } from "@/lib/voice/demo-web-voice-language";
 import { mapVoiceEnergyOrbState } from "@/lib/voice/voice-orb-state";
-import {
-  VOICE_LANGUAGE_OPTIONS,
-  type VoiceLanguageCode,
-} from "@/lib/voice-languages";
 import { cn } from "@/lib/utils";
 
 import { AudioReactiveFrontdeskOrb } from "./audio-reactive-frontdesk-orb";
@@ -42,8 +38,6 @@ export function VoiceFocusExperience() {
     error,
     isAgentSpeaking,
     transcripts,
-    language,
-    setLanguage,
     stop,
     getInputVolume,
     getOutputVolume,
@@ -55,7 +49,6 @@ export function VoiceFocusExperience() {
     status === "listening" ||
     isAgentSpeaking;
   const visible = isOpen || voiceActive;
-  const languageEditable = canChangeDemoWebVoiceLanguage(status);
   const recent = transcripts.slice(-4);
 
   const onEnd = useCallback(() => {
@@ -116,25 +109,7 @@ export function VoiceFocusExperience() {
               />
             </div>
 
-            <label className="voice-focus__language" htmlFor="voice-focus-language">
-              <span className="sr-only">Conversation language</span>
-              <select
-                id="voice-focus-language"
-                name="language"
-                data-testid="voice-focus-language"
-                value={language}
-                disabled={!languageEditable}
-                onChange={(event) => setLanguage(event.target.value as VoiceLanguageCode)}
-                className="voice-focus__language-select"
-                aria-label="Conversation language"
-              >
-                {VOICE_LANGUAGE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <DemoVoiceEngineControls variant="focus" />
 
             <p className="voice-focus__status" aria-live="polite">
               {status === "connecting" || status === "requesting-mic" ? (
