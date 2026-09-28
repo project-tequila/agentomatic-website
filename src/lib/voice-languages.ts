@@ -184,24 +184,33 @@ const SPEECH_LLM_ALIASES: Record<string, SpeechLlmLanguageCode> = {
 export const DEFAULT_DEMO_VOICE_LANGUAGE: VoiceLanguageCode = "en";
 
 /**
- * Normalize a visitor language choice to a selectable voice code.
+ * Cascade catalog match. Legacy `or` becomes `od`. Unknown codes return null
+ * instead of the English fallback `normalizeVoiceLanguage` uses for the client.
  */
-export function normalizeVoiceLanguage(language: string | null | undefined): VoiceLanguageCode {
-  const languageCode = (language ?? DEFAULT_DEMO_VOICE_LANGUAGE).split("-")[0]!.toLowerCase();
+function matchCascadeVoiceLanguage(language: string): VoiceLanguageCode | null {
+  const languageCode = language.split("-")[0]!.toLowerCase();
   const canonicalLanguageCode = languageCode === "or" ? "od" : languageCode;
-  return VOICE_LANGUAGE_CODES.has(canonicalLanguageCode)
-    ? (canonicalLanguageCode as VoiceLanguageCode)
-    : DEFAULT_DEMO_VOICE_LANGUAGE;
+  if (!VOICE_LANGUAGE_CODES.has(canonicalLanguageCode)) return null;
+  return canonicalLanguageCode as VoiceLanguageCode;
 }
 
 /**
- * Normalize a speech-LLM language onto a Gemini Live code.
+ * Normalize a visitor language choice to a selectable voice code.
  */
-export function normalizeSpeechLlmLanguage(
-  language: string | null | undefined,
-): SpeechLlmLanguageCode {
-  const raw = (language ?? "en").trim().replace(/_/g, "-");
-  if (!raw) return "en";
+export function normalizeVoiceLanguage(language: string | null | undefined): VoiceLanguageCode {
+  return (
+    matchCascadeVoiceLanguage(language ?? DEFAULT_DEMO_VOICE_LANGUAGE) ??
+    DEFAULT_DEMO_VOICE_LANGUAGE
+  );
+}
+
+/**
+ * Speech-LLM catalog match, including aliases (`od` → `or`, `zh-CN` → `zh-Hans`).
+ * Unknown codes return null instead of the English fallback.
+ */
+function matchSpeechLlmLanguage(language: string): SpeechLlmLanguageCode | null {
+  const raw = language.trim().replace(/_/g, "-");
+  if (!raw) return null;
   const lower = raw.toLowerCase();
   const aliased = SPEECH_LLM_ALIASES[lower];
   if (aliased && SPEECH_LLM_LANGUAGE_CODES.has(aliased)) return aliased;
@@ -210,8 +219,17 @@ export function normalizeSpeechLlmLanguage(
   const primary = lower.split("-")[0] ?? "";
   const primaryAlias = SPEECH_LLM_ALIASES[primary];
   if (primaryAlias && SPEECH_LLM_LANGUAGE_CODES.has(primaryAlias)) return primaryAlias;
-  const primaryMatch = SPEECH_LLM_LANGUAGE_BY_LOWER.get(primary);
-  return primaryMatch ?? "en";
+  return SPEECH_LLM_LANGUAGE_BY_LOWER.get(primary) ?? null;
+}
+
+/**
+ * Normalize a speech-LLM language onto a Gemini Live code.
+ */
+export function normalizeSpeechLlmLanguage(
+  language: string | null | undefined,
+): SpeechLlmLanguageCode {
+  if (language == null) return "en";
+  return matchSpeechLlmLanguage(language) ?? "en";
 }
 
 /**
@@ -220,4 +238,88 @@ export function normalizeSpeechLlmLanguage(
 export function parseDemoVoiceEngine(value: string | null | undefined): DemoVoiceEngine | null {
   if (value === "speech_llm" || value === "cascade") return value;
   return null;
+}
+
+const DEMO_WEB_VOICE_SPEECH_PATH_ERROR = "speech_path must be speech_llm or cascade.";
+const DEMO_WEB_VOICE_INVALID_JSON_ERROR = "Invalid JSON body.";
+
+export function isDemoWebVoiceJsonContentType(contentType: string | null | undefined): boolean {
+  return (contentType ?? "").toLowerCase().includes("application/json");
+}
+
+function isDemoWebVoiceJsonObject(
+  body: unknown,
+): body is { language?: unknown; speech_path?: unknown } {
+  return typeof body === "object" && body !== null && !Array.isArray(body);
+}
+
+function demoWebVoiceLanguageError(engine: DemoVoiceEngine): string {
+  return `language must be a ${engine} catalog code.`;
+}
+
+/**
+ * Catalog code for one demo engine. Null when the normalizer would coerce
+ * an unrecognized code to English.
+ */
+export function matchDemoVoiceCatalogLanguage(
+  language: string,
+  engine: DemoVoiceEngine,
+): VoiceLanguageCode | SpeechLlmLanguageCode | null {
+  if (engine === "cascade") return matchCascadeVoiceLanguage(language);
+  return matchSpeechLlmLanguage(language);
+}
+
+export type DemoWebVoiceSessionBodyResult =
+  | { ok: true; language?: string; speechPath?: DemoVoiceEngine }
+  | { ok: false; error: string };
+
+/**
+ * Validate POST /api/demo/web-voice JSON.
+ * Empty language is omitted. A present language must resolve onto the catalog
+ * for speech_path, or for speech_llm when speech_path is omitted.
+ * speechPath is set only when the client sent a valid speech_path.
+ */
+export function parseDemoWebVoiceSessionBody(body: {
+  language?: unknown;
+  speech_path?: unknown;
+}): DemoWebVoiceSessionBodyResult {
+  let speechPath: DemoVoiceEngine | undefined;
+  if (body.speech_path !== undefined) {
+    const parsed = parseDemoVoiceEngine(
+      typeof body.speech_path === "string" ? body.speech_path.trim() : "",
+    );
+    if (!parsed) {
+      return { ok: false, error: DEMO_WEB_VOICE_SPEECH_PATH_ERROR };
+    }
+    speechPath = parsed;
+  }
+
+  if (typeof body.language === "string" && body.language.trim()) {
+    const engine = speechPath ?? DEFAULT_DEMO_VOICE_ENGINE;
+    const language = matchDemoVoiceCatalogLanguage(body.language.trim(), engine);
+    if (!language) {
+      return { ok: false, error: demoWebVoiceLanguageError(engine) };
+    }
+    return speechPath ? { ok: true, language, speechPath } : { ok: true, language };
+  }
+
+  return speechPath ? { ok: true, speechPath } : { ok: true };
+}
+
+/**
+ * Gate for POST /api/demo/web-voice before a session is minted.
+ * Content-Type must contain application/json, and the body must be a JSON object.
+ * The object is then checked with parseDemoWebVoiceSessionBody.
+ */
+export function parseDemoWebVoicePost(input: {
+  contentType: string | null;
+  body: unknown;
+}): DemoWebVoiceSessionBodyResult {
+  if (!isDemoWebVoiceJsonContentType(input.contentType)) {
+    return { ok: false, error: DEMO_WEB_VOICE_INVALID_JSON_ERROR };
+  }
+  if (!isDemoWebVoiceJsonObject(input.body)) {
+    return { ok: false, error: DEMO_WEB_VOICE_INVALID_JSON_ERROR };
+  }
+  return parseDemoWebVoiceSessionBody(input.body);
 }

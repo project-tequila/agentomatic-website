@@ -3,7 +3,8 @@
 import { Loader2, Mic, Square } from "lucide-react";
 
 import { DemoVoiceEngineControls } from "@/components/site/demo-voice-engine-controls";
-import { useBeginVoiceDemo } from "@/lib/demo-call/use-begin-voice-demo";
+import { DemoVoiceTranscript } from "@/components/site/demo-voice-transcript";
+import { useDemoCall } from "@/lib/demo-call/demo-call-context";
 import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
 import { cn } from "@/lib/utils";
 
@@ -13,7 +14,7 @@ function statusLine(status: string, isAgentSpeaking: boolean): string {
   if (status === "error") return "Talk unavailable";
   if (isAgentSpeaking) return "Live";
   if (status === "listening") return "Listening";
-  return "Ready to talk";
+  return "Choose a model and language, then Start Talk";
 }
 
 type DemoWebVoiceTalkProps = {
@@ -25,18 +26,18 @@ type DemoWebVoiceTalkProps = {
  * Speech LLM and cascaded LLM each have their own language speaker.
  */
 export function DemoWebVoiceTalk({ className }: DemoWebVoiceTalkProps) {
-  const { status, error, isAgentSpeaking, transcripts, stop } = useDemoWebVoice();
-  const beginVoiceDemo = useBeginVoiceDemo();
+  const { status, error, isAgentSpeaking, transcripts, start, stop } = useDemoWebVoice();
+  const { openDemoCall } = useDemoCall();
   const live =
     status === "requesting-mic" || status === "connecting" || status === "listening";
-  const recent = transcripts.slice(-4);
 
-  async function onTalk() {
+  function onStartTalk() {
     if (live) {
       stop();
       return;
     }
-    beginVoiceDemo();
+    void start();
+    openDemoCall();
   }
 
   return (
@@ -48,9 +49,9 @@ export function DemoWebVoiceTalk({ className }: DemoWebVoiceTalkProps) {
           type="button"
           data-testid="demo-talk-control"
           className={cn("demo-web-voice__talk", live && "demo-web-voice__talk--live")}
-          onClick={() => void onTalk()}
+          onClick={onStartTalk}
           aria-pressed={live}
-          aria-label={live ? "End talk" : "Talk now"}
+          aria-label={live ? "End talk" : "Start Talk"}
         >
           {status === "connecting" || status === "requesting-mic" ? (
             <Loader2 className="size-4 animate-spin" aria-hidden />
@@ -66,7 +67,7 @@ export function DemoWebVoiceTalk({ className }: DemoWebVoiceTalkProps) {
                 ? "Allow mic"
                 : live
                   ? "End"
-                  : "Talk now"}
+                  : "Start Talk"}
           </span>
         </button>
       </div>
@@ -75,22 +76,7 @@ export function DemoWebVoiceTalk({ className }: DemoWebVoiceTalkProps) {
         {error ? error : statusLine(status, isAgentSpeaking)}
       </p>
 
-      {recent.length > 0 ? (
-        <ol className="demo-web-voice__transcript" aria-live="polite" aria-relevant="additions">
-          {recent.map((line) => (
-            <li
-              key={line.id}
-              className={cn(
-                "demo-web-voice__line",
-                line.role === "assistant" && "demo-web-voice__line--agent",
-              )}
-            >
-              <span className="demo-web-voice__who">{line.role === "assistant" ? "Desk" : "You"}</span>
-              {line.text}
-            </li>
-          ))}
-        </ol>
-      ) : null}
+      <DemoVoiceTranscript entries={transcripts} variant="strip" />
     </div>
   );
 }
