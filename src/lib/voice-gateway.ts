@@ -1,3 +1,10 @@
+import {
+  DEFAULT_DEMO_VOICE_ENGINE,
+  matchDemoVoiceCatalogLanguage,
+  parseDemoVoiceEngine,
+  type DemoVoiceEngine,
+} from "./voice-languages.ts";
+
 const DEFAULT_GATEWAY_URL = "https://gateway-production-56d3.up.railway.app";
 
 export function getApiGatewayBaseUrl(): string {
@@ -87,11 +94,35 @@ export async function placeDemoOutboundCall(params: {
 }
 
 /**
+ * Gateway JSON for the demo web-voice mint.
+ * Language is included only when it matches the catalog for speech_path,
+ * or for speech_llm when speech_path is omitted. speech_path is included
+ * only when it is speech_llm or cascade.
+ */
+export function buildDemoWebVoiceGatewayPayload(params?: {
+  language?: string;
+  speechPath?: string;
+}): { language?: string; speech_path?: DemoVoiceEngine } {
+  const payload: { language?: string; speech_path?: DemoVoiceEngine } = {};
+  const speechPath = parseDemoVoiceEngine(
+    typeof params?.speechPath === "string" ? params.speechPath.trim() : undefined,
+  );
+  const engine = speechPath ?? DEFAULT_DEMO_VOICE_ENGINE;
+  const rawLanguage = typeof params?.language === "string" ? params.language.trim() : "";
+  if (rawLanguage) {
+    const language = matchDemoVoiceCatalogLanguage(rawLanguage, engine);
+    if (language) payload.language = language;
+  }
+  if (speechPath) payload.speech_path = speechPath;
+  return payload;
+}
+
+/**
  * Mint a short-lived in-browser demo voice WebSocket session (no login, no phone).
  */
 export async function mintDemoWebVoiceSession(params?: {
   language?: string;
-  speechPath?: "speech_llm" | "cascade";
+  speechPath?: string;
 }): Promise<DemoWebVoiceSessionResult> {
   if (process.env.DEMO_WEB_VOICE_ENABLED !== "true") {
     throw new Error("Demo web voice is disabled (set DEMO_WEB_VOICE_ENABLED=true).");
@@ -109,10 +140,7 @@ export async function mintDemoWebVoiceSession(params?: {
       "Content-Type": "application/json",
       "X-Demo-Api-Key": apiKey,
     },
-    body: JSON.stringify({
-      language: params?.language,
-      ...(params?.speechPath ? { speech_path: params.speechPath } : {}),
-    }),
+    body: JSON.stringify(buildDemoWebVoiceGatewayPayload(params)),
     cache: "no-store",
   });
 

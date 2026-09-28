@@ -1,15 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { clientIpFromHeaders, demoWebVoiceLimiter } from "@/lib/ip-rate-limit";
-import { parseDemoVoiceEngine } from "@/lib/voice-languages";
+import { isDemoWebVoiceJsonContentType, parseDemoWebVoicePost } from "@/lib/voice-languages";
 import { mintDemoWebVoiceSession } from "@/lib/voice-gateway";
 
 export const runtime = "nodejs";
-
-type WebVoiceBody = {
-  language?: string;
-  speech_path?: string;
-};
 
 export async function POST(request: Request) {
   if (process.env.DEMO_WEB_VOICE_ENABLED !== "true") {
@@ -24,34 +19,26 @@ export async function POST(request: Request) {
     );
   }
 
-  let language: string | undefined;
-  let speechPath: "speech_llm" | "cascade" | undefined;
-  const contentType = request.headers.get("content-type") ?? "";
-  if (contentType.includes("application/json")) {
+  const contentType = request.headers.get("content-type");
+  let body: unknown;
+  if (isDemoWebVoiceJsonContentType(contentType)) {
     try {
-      const body = (await request.json()) as WebVoiceBody;
-      if (typeof body.language === "string" && body.language.trim()) {
-        language = body.language.trim();
-      }
-      if (body.speech_path !== undefined) {
-        const parsed = parseDemoVoiceEngine(
-          typeof body.speech_path === "string" ? body.speech_path.trim() : "",
-        );
-        if (!parsed) {
-          return NextResponse.json(
-            { error: "speech_path must be speech_llm or cascade." },
-            { status: 400 },
-          );
-        }
-        speechPath = parsed;
-      }
+      body = await request.json();
     } catch {
       return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
     }
   }
 
+  const parsed = parseDemoWebVoicePost({ contentType, body });
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
+  }
+
   try {
-    const result = await mintDemoWebVoiceSession({ language, speechPath });
+    const result = await mintDemoWebVoiceSession({
+      language: parsed.language,
+      speechPath: parsed.speechPath,
+    });
     return NextResponse.json({
       ws_url: result.ws_url,
       tenant_id: result.tenant_id,

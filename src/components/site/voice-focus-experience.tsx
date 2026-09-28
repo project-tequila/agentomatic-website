@@ -1,10 +1,11 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Loader2, Square, X } from "lucide-react";
+import { Loader2, Mic, Square, X } from "lucide-react";
 import { useCallback, useEffect } from "react";
 
 import { DemoVoiceEngineControls } from "@/components/site/demo-voice-engine-controls";
+import { DemoVoiceTranscript } from "@/components/site/demo-voice-transcript";
 import { useDemoCall } from "@/lib/demo-call/demo-call-context";
 import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
 import { mapVoiceEnergyOrbState } from "@/lib/voice/voice-orb-state";
@@ -22,7 +23,7 @@ function statusLine(
   if (status === "connecting") return "Connecting…";
   if (isAgentSpeaking) return "Agent speaking — jump in anytime";
   if (status === "listening") return "Listening…";
-  if (status === "idle") return "Tap Talk to Agent to start";
+  if (status === "idle") return "Choose a voice model and language, then press Start Talk.";
   return "Starting…";
 }
 
@@ -38,6 +39,7 @@ export function VoiceFocusExperience() {
     error,
     isAgentSpeaking,
     transcripts,
+    start,
     stop,
     getInputVolume,
     getOutputVolume,
@@ -49,7 +51,6 @@ export function VoiceFocusExperience() {
     status === "listening" ||
     isAgentSpeaking;
   const visible = isOpen || voiceActive;
-  const recent = transcripts.slice(-4);
 
   const onEnd = useCallback(() => {
     stop();
@@ -94,60 +95,68 @@ export function VoiceFocusExperience() {
             type="button"
             className="voice-focus__close"
             onClick={onEnd}
-            aria-label="End talk and close"
+            aria-label={voiceActive ? "End talk and close" : "Close"}
           >
             <X className="size-4" strokeWidth={2} aria-hidden />
           </button>
 
           <div className="voice-focus__stage">
-            <div className="voice-focus__orb" data-voice-state={agentState} aria-hidden>
-              <AudioReactiveFrontdeskOrb
-                agentState={agentState}
-                getInputVolume={getInputVolume}
-                getOutputVolume={getOutputVolume}
-                reduceMotion={!!reduceMotion}
-              />
+            <div className="voice-focus__mast">
+              <div
+                className={cn("voice-focus__orb", voiceActive && "voice-focus__orb--live")}
+                data-voice-state={agentState}
+                aria-hidden
+              >
+                <AudioReactiveFrontdeskOrb
+                  agentState={agentState}
+                  getInputVolume={getInputVolume}
+                  getOutputVolume={getOutputVolume}
+                  reduceMotion={!!reduceMotion}
+                />
+              </div>
+
+              <DemoVoiceEngineControls variant="focus" />
+
+              <p className="voice-focus__status" aria-live="polite">
+                {status === "connecting" || status === "requesting-mic" ? (
+                  <Loader2 className="voice-focus__status-icon animate-spin" aria-hidden />
+                ) : null}
+                {line}
+              </p>
             </div>
 
-            <DemoVoiceEngineControls variant="focus" />
+            <DemoVoiceTranscript entries={transcripts} variant="focus" />
 
-            <p className="voice-focus__status" aria-live="polite">
-              {status === "connecting" || status === "requesting-mic" ? (
-                <Loader2 className="voice-focus__status-icon animate-spin" aria-hidden />
-              ) : null}
-              {line}
-            </p>
-
-            {recent.length > 0 ? (
-              <ol className="voice-focus__transcript" aria-live="polite" aria-relevant="additions">
-                {recent.map((entry) => (
-                  <li
-                    key={entry.id}
-                    className={cn(
-                      "voice-focus__line",
-                      entry.role === "assistant" && "voice-focus__line--agent",
-                    )}
-                  >
-                    <span className="voice-focus__who">{entry.role === "assistant" ? "Agent" : "You"}</span>
-                    {entry.text}
-                  </li>
-                ))}
-              </ol>
-            ) : null}
-
-            <button
-              type="button"
-              className={cn("voice-focus__end", voiceActive && "voice-focus__end--live")}
-              onClick={onEnd}
-              aria-label="End talk"
-            >
-              {status === "connecting" || status === "requesting-mic" ? (
-                <Loader2 className="size-4 animate-spin" aria-hidden />
+            <div className="voice-focus__actions">
+              {voiceActive ? (
+                <button
+                  type="button"
+                  className="voice-focus__end voice-focus__end--live"
+                  onClick={onEnd}
+                  aria-label="End talk"
+                >
+                  {status === "connecting" || status === "requesting-mic" ? (
+                    <Loader2 className="size-4 animate-spin" aria-hidden />
+                  ) : (
+                    <Square className="size-3.5" strokeWidth={2} aria-hidden />
+                  )}
+                  End talk
+                </button>
               ) : (
-                <Square className="size-3.5" strokeWidth={2} aria-hidden />
+                <button
+                  type="button"
+                  className="voice-focus__start"
+                  data-testid="voice-focus-start-talk"
+                  onClick={() => {
+                    void start();
+                  }}
+                  aria-label="Start Talk"
+                >
+                  <Mic className="size-4" strokeWidth={1.75} aria-hidden />
+                  Start Talk
+                </button>
               )}
-              {voiceActive ? "End talk" : "Close"}
-            </button>
+            </div>
           </div>
         </motion.div>
       ) : null}
