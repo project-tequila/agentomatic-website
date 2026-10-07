@@ -1,18 +1,33 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import { useEffect, useState, type ComponentType } from "react";
 
 import { HomeHeroFallback } from "@/components/site/home-hero-fallback";
-
-const ImmersiveHomeCanvas = dynamic(
-  () => import("@/components/site/immersive-home-canvas").then((mod) => mod.ImmersiveHomeCanvas),
-  { ssr: false, loading: () => <HomeHeroFallback /> },
-);
+import { scheduleIdle } from "@/lib/schedule-idle";
 
 /**
- * Client boundary for homepage 3D. `ssr: false` is not allowed on Server
- * Components in this Next.js version, so the dynamic import lives here.
+ * Client boundary for homepage 3D. The Helios/WebGL module stays off the
+ * critical path until the browser is idle, so the fallback heading can paint
+ * as LCP on mobile. `ssr: false` dynamic() is not allowed from a Server
+ * Component in this Next.js version, so the import lives here.
  */
 export function HomeImmersiveExperience() {
-  return <ImmersiveHomeCanvas />;
+  const [Canvas, setCanvas] = useState<ComponentType | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const cancelIdle = scheduleIdle(() => {
+      void import("@/components/site/immersive-home-canvas").then((mod) => {
+        if (!cancelled) setCanvas(() => mod.ImmersiveHomeCanvas);
+      });
+    }, 1200);
+
+    return () => {
+      cancelled = true;
+      cancelIdle();
+    };
+  }, []);
+
+  if (!Canvas) return <HomeHeroFallback />;
+  return <Canvas />;
 }

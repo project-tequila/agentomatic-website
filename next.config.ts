@@ -13,6 +13,7 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   { key: "Content-Security-Policy", value: MINIMAL_CSP },
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
 ];
 
 const nextConfig: NextConfig = {
@@ -85,6 +86,11 @@ const nextConfig: NextConfig = {
     ];
   },
   transpilePackages: ["@helios-project/core", "sanity"],
+  experimental: {
+    /** Inline route CSS so the 40kb stylesheet is not a second render-blocking request. */
+    inlineCss: true,
+    optimizePackageImports: ["lucide-react", "framer-motion"],
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [

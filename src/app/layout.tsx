@@ -8,12 +8,13 @@ import { SiteDemoCallRoot } from "@/components/site/site-demo-call-root";
 import { organizationJsonLd, rootMetadata, websiteJsonLd } from "@/lib/seo";
 
 import "./globals.css";
-import "./contact-cta.css";
 
 const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-sans",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+  preload: true,
 });
 
 const harveySerif = Newsreader({
@@ -21,12 +22,16 @@ const harveySerif = Newsreader({
   subsets: ["latin"],
   weight: ["300", "400", "500"],
   style: ["normal", "italic"],
+  display: "swap",
+  preload: false,
 });
 
 const marketingDmSans = DM_Sans({
   variable: "--font-marketing-dm",
   subsets: ["latin"],
   weight: ["400", "500", "700"],
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = rootMetadata;

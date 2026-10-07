@@ -162,7 +162,10 @@ export function RumikStory() {
           aria-valuemax={100}
           aria-label="Story progress"
         >
-          <span className="rumik-story__progress-bar" style={{ width: `${story * 100}%` }} />
+          <span
+            className="rumik-story__progress-bar"
+            style={{ transform: `scaleX(${story})` }}
+          />
           <span className="rumik-story__progress-act" style={{ left: `${ACT1_END * 100}%` }} title="Act 1 ends here" />
           <span className="rumik-story__progress-cta" style={{ left: `${FEATURES_END * 100}%` }} title="Demo call" />
         </div>

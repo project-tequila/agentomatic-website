@@ -2697,9 +2697,12 @@
 
 .rumik-story__progress-bar {
   display: block;
+  width: 100%;
   height: 100%;
   background: rgba(245, 242, 235, 0.9);
-  transition: width 0.08s linear;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.08s linear;
 }
 
 .rumik-story__writing {
@@ -4257,38 +4260,47 @@
 
 .persistent-orb__instance--hook {
   animation: persistentOrbHook 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 18px rgba(116, 192, 252, 0.32));
 }
 
 .persistent-orb__instance--grunt {
   animation: persistentOrbGrunt 2.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 18px rgba(255, 160, 120, 0.34));
 }
 
 .persistent-orb__instance--hours {
   animation: persistentOrbHours 3.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 18px rgba(151, 117, 250, 0.32));
 }
 
 .persistent-orb__instance--concurrent {
   animation: persistentOrbConcurrent 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 18px rgba(116, 192, 252, 0.32));
 }
 
 .persistent-orb__instance--integrations {
   animation: persistentOrbIntegrations 3.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 18px rgba(151, 117, 250, 0.32));
 }
 
 .persistent-orb__instance--multilingual {
   animation: persistentOrbMultilingual 3.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(116, 192, 252, 0.32));
 }
 
 .persistent-orb__instance--handoff {
   animation: persistentOrbHandoff 4.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 16px rgba(140, 255, 210, 0.3));
 }
 
 .persistent-orb__instance--reminders {
   animation: persistentOrbReminders 2.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 18px rgba(255, 200, 87, 0.36));
 }
 
 .persistent-orb__instance--dashboard {
   animation: persistentOrbDashboard 4s ease-in-out infinite;
+  filter: drop-shadow(0 0 16px rgba(151, 117, 250, 0.28));
 }
 
 .story-illustration-bg--dashboard .persistent-orb__instance--dashboard .frontdesk-voice-orb__wave,
@@ -7978,11 +7990,9 @@ body.voice-focus-open {
 @keyframes persistentOrbHook {
   0%,
   100% {
-    filter: drop-shadow(0 0 14px rgba(140, 255, 210, 0.22));
     scale: 0.96;
   }
   50% {
-    filter: drop-shadow(0 0 24px rgba(116, 192, 252, 0.38));
     scale: 1;
   }
 }
@@ -7990,7 +8000,6 @@ body.voice-focus-open {
 @keyframes persistentOrbGrunt {
   0%,
   100% {
-    filter: drop-shadow(0 0 16px rgba(255, 135, 135, 0.28));
     translate: 0 0;
   }
   25% {
@@ -7999,29 +8008,24 @@ body.voice-focus-open {
   75% {
     translate: 1px -0.5px;
   }
-  50% {
-    filter: drop-shadow(0 0 28px rgba(255, 200, 87, 0.42));
-  }
 }
 
 @keyframes persistentOrbHours {
   0%,
   100% {
-    filter: drop-shadow(0 0 16px rgba(151, 117, 250, 0.28));
+    opacity: 0.88;
   }
   50% {
-    filter: drop-shadow(0 0 26px rgba(255, 200, 87, 0.38));
+    opacity: 1;
   }
 }
 
 @keyframes persistentOrbConcurrent {
   0%,
   100% {
-    filter: drop-shadow(0 0 16px rgba(140, 255, 210, 0.28));
     scale: 0.98;
   }
   50% {
-    filter: drop-shadow(0 0 28px rgba(116, 192, 252, 0.38));
     scale: 1;
   }
 }
@@ -8038,35 +8042,19 @@ body.voice-focus-open {
 @keyframes persistentOrbIntegrations {
   0%,
   100% {
-    filter: drop-shadow(
-      0 0 calc(16px + var(--integrations-orb-tint-strength, 0) * 14px)
-        color-mix(
-          in srgb,
-          var(--integrations-orb-tint, #9775fa) calc(var(--integrations-orb-tint-strength, 0) * 85%),
-          rgba(151, 117, 250, 0.28)
-        )
-    );
+    opacity: 0.9;
   }
   50% {
-    filter: drop-shadow(
-      0 0 calc(28px + var(--integrations-orb-tint-strength, 0) * 18px)
-        color-mix(
-          in srgb,
-          var(--integrations-orb-tint, #8cffd2) calc(var(--integrations-orb-tint-strength, 0) * 80%),
-          rgba(140, 255, 210, 0.38)
-        )
-    );
+    opacity: 1;
   }
 }
 
 @keyframes persistentOrbMultilingual {
   0%,
   100% {
-    filter: drop-shadow(0 0 18px rgba(116, 192, 252, 0.28));
     scale: 0.99;
   }
   50% {
-    filter: drop-shadow(0 0 30px rgba(255, 200, 87, 0.36));
     scale: 1.01;
   }
 }
@@ -8107,11 +8095,9 @@ body.voice-focus-open {
 @keyframes persistentOrbHandoff {
   0%,
   100% {
-    filter: drop-shadow(0 0 14px rgba(140, 255, 210, 0.26));
     scale: 0.98;
   }
   50% {
-    filter: drop-shadow(0 0 20px rgba(140, 255, 210, 0.34));
     scale: 1;
   }
 }
@@ -8119,11 +8105,9 @@ body.voice-focus-open {
 @keyframes persistentOrbReminders {
   0%,
   100% {
-    filter: drop-shadow(0 0 16px rgba(255, 200, 87, 0.28));
     scale: 1;
   }
   50% {
-    filter: drop-shadow(0 0 26px rgba(255, 200, 87, 0.48));
     scale: 1.03;
   }
 }
@@ -8131,10 +8115,10 @@ body.voice-focus-open {
 @keyframes persistentOrbDashboard {
   0%,
   100% {
-    filter: drop-shadow(0 0 14px rgba(151, 117, 250, 0.22));
+    opacity: 0.9;
   }
   50% {
-    filter: drop-shadow(0 0 22px rgba(116, 192, 252, 0.32));
+    opacity: 1;
   }
 }
 
