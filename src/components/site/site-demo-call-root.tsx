@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 
 import { DemoCallProvider, useDemoCall } from "@/lib/demo-call/demo-call-context";
 import { DemoWebVoiceProvider } from "@/lib/voice/demo-web-voice-context";
-import { scheduleIdle } from "@/lib/schedule-idle";
+import { scheduleWhenEngaged } from "@/lib/schedule-idle";
 
 const DemoCallPanel = dynamic(() => import("./demo-call-panel").then((mod) => mod.DemoCallPanel), {
   ssr: false,
@@ -42,7 +42,7 @@ function DeferredExperience() {
       setReady(true);
       return;
     }
-    return scheduleIdle(() => setReady(true), 1600);
+    return scheduleWhenEngaged(() => setReady(true), 1600);
   }, [isOpen]);
 
   if (!ready) return null;

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -20,10 +19,6 @@ const navItems = [
 const CONTACT_HREF = "/contact";
 const CONTACT_LABEL = "contact us";
 
-const RUMIK_EASE = [0.22, 0.7, 0.18, 1] as const;
-
-const MotionLink = motion.create(Link);
-
 function navActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
@@ -36,19 +31,16 @@ type ChromeNavLinkProps = {
 };
 
 function ChromeNavLink({ href, label, active, onClick }: ChromeNavLinkProps) {
-  const reduceMotion = useReducedMotion();
-
   return (
     <li>
-      <motion.div whileHover={reduceMotion ? undefined : { y: -1 }} transition={{ duration: 0.22, ease: RUMIK_EASE }}>
-        <Link
-          className={cn("site-chrome-nav-link", active && "site-chrome-nav-link--active")}
-          href={href}
-          onClick={onClick}
-        >
-          {label}
-        </Link>
-      </motion.div>
+      <Link
+        className={cn("site-chrome-nav-link", active && "site-chrome-nav-link--active")}
+        href={href}
+        onClick={onClick}
+        prefetch={false}
+      >
+        {label}
+      </Link>
     </li>
   );
 }
@@ -61,21 +53,10 @@ type MotionChromeButtonProps = {
 };
 
 function MotionChromeCta({ className, onClick, children, "data-testid": testId }: MotionChromeButtonProps) {
-  const reduceMotion = useReducedMotion();
-
   return (
-    <motion.button
-      type="button"
-      className={className}
-      onClick={onClick}
-      data-testid={testId}
-      aria-label="Talk to Agent"
-      whileHover={reduceMotion ? undefined : { y: -1 }}
-      whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-      transition={{ duration: 0.22, ease: RUMIK_EASE }}
-    >
+    <button type="button" className={className} onClick={onClick} data-testid={testId} aria-label="Talk to Agent">
       {children}
-    </motion.button>
+    </button>
   );
 }
 
@@ -94,29 +75,23 @@ function MotionChromeLink({
   "data-testid"?: string;
   "aria-current"?: "page" | undefined;
 }) {
-  const reduceMotion = useReducedMotion();
-
   return (
-    <MotionLink
+    <Link
       href={href}
       className={className}
       onClick={onClick}
       data-testid={testId}
       aria-current={ariaCurrent}
-      prefetch={href === BOOKER_ROUTE || href === BOOKER_SIGNUP_ROUTE ? false : undefined}
-      whileHover={reduceMotion ? undefined : { y: -1 }}
-      whileTap={reduceMotion ? undefined : { scale: 0.98 }}
-      transition={{ duration: 0.22, ease: RUMIK_EASE }}
+      prefetch={false}
     >
       {children}
-    </MotionLink>
+    </Link>
   );
 }
 
 export function SiteChrome() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
-  const reduceMotion = useReducedMotion();
   const beginVoiceDemo = useBeginVoiceDemo();
 
   useEffect(() => {
@@ -144,25 +119,16 @@ export function SiteChrome() {
     <>
       <div aria-hidden className="site-chrome__spacer shrink-0" />
 
-      <motion.header
-        className={cn("site-chrome", menuOpen && "site-chrome--menu-open")}
-        initial={false}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.35, ease: RUMIK_EASE }}
-      >
+      <header className={cn("site-chrome", menuOpen && "site-chrome--menu-open")}>
         <div className="site-chrome__inner">
-          <motion.div
-            className="site-chrome__brand"
-            whileHover={reduceMotion ? undefined : { scale: 1.015 }}
-            transition={{ duration: 0.28, ease: RUMIK_EASE }}
-          >
+          <div className="site-chrome__brand">
             <HomeLogoLink className="site-chrome-logo">
               <span className="site-chrome-logo__mark" aria-hidden>
                 <span className="site-chrome-logo__dot" />
               </span>
               <span className="whitespace-nowrap">agentomatic</span>
             </HomeLogoLink>
-          </motion.div>
+          </div>
 
           <div className="site-chrome__rail">
             <div className="site-chrome__mobile-contact">
@@ -176,14 +142,12 @@ export function SiteChrome() {
               </MotionChromeLink>
             </div>
 
-            <motion.button
+            <button
               type="button"
               className="site-chrome-menu-btn"
               aria-expanded={menuOpen}
               aria-controls="site-nav-drawer"
               onClick={() => setMenuOpen((o) => !o)}
-              whileTap={reduceMotion ? undefined : { scale: 0.96 }}
-              transition={{ duration: 0.18, ease: RUMIK_EASE }}
             >
               <span className="sr-only">{menuOpen ? "Close menu" : "Open menu"}</span>
               <svg
@@ -208,7 +172,7 @@ export function SiteChrome() {
               >
                 <path d="M6 6l12 12M18 6 6 18" />
               </svg>
-            </motion.button>
+            </button>
 
             <nav aria-label="Main" className="site-chrome__nav">
               <ul className="site-chrome__nav-list">
@@ -243,10 +207,10 @@ export function SiteChrome() {
             </div>
           </div>
         </div>
-      </motion.header>
+      </header>
 
       <div
-        className={cn("site-nav-drawer-layer", !menuOpen && "pointer-events-none")}
+        className={cn("site-nav-drawer-layer", menuOpen && "site-nav-drawer-layer--open", !menuOpen && "pointer-events-none")}
         aria-hidden={!menuOpen}
       >
         <button
@@ -266,43 +230,20 @@ export function SiteChrome() {
             {navItems.map((item, index) => {
               const active = navActive(pathname, item.href);
               return (
-                <motion.li
-                  key={item.href}
-                  initial={reduceMotion ? false : { opacity: 0, x: 14 }}
-                  animate={
-                    menuOpen
-                      ? { opacity: 1, x: 0 }
-                      : reduceMotion
-                        ? { opacity: 1, x: 0 }
-                        : { opacity: 0, x: 14 }
-                  }
-                  transition={{
-                    duration: 0.28,
-                    ease: RUMIK_EASE,
-                    delay: menuOpen && !reduceMotion ? 0.06 + index * 0.05 : 0,
-                  }}
-                >
+                <li key={item.href} style={{ transitionDelay: menuOpen ? `${0.06 + index * 0.05}s` : "0s" }}>
                   <Link
                     className={cn("site-nav-drawer-link", active && "site-nav-drawer-link--active")}
                     href={item.href}
                     onClick={() => setMenuOpen(false)}
+                    prefetch={false}
                   >
                     {item.label}
                   </Link>
-                </motion.li>
+                </li>
               );
             })}
           </ul>
-          <motion.div
-            className="site-nav-drawer__actions"
-            initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-            animate={menuOpen ? { opacity: 1, y: 0 } : reduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-            transition={{
-              duration: 0.3,
-              ease: RUMIK_EASE,
-              delay: menuOpen && !reduceMotion ? 0.28 : 0,
-            }}
-          >
+          <div className="site-nav-drawer__actions">
             <MotionChromeLink
               href={CONTACT_HREF}
               className="site-chrome-action-btn site-chrome-action-btn--full site-chrome-cta site-chrome-contact"
@@ -333,7 +274,7 @@ export function SiteChrome() {
             >
               log in
             </MotionChromeLink>
-          </motion.div>
+          </div>
         </nav>
       </div>
     </>
