@@ -7,6 +7,7 @@ import { useCallback, useEffect } from "react";
 import { DemoVoiceEngineControls } from "@/components/site/demo-voice-engine-controls";
 import { DemoVoiceTranscript } from "@/components/site/demo-voice-transcript";
 import { useDemoCall } from "@/lib/demo-call/demo-call-context";
+import { useDemoVoiceChoiceReady } from "@/lib/demo-call/use-begin-voice-demo";
 import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
 import { mapVoiceEnergyOrbState } from "@/lib/voice/voice-orb-state";
 import { cn } from "@/lib/utils";
@@ -39,12 +40,14 @@ export function VoiceFocusExperience() {
     error,
     isAgentSpeaking,
     transcripts,
+    engine,
     start,
     stop,
     getInputVolume,
     getOutputVolume,
   } = useDemoWebVoice();
 
+  const choiceReady = useDemoVoiceChoiceReady(engine);
   const voiceActive =
     status === "requesting-mic" ||
     status === "connecting" ||
@@ -147,7 +150,9 @@ export function VoiceFocusExperience() {
                   type="button"
                   className="voice-focus__start"
                   data-testid="voice-focus-start-talk"
+                  disabled={!choiceReady}
                   onClick={() => {
+                    if (!choiceReady) return;
                     void start();
                   }}
                   aria-label="Start Talk"

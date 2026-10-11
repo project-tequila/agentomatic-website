@@ -3,8 +3,10 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 
+import { chooseDemoVoiceEngine, chooseDemoVoiceLanguage } from "@/lib/demo-call/use-begin-voice-demo";
 import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
 import { canChangeDemoWebVoiceLanguage } from "@/lib/voice/demo-web-voice-language";
+import type { DemoVoiceEngine } from "@/lib/voice-languages";
 import { cn } from "@/lib/utils";
 
 type DemoVoiceEngineControlsProps = {
@@ -16,6 +18,8 @@ type LanguageOption = { value: string; label: string };
 type DemoVoiceLanguageListboxProps = {
   id: string;
   label: string;
+  /** Engine that owns this open list. Commits always store against this catalog. */
+  engine: DemoVoiceEngine;
   value: string;
   options: readonly LanguageOption[];
   disabled: boolean;
@@ -30,6 +34,7 @@ type DemoVoiceLanguageListboxProps = {
 function DemoVoiceLanguageListbox({
   id,
   label,
+  engine,
   value,
   options,
   disabled,
@@ -129,11 +134,7 @@ function DemoVoiceLanguageListbox({
         event.preventDefault();
         event.stopPropagation();
         const next = options[activeIndex];
-        if (next) {
-          onChange(next.value);
-          setOpen(false);
-          triggerRef.current?.focus();
-        }
+        if (next) commit(next.value);
       } else if (event.key === "Escape") {
         event.preventDefault();
         event.stopPropagation();
@@ -148,7 +149,7 @@ function DemoVoiceLanguageListbox({
       document.removeEventListener("mousedown", onPointerDown);
       document.removeEventListener("keydown", onKeyDown, true);
     };
-  }, [open, options, activeIndex, onChange]);
+  }, [open, options, activeIndex, onChange, engine]);
 
   function openMenu() {
     if (disabled) return;
@@ -157,6 +158,7 @@ function DemoVoiceLanguageListbox({
   }
 
   function commit(next: string) {
+    chooseDemoVoiceLanguage(engine, next);
     onChange(next);
     setOpen(false);
     triggerRef.current?.focus();
@@ -188,6 +190,7 @@ function DemoVoiceLanguageListbox({
             aria-label={label}
             aria-activedescendant={activeId}
             tabIndex={-1}
+            data-engine={engine}
             data-testid={`${id}-list`}
             className={cn(
               "demo-voice-language-menu",
@@ -211,8 +214,11 @@ function DemoVoiceLanguageListbox({
                 data-testid={`${id}-option-${option.value}`}
                 className="demo-voice-language-menu__option"
                 onMouseEnter={() => setActiveIndex(index)}
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => commit(option.value)}
+                onPointerDown={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  commit(option.value);
+                }}
               >
                 {option.label}
               </li>
@@ -264,6 +270,12 @@ export function DemoVoiceEngineControls({ variant }: DemoVoiceEngineControlsProp
   const languageId = speech ? `${prefix}-language` : `${prefix}-cascade-language`;
   const languageLabel = speech ? "Speech language" : "Cascaded language";
 
+  function onEngine(next: DemoVoiceEngine) {
+    if (!editable) return;
+    setEngine(next);
+    chooseDemoVoiceEngine(next);
+  }
+
   return (
     <div className={`${prefix}__pickers`}>
       <div
@@ -279,7 +291,7 @@ export function DemoVoiceEngineControls({ variant }: DemoVoiceEngineControlsProp
           disabled={!editable}
           className={cn(`${prefix}__engine-option`, speech && `${prefix}__engine-option--active`)}
           data-testid={variant === "strip" ? "demo-voice-engine-speech" : "voice-focus-engine-speech"}
-          onClick={() => setEngine("speech_llm")}
+          onClick={() => onEngine("speech_llm")}
         >
           Speech LLM
         </button>
@@ -290,15 +302,17 @@ export function DemoVoiceEngineControls({ variant }: DemoVoiceEngineControlsProp
           disabled={!editable}
           className={cn(`${prefix}__engine-option`, !speech && `${prefix}__engine-option--active`)}
           data-testid={variant === "strip" ? "demo-voice-engine-cascade" : "voice-focus-engine-cascade"}
-          onClick={() => setEngine("cascade")}
+          onClick={() => onEngine("cascade")}
         >
           Cascaded LLM
         </button>
       </div>
 
       <DemoVoiceLanguageListbox
+        key={engine}
         id={languageId}
         label={languageLabel}
+        engine={engine}
         value={language}
         options={languageOptions}
         disabled={!editable}

@@ -5,6 +5,7 @@ import { Loader2, Mic, Square } from "lucide-react";
 import { DemoVoiceEngineControls } from "@/components/site/demo-voice-engine-controls";
 import { DemoVoiceTranscript } from "@/components/site/demo-voice-transcript";
 import { useDemoCall } from "@/lib/demo-call/demo-call-context";
+import { useDemoVoiceChoiceReady } from "@/lib/demo-call/use-begin-voice-demo";
 import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
 import { cn } from "@/lib/utils";
 
@@ -26,8 +27,9 @@ type DemoWebVoiceTalkProps = {
  * Speech LLM and cascaded LLM each have their own language speaker.
  */
 export function DemoWebVoiceTalk({ className }: DemoWebVoiceTalkProps) {
-  const { status, error, isAgentSpeaking, transcripts, start, stop } = useDemoWebVoice();
+  const { status, error, isAgentSpeaking, transcripts, engine, start, stop } = useDemoWebVoice();
   const { openDemoCall } = useDemoCall();
+  const choiceReady = useDemoVoiceChoiceReady(engine);
   const live =
     status === "requesting-mic" || status === "connecting" || status === "listening";
 
@@ -36,6 +38,7 @@ export function DemoWebVoiceTalk({ className }: DemoWebVoiceTalkProps) {
       stop();
       return;
     }
+    if (!choiceReady) return;
     void start();
     openDemoCall();
   }
@@ -50,6 +53,7 @@ export function DemoWebVoiceTalk({ className }: DemoWebVoiceTalkProps) {
           data-testid="demo-talk-control"
           className={cn("demo-web-voice__talk", live && "demo-web-voice__talk--live")}
           onClick={onStartTalk}
+          disabled={!live && !choiceReady}
           aria-pressed={live}
           aria-label={live ? "End talk" : "Start Talk"}
         >
