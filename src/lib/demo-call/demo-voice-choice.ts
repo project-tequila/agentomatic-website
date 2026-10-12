@@ -38,19 +38,12 @@ export function resetDemoVoiceChoice() {
 
 /**
  * Marks an explicit engine pick. A highlighted model is only a visual default.
- * The first pick keeps a language already chosen for that catalog.
- * Switching from one explicit engine to the other clears the destination
- * catalog so that engine still waits for its own language click.
- * Clicking the engine that is already selected does not clear its language.
+ * The click only sets the engine. It does not clear either catalog's language.
+ * Clicking the engine that is already selected does nothing.
  */
 export function chooseDemoVoiceEngine(next: DemoVoiceEngine) {
   if (choice.engine === next) return;
-  const switchingEngines = choice.engine !== null;
-  choice = {
-    engine: next,
-    speechLanguage: switchingEngines && next === "speech_llm" ? null : choice.speechLanguage,
-    cascadeLanguage: switchingEngines && next === "cascade" ? null : choice.cascadeLanguage,
-  };
+  choice = { ...choice, engine: next };
   emitChoice();
 }
 

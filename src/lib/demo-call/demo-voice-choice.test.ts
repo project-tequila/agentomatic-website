@@ -46,23 +46,38 @@ test("Cascaded LLM then language enables Start Talk", () => {
   assert.equal(isDemoVoiceChoiceReady("cascade"), true);
 });
 
-test("switching engines requires a new language for the engine you switch to", () => {
+test("both engines stay ready once each language was clicked", () => {
+  chooseDemoVoiceLanguage("speech_llm", "hi");
+  chooseDemoVoiceEngine("speech_llm");
+  chooseDemoVoiceLanguage("cascade", "bn");
+  chooseDemoVoiceEngine("cascade");
+  assert.equal(isDemoVoiceChoiceReady("cascade"), true);
+  assert.equal(isDemoVoiceChoiceReady("speech_llm"), false);
+
+  chooseDemoVoiceEngine("speech_llm");
+  assert.equal(isDemoVoiceChoiceReady("speech_llm"), true);
+  assert.equal(isDemoVoiceChoiceReady("cascade"), false);
+});
+
+test("language then the other engine after the first pair was ready enables Start Talk", () => {
+  chooseDemoVoiceLanguage("cascade", "hi");
+  chooseDemoVoiceEngine("cascade");
+  assert.equal(isDemoVoiceChoiceReady("cascade"), true);
+
+  chooseDemoVoiceLanguage("speech_llm", "en");
+  chooseDemoVoiceEngine("speech_llm");
+  assert.equal(isDemoVoiceChoiceReady("speech_llm"), true);
+  assert.equal(isDemoVoiceChoiceReady("cascade"), false);
+});
+
+test("switching to an engine with no language click stays disabled", () => {
   chooseDemoVoiceLanguage("speech_llm", "hi");
   chooseDemoVoiceEngine("speech_llm");
   assert.equal(isDemoVoiceChoiceReady("speech_llm"), true);
 
-  chooseDemoVoiceLanguage("cascade", "bn");
   chooseDemoVoiceEngine("cascade");
   assert.equal(isDemoVoiceChoiceReady("cascade"), false);
   assert.equal(isDemoVoiceChoiceReady("speech_llm"), false);
-
-  chooseDemoVoiceLanguage("cascade", "bn");
-  assert.equal(isDemoVoiceChoiceReady("cascade"), true);
-
-  chooseDemoVoiceEngine("speech_llm");
-  assert.equal(isDemoVoiceChoiceReady("speech_llm"), false);
-  chooseDemoVoiceLanguage("speech_llm", "hi");
-  assert.equal(isDemoVoiceChoiceReady("speech_llm"), true);
 });
 
 test("re-clicking the same engine does not clear its language", () => {
