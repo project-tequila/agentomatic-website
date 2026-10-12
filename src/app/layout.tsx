@@ -23,7 +23,16 @@ const harveySerif = Newsreader({
   variable: "--font-harvey-serif",
   subsets: ["latin"],
   weight: ["300", "400", "500"],
-  style: ["normal", "italic"],
+  style: "normal",
+  display: "swap",
+  preload: false,
+});
+
+const harveySerifItalic = Newsreader({
+  variable: "--font-harvey-serif-italic",
+  subsets: ["latin"],
+  weight: ["300", "400", "500"],
+  style: "italic",
   display: "swap",
   preload: false,
 });
@@ -53,7 +62,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${ibmPlexMono.variable} ${marketingDmSans.variable} ${harveySerif.variable} h-full antialiased`}
+      className={`${ibmPlexMono.variable} ${marketingDmSans.variable} ${harveySerif.variable} ${harveySerifItalic.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-[var(--brand-ink)] text-[var(--rumik-text)]" suppressHydrationWarning>
