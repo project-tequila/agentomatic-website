@@ -1,0 +1,74 @@
+import type { DemoVoiceEngine } from "../voice-languages.ts";
+
+type DemoVoiceChoice = {
+  engine: DemoVoiceEngine | null;
+  speechLanguage: string | null;
+  cascadeLanguage: string | null;
+};
+
+function freshChoice(): DemoVoiceChoice {
+  return {
+    engine: null,
+    speechLanguage: null,
+    cascadeLanguage: null,
+  };
+}
+
+let choice: DemoVoiceChoice = freshChoice();
+const listeners = new Set<() => void>();
+
+function emitChoice() {
+  for (const listener of listeners) listener();
+}
+
+export function subscribeDemoVoiceChoice(listener: () => void) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+export function getDemoVoiceChoice(): DemoVoiceChoice {
+  return choice;
+}
+
+/** Clears the shared choice. Tests use this so cases do not leak into each other. */
+export function resetDemoVoiceChoice() {
+  choice = freshChoice();
+  emitChoice();
+}
+
+/**
+ * Marks an explicit engine pick. A highlighted model is only a visual default.
+ * The click only sets the engine. It does not clear either catalog's language.
+ * Clicking the engine that is already selected does nothing.
+ */
+export function chooseDemoVoiceEngine(next: DemoVoiceEngine) {
+  if (choice.engine === next) return;
+  choice = { ...choice, engine: next };
+  emitChoice();
+}
+
+/**
+ * Marks an explicit language pick for the catalog whose list was open.
+ * The control can already show this value. The click still counts while the
+ * store has not recorded it. A repeat click of a language already stored
+ * keeps that pick.
+ */
+export function chooseDemoVoiceLanguage(engine: DemoVoiceEngine, language: string) {
+  const current = engine === "speech_llm" ? choice.speechLanguage : choice.cascadeLanguage;
+  if (current !== null && current === language) return;
+  choice =
+    engine === "speech_llm"
+      ? { ...choice, speechLanguage: language }
+      : { ...choice, cascadeLanguage: language };
+  emitChoice();
+}
+
+/** True only after this engine and its language were both clicked. Catalog defaults do not count. */
+export function isDemoVoiceChoiceReady(
+  engine: DemoVoiceEngine,
+  snapshot: DemoVoiceChoice = choice,
+): boolean {
+  if (snapshot.engine !== engine) return false;
+  const language = engine === "speech_llm" ? snapshot.speechLanguage : snapshot.cascadeLanguage;
+  return language !== null;
+}
