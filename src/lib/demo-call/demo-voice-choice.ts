@@ -1,4 +1,8 @@
-import type { DemoVoiceEngine } from "../voice-languages.ts";
+import {
+  DEFAULT_DEMO_VOICE_ENGINE,
+  DEFAULT_DEMO_VOICE_LANGUAGE,
+  type DemoVoiceEngine,
+} from "../voice-languages.ts";
 
 type DemoVoiceChoice = {
   engine: DemoVoiceEngine | null;
@@ -8,9 +12,9 @@ type DemoVoiceChoice = {
 
 function freshChoice(): DemoVoiceChoice {
   return {
-    engine: null,
-    speechLanguage: null,
-    cascadeLanguage: null,
+    engine: DEFAULT_DEMO_VOICE_ENGINE,
+    speechLanguage: DEFAULT_DEMO_VOICE_LANGUAGE,
+    cascadeLanguage: DEFAULT_DEMO_VOICE_LANGUAGE,
   };
 }
 
@@ -19,6 +23,10 @@ const listeners = new Set<() => void>();
 
 function emitChoice() {
   for (const listener of listeners) listener();
+}
+
+function languageFor(snapshot: DemoVoiceChoice, engine: DemoVoiceEngine): string | null {
+  return engine === "speech_llm" ? snapshot.speechLanguage : snapshot.cascadeLanguage;
 }
 
 export function subscribeDemoVoiceChoice(listener: () => void) {
@@ -30,15 +38,39 @@ export function getDemoVoiceChoice(): DemoVoiceChoice {
   return choice;
 }
 
-/** Clears the shared choice. Tests use this so cases do not leak into each other. */
+/**
+ * True when `engine` is the selected engine and that catalog has a language.
+ * A snapshot is judged on its own. Omitted, the shared store is judged.
+ */
+export function isDemoVoiceChoiceReady(
+  engine: DemoVoiceEngine,
+  snapshot: DemoVoiceChoice = choice,
+): boolean {
+  if (snapshot.engine !== engine) return false;
+  const language = languageFor(snapshot, engine);
+  return typeof language === "string" && language.trim().length > 0;
+}
+
+/** Restores the shared choice to the defaults the voice UI shows on first load. */
 export function resetDemoVoiceChoice() {
   choice = freshChoice();
   emitChoice();
 }
 
 /**
- * Marks an explicit engine pick. A highlighted model is only a visual default.
- * The click only sets the engine. It does not clear either catalog's language.
+ * Clears one catalog language so that engine is incomplete.
+ * Tests use this for the empty-language case the UI cannot show.
+ */
+export function clearDemoVoiceLanguage(engine: DemoVoiceEngine) {
+  choice =
+    engine === "speech_llm"
+      ? { ...choice, speechLanguage: null }
+      : { ...choice, cascadeLanguage: null };
+  emitChoice();
+}
+
+/**
+ * Records an engine pick. It does not clear either catalog's language.
  * Clicking the engine that is already selected does nothing.
  */
 export function chooseDemoVoiceEngine(next: DemoVoiceEngine) {
@@ -48,27 +80,15 @@ export function chooseDemoVoiceEngine(next: DemoVoiceEngine) {
 }
 
 /**
- * Marks an explicit language pick for the catalog whose list was open.
- * The control can already show this value. The click still counts while the
- * store has not recorded it. A repeat click of a language already stored
- * keeps that pick.
+ * Records a language pick for one catalog.
+ * A repeat click of a language already stored keeps that pick.
  */
 export function chooseDemoVoiceLanguage(engine: DemoVoiceEngine, language: string) {
-  const current = engine === "speech_llm" ? choice.speechLanguage : choice.cascadeLanguage;
+  const current = languageFor(choice, engine);
   if (current !== null && current === language) return;
   choice =
     engine === "speech_llm"
       ? { ...choice, speechLanguage: language }
       : { ...choice, cascadeLanguage: language };
   emitChoice();
-}
-
-/** True only after this engine and its language were both clicked. Catalog defaults do not count. */
-export function isDemoVoiceChoiceReady(
-  engine: DemoVoiceEngine,
-  snapshot: DemoVoiceChoice = choice,
-): boolean {
-  if (snapshot.engine !== engine) return false;
-  const language = engine === "speech_llm" ? snapshot.speechLanguage : snapshot.cascadeLanguage;
-  return language !== null;
 }
