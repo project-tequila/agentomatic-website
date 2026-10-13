@@ -25,7 +25,7 @@
 *.pem
 
 # cursor
-.cursor/agents/*
+.cursor/
 
 # debug
 npm-debug.log*
