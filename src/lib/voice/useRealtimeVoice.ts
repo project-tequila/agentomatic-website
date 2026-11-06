@@ -166,13 +166,20 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
 }
 
 async function mintDemoWebVoiceSession(
-  language: string,
+  language: string | undefined,
   speechPath: "speech_llm" | "cascade",
 ): Promise<string> {
+  const payload: { speech_path: "speech_llm" | "cascade"; language?: string } = {
+    speech_path: speechPath,
+  };
+  // Speech LLM detects language on the backend and can switch mid-conversation.
+  if (speechPath === "cascade" && language?.trim()) {
+    payload.language = language.trim();
+  }
   const res = await fetch("/api/demo/web-voice", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ language, speech_path: speechPath }),
+    body: JSON.stringify(payload),
   });
 
   let data: MintResponse = {};
@@ -202,8 +209,9 @@ async function mintDemoWebVoiceSession(
 export function useRealtimeVoice(
   options: UseRealtimeVoiceOptions = {},
 ): UseRealtimeVoiceResult {
-  const language = options.language ?? "en";
   const speechPath = options.speechPath ?? "speech_llm";
+  const language =
+    speechPath === "cascade" ? (options.language?.trim() || "en") : undefined;
 
   const [status, setStatus] = useState<VoiceConnectionStatus>("idle");
   const [error, setError] = useState<string | null>(null);

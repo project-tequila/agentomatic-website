@@ -18,12 +18,16 @@ function statusLine(
   status: string,
   isAgentSpeaking: boolean,
   error: string | null,
+  engine: string,
 ): string {
   if (error) return error;
   if (status === "requesting-mic") return "Allow microphone when prompted";
   if (status === "connecting") return "Connecting…";
   if (isAgentSpeaking) return "Agent speaking — jump in anytime";
   if (status === "listening") return "Listening…";
+  if (status === "idle" && engine === "speech_llm") {
+    return "Press Start Talk. Speech LLM follows the language you speak.";
+  }
   if (status === "idle") return "Choose a voice model and language, then press Start Talk.";
   return "Starting…";
 }
@@ -75,7 +79,7 @@ export function VoiceFocusExperience() {
   }, [visible, onEnd]);
 
   const agentState = mapVoiceEnergyOrbState({ status, isAgentSpeaking, transcripts });
-  const line = statusLine(status, isAgentSpeaking, error);
+  const line = statusLine(status, isAgentSpeaking, error, engine);
 
   return (
     <AnimatePresence>

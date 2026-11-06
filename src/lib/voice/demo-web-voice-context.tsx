@@ -39,8 +39,9 @@ const DemoWebVoiceContext = createContext<DemoWebVoiceContextValue | null>(null)
 
 /**
  * One shared demo voice session for chrome, orb, HUD, and the call strip.
- * Engine and language are chosen before connect and locked while a session is live.
- * Speech LLM and cascaded LLM keep separate language selections.
+ * Engine is chosen before connect and locked while a session is live.
+ * Speech LLM sends no language so the backend detects it and can switch mid-call.
+ * Cascaded LLM keeps its own language selection.
  */
 export function DemoWebVoiceProvider({ children }: { children: ReactNode }) {
   const [engine, setEngineState] = useState<DemoVoiceEngine>(DEFAULT_DEMO_VOICE_ENGINE);
@@ -49,7 +50,10 @@ export function DemoWebVoiceProvider({ children }: { children: ReactNode }) {
     DEFAULT_DEMO_VOICE_LANGUAGE,
   );
   const language = engine === "speech_llm" ? speechLanguage : cascadeLanguage;
-  const voice = useRealtimeVoice({ language, speechPath: engine });
+  const voice = useRealtimeVoice({
+    language: engine === "speech_llm" ? undefined : cascadeLanguage,
+    speechPath: engine,
+  });
 
   const setEngine = useCallback(
     (nextEngine: DemoVoiceEngine) => {

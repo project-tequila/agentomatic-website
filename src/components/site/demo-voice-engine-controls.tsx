@@ -259,16 +259,15 @@ function DemoVoiceLanguageListbox({
 }
 
 /**
- * Speech LLM opens the speech language speaker.
- * Cascaded LLM opens a separate language speaker for the cascade catalog.
+ * Speech LLM has no language speaker. The backend detects the caller's language.
+ * Cascaded LLM opens a language speaker for the cascade catalog.
  */
 export function DemoVoiceEngineControls({ variant }: DemoVoiceEngineControlsProps) {
   const { engine, setEngine, language, setLanguage, languageOptions, status } = useDemoWebVoice();
   const editable = canChangeDemoWebVoiceLanguage(status);
   const speech = engine === "speech_llm";
   const prefix = variant === "focus" ? "voice-focus" : "demo-web-voice";
-  const languageId = speech ? `${prefix}-language` : `${prefix}-cascade-language`;
-  const languageLabel = speech ? "Speech language" : "Cascaded language";
+  const languageId = `${prefix}-cascade-language`;
 
   function onEngine(next: DemoVoiceEngine) {
     if (!editable) return;
@@ -308,17 +307,19 @@ export function DemoVoiceEngineControls({ variant }: DemoVoiceEngineControlsProp
         </button>
       </div>
 
-      <DemoVoiceLanguageListbox
-        key={engine}
-        id={languageId}
-        label={languageLabel}
-        engine={engine}
-        value={language}
-        options={languageOptions}
-        disabled={!editable}
-        variant={variant}
-        onChange={setLanguage}
-      />
+      {speech ? null : (
+        <DemoVoiceLanguageListbox
+          key={engine}
+          id={languageId}
+          label="Cascaded language"
+          engine={engine}
+          value={language}
+          options={languageOptions}
+          disabled={!editable}
+          variant={variant}
+          onChange={setLanguage}
+        />
+      )}
     </div>
   );
 }
