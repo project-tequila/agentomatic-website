@@ -59,16 +59,16 @@ test("choosing a language or engine updates the store and keeps the active engin
   assert.equal(isDemoVoiceChoiceReady("cascade"), false);
 });
 
-test("active engine with a null or empty language is not ready", () => {
+test("speech LLM stays ready with no language; cascade does not", () => {
   clearDemoVoiceLanguage("speech_llm");
   assert.equal(getDemoVoiceChoice().speechLanguage, null);
-  assert.equal(isDemoVoiceChoiceReady("speech_llm"), false);
+  assert.equal(isDemoVoiceChoiceReady("speech_llm"), true);
 
   chooseDemoVoiceLanguage("speech_llm", "");
-  assert.equal(isDemoVoiceChoiceReady("speech_llm"), false);
+  assert.equal(isDemoVoiceChoiceReady("speech_llm"), true);
 
   chooseDemoVoiceLanguage("speech_llm", "   ");
-  assert.equal(isDemoVoiceChoiceReady("speech_llm"), false);
+  assert.equal(isDemoVoiceChoiceReady("speech_llm"), true);
 
   chooseDemoVoiceEngine("cascade");
   clearDemoVoiceLanguage("cascade");

@@ -9,12 +9,13 @@ import { useDemoVoiceChoiceReady } from "@/lib/demo-call/use-begin-voice-demo";
 import { useDemoWebVoice } from "@/lib/voice/demo-web-voice-context";
 import { cn } from "@/lib/utils";
 
-function statusLine(status: string, isAgentSpeaking: boolean): string {
+function statusLine(status: string, isAgentSpeaking: boolean, engine: string): string {
   if (status === "requesting-mic") return "Allow microphone when prompted";
   if (status === "connecting") return "Connecting";
   if (status === "error") return "Talk unavailable";
   if (isAgentSpeaking) return "Live";
   if (status === "listening") return "Listening";
+  if (engine === "speech_llm") return "Start Talk. Speech LLM follows the language you speak.";
   return "Choose a model and language, then Start Talk";
 }
 
@@ -24,7 +25,7 @@ type DemoWebVoiceTalkProps = {
 
 /**
  * Primary in-browser Talk control for the demo strip. Call me stays as fallback.
- * Speech LLM and cascaded LLM each have their own language speaker.
+ * Speech LLM has no language picker. Cascaded LLM keeps its language speaker.
  */
 export function DemoWebVoiceTalk({ className }: DemoWebVoiceTalkProps) {
   const { status, error, isAgentSpeaking, transcripts, engine, start, stop } = useDemoWebVoice();
@@ -77,7 +78,7 @@ export function DemoWebVoiceTalk({ className }: DemoWebVoiceTalkProps) {
       </div>
 
       <p className="demo-web-voice__status" aria-live="polite">
-        {error ? error : statusLine(status, isAgentSpeaking)}
+        {error ? error : statusLine(status, isAgentSpeaking, engine)}
       </p>
 
       <DemoVoiceTranscript entries={transcripts} variant="strip" />

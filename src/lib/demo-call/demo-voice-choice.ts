@@ -39,7 +39,9 @@ export function getDemoVoiceChoice(): DemoVoiceChoice {
 }
 
 /**
- * True when `engine` is the selected engine and that catalog has a language.
+ * True when `engine` is the selected engine.
+ * Speech LLM needs no language; the backend detects it.
+ * Cascade still needs a catalog language.
  * A snapshot is judged on its own. Omitted, the shared store is judged.
  */
 export function isDemoVoiceChoiceReady(
@@ -47,6 +49,7 @@ export function isDemoVoiceChoiceReady(
   snapshot: DemoVoiceChoice = choice,
 ): boolean {
   if (snapshot.engine !== engine) return false;
+  if (engine === "speech_llm") return true;
   const language = languageFor(snapshot, engine);
   return typeof language === "string" && language.trim().length > 0;
 }
